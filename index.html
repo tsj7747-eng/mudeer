@@ -1007,15 +1007,19 @@ function showLogin(){
     try { signedIn(await api('/login', {method:'POST', json:{code:fval('g_code'), password:fval('g_pw')}})); } catch(err){ toast(errMsg(err), 'bad'); } };
 }
 function showRegister(){
+  // رابط التفعيل من البائع يحمل رمز المدرسة والمفتاح: #code=XXXX-XXXX&key=...
+  const lc = (location.hash.match(/[#&]code=([A-Za-z0-9-]{8,9})/) || [])[1], lk = (location.hash.match(/[#&]key=([A-Za-z2-7-]{90,})/) || [])[1];
+  if (lc) store.set('mdr.newcode', lc.toUpperCase());
   const code = newCode();
   const wa = waLink(SELLER, `السلام عليكم، أرغب في الاشتراك في «منصة المدير» لمدرستي.\nرمز المدرسة: ${code}`);
   gate(`<h1>تفعيل منصة المدير لمدرستك</h1>
+    ${lk ? `<p style="color:var(--ok,#0a7a4f)"><b>وصل مفتاح التفعيل ✓</b> أكمل بيانات المدرسة واختر كلمة المرور في الأسفل.</p>` : ''}
     <p><b>١)</b> أرسل رمز مدرستك للبائع بالواتساب، وبعد إتمام الاشتراك يصلك مفتاح التفعيل.</p>
     <div class="f" style="margin:8px 0"><label>رمز المدرسة</label><div style="display:flex;gap:8px;align-items:center"><b class="phone" style="font-size:22px;letter-spacing:2px" dir="ltr">${esc(code)}</b><button class="btn sm" type="button" data-act="copy" data-v="${esc(code)}">نسخ</button></div></div>
     <a class="btn" href="${esc(wa)}" target="_blank" rel="noopener">إرسال الرمز بالواتساب</a>
     <p style="margin-top:16px"><b>٢)</b> عند وصول المفتاح الصقه هنا، واكتب بيانات المدرسة واختر كلمة مرور لوحة المدير.</p>
     <form id="gForm" class="fg" style="grid-template-columns:1fr">
-      <div class="f"><label for="r_key">مفتاح التفعيل</label><textarea id="r_key" dir="ltr" rows="3" autocomplete="off" spellcheck="false" placeholder="الصق المفتاح كاملًا"></textarea></div>
+      <div class="f"><label for="r_key">مفتاح التفعيل</label><textarea id="r_key" dir="ltr" rows="3" autocomplete="off" spellcheck="false" placeholder="الصق المفتاح كاملًا">${esc(lk || '')}</textarea></div>
       <div class="f"><label for="r_school">اسم المدرسة</label><input id="r_school" placeholder="مثل: مدرسة ... الابتدائية"></div>
       <div class="f"><label for="r_region">الإدارة التعليمية</label><input id="r_region" placeholder="مثل: الإدارة العامة للتعليم بمنطقة الرياض"></div>
       <div class="f"><label for="r_year">العام الدراسي</label><input id="r_year" value="١٤٤٨هـ"></div>
@@ -1025,6 +1029,7 @@ function showRegister(){
       <div class="f"><label for="r_pw2">تأكيد كلمة المرور</label><input id="r_pw2" type="password" autocomplete="new-password"></div>
       <button class="btn pri" type="submit">تفعيل وبدء الاستخدام</button></form>
     <p style="margin-top:14px">مدرستك مشتركة؟ <a href="#" id="toLogin">دخول المدير</a></p>`);
+  if (!lk) { document.activeElement?.blur(); window.scrollTo(0, 0); }
   $('#toLogin').onclick = e => { e.preventDefault(); showLogin(); };
   $('#gForm').onsubmit = async e => { e.preventDefault();
     if (!fval('r_key')) return toast('الصق مفتاح التفعيل', 'bad');
@@ -1091,7 +1096,7 @@ async function startPortal(){
 
 function boot(){
   if (MODE !== 'admin') return startPortal();
-  if (token) startAdmin(); else showLogin();
+  if (token) startAdmin(); else if (/[#&]key=/.test(location.hash) || store.get('mdr.newcode')) showRegister(); else showLogin();
 }
 boot();
 })();
