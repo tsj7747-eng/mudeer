@@ -6,6 +6,17 @@
 <meta name="robots" content="noindex">
 <title>منصة المدير</title>
 <meta name="theme-color" content="#0B6B55">
+<meta name="description" content="منصة المدير: المساءلات وغياب المعلمين والطلاب وكنترول الاختبارات والمحاضر، بتوقيع إلكتروني من الجوال.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="منصة المدير">
+<meta property="og:title" content="منصة المدير">
+<meta property="og:description" content="رابط خاص من إدارة المدرسة للاطلاع والتوقيع الإلكتروني.">
+<meta property="og:image" content="https://mudeer.pages.dev/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="ar_SA">
+<link rel="icon" type="image/png" href="icon180.png">
+<link rel="apple-touch-icon" href="icon180.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Readex+Pro:wght@500;600;700&display=swap">
@@ -46,6 +57,9 @@ a{color:var(--accent)}
 .side{background:var(--surface);border-inline-start:1px solid var(--line);padding-block:24px;padding-inline:18px;display:flex;flex-direction:column;gap:22px;position:sticky;top:env(safe-area-inset-top,0px);height:100vh;overflow:auto}
 .brand{display:flex;flex-direction:column;gap:4px}
 .brand .eyebrow{font-size:12px;color:var(--muted);letter-spacing:.02em}
+.brand .logo{width:112px;background:#fff;border-radius:8px;padding:6px 8px;margin-bottom:6px}
+.brand .logo img,.gate .logo img{display:block;width:100%;height:auto}
+.gate .logo{width:120px;background:#fff;border-radius:8px;padding:6px 8px;align-self:center}
 .brand h1{font-size:20px}
 .brand .school{font-size:13px;color:var(--muted)}
 .nav{display:flex;flex-direction:column;gap:4px}
@@ -172,9 +186,10 @@ table.tbl{border-collapse:collapse;width:100%;min-width:640px;font-size:14px}
 <style id="docCss">
 /* Official paper form: fixed white sheet in both themes, like the printed original. */
 .paper{background:#fff;color:#111;border:1px solid #cfd6d3;border-radius:6px;padding:28px 30px;font-family:"IBM Plex Sans Arabic",Tahoma,sans-serif;font-size:14.5px;line-height:1.9;direction:rtl;max-width:820px;margin:0 auto}
-.paper .dh{display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:center;border-bottom:2px solid #0B6B55;padding-bottom:12px;margin-bottom:14px;font-size:13px}
+.paper .dh{display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:center;border-bottom:2px solid #0B6B55;padding-bottom:10px;margin-bottom:10px;font-size:13px}
+.paper .dh .lg img{height:68px;display:block}
 .paper .dh .l{text-align:left}
-.paper .dt{font-family:"Readex Pro",Tahoma,sans-serif;font-size:19px;font-weight:700;text-align:center;color:#0B6B55;line-height:1.4}
+.paper .dt{font-family:"Readex Pro",Tahoma,sans-serif;font-size:19px;font-weight:700;text-align:center;color:#0B6B55;line-height:1.4;margin:0 0 12px}
 .paper .dt small{display:block;font-size:13px;color:#333;font-weight:500}
 .paper h4{margin:16px 0 6px;font-size:14px;background:#EEF4F1;padding:4px 10px;border-radius:4px;color:#0B4D3E}
 .paper table{width:100%;border-collapse:collapse;font-size:13.5px}
@@ -189,7 +204,23 @@ table.tbl{border-collapse:collapse;width:100%;min-width:640px;font-size:14px}
 .paper .foot{margin-top:18px;border-top:1px solid #ddd;padding-top:8px;font-size:11.5px;color:#555}
 .paper .pend{color:#9A5700}
 .paper .ltr{direction:ltr;unicode-bidi:isolate}
-@media (max-width:600px){.paper{padding:18px 16px}.paper .dh{grid-template-columns:1fr;text-align:center}.paper .dh .l{text-align:center}.paper .sigrow{grid-template-columns:1fr}}
+.paper .dots{color:#9aa3a0;letter-spacing:1px}
+.paper .lines div{border-bottom:1px dotted #9aa3a0;height:28px}
+.paper .sigs{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:16px;margin-top:22px;font-size:13px;text-align:center}
+.paper .sigs .s{display:flex;flex-direction:column;gap:4px}
+.paper .sigs .s div{border-bottom:1px dotted #777;height:40px}
+.paper .ltext{white-space:pre-wrap;line-height:2.1;font-size:15px}
+.paper .lg{text-align:center;font-size:12px;margin:4px 0 8px}
+.paper.land{max-width:1100px}
+.paper table.sheet{table-layout:fixed;font-size:12.5px}
+.paper table.sheet th,.paper table.sheet td{width:auto;text-align:center;height:30px;padding:2px 4px}
+.paper table.sheet.sm th,.paper table.sheet.sm td{height:22px;font-size:11px}
+.paper table.sheet .nm{width:150px;text-align:start}
+.paper table.sheet .n{width:34px}
+.paper table.sheet .rem{width:120px}
+.paper table.sheet td.off{background:repeating-linear-gradient(45deg,#f2f2f2,#f2f2f2 4px,#e2e2e2 4px,#e2e2e2 8px)}
+.paper table.sheet td.bx em{font-size:9.5px;color:#666;font-style:normal;display:block}
+@media (max-width:600px){.paper{padding:18px 16px}.paper .dh{grid-template-columns:1fr;text-align:center}.paper .dh .l{text-align:center}.paper .dh .lg{order:-1;justify-self:center}.paper .sigrow{grid-template-columns:1fr}}
 </style>
 <style>
 /* login and portal screens */
@@ -208,7 +239,9 @@ table.tbl{border-collapse:collapse;width:100%;min-width:640px;font-size:14px}
   body.printing > *:not(#printArea){display:none!important}
   body.printing #printArea{display:block}
   #printArea .paper{border:0;max-width:none;padding:0}
-  @page{size:A4;margin:14mm}
+  #printArea .paper.land{page:land}
+  @page{size:A4;margin:12mm}
+  @page land{size:A4 landscape;margin:10mm}
 }
 </style>
 </head>
@@ -218,6 +251,7 @@ table.tbl{border-collapse:collapse;width:100%;min-width:640px;font-size:14px}
 <div class="app" id="appRoot" hidden>
   <aside class="side">
     <div class="brand">
+      <div class="logo"><img src="logo.jpg" alt="شعار وزارة التعليم"></div>
       <span class="eyebrow" id="regionLine"></span>
       <h1>منصة المدير</h1>
       <span class="school" id="schoolLine"></span>
@@ -260,13 +294,17 @@ const waLink = (phone, text) => { const n = intl(phone); return n ? `https://wa.
 const phoneCell = p => p ? `<span class="phone">${esc(p)}</span> <button class="btn sm" data-act="copy" data-v="${esc(p)}" title="نسخ الرقم">نسخ</button>` : '<span class="m">—</span>';
 
 /* ---------- state ---------- */
-const COLS = ['teachers','absences','notices','committees','exams','parents','docs'];
+const COLS = ['teachers','absences','notices','committees','exams','parents','docs','students','attendance','incidents','schedule','lessons','visits','tasks','grading','ctrlsigns','records'];
+const LOGO = 'data:image/jpeg;base64,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xKKjsITxXhnx+1a/hv7az3zW9q8jLJICQrDjg17mayte0HTdbtvs+o20c0YOQGUGrhLlZxZhh6lejyQdmeM/AG/1Y+J73TIbiS40ZFDh85CtjgV74OlZOheH9L0SLytNs4rdCMEIoGfc1rUpO7uVgKE6FJQm7sKKKKk7RCK89+Inwy0rxTdJfbPKvFJzIHKk/WvQ6KcZOOxz4jDU8RDkqK6OG+HPgHTPBYf7J5jTXCjzHZt3NdwOOKWkOKJSctyqFCnQjywVkKOlBrkvEnj/AMN6FMILzUI1m3FTHySMeuK3tE1Wx1e0jurGdZonUMGU8c03FpXFHE05zcIvUuSoJEKsMg15j4j+CvhPWNdbVnSeKSWTfMqSYVvoO1eo9aKFJrYVfCUsR/EVzO0HSrTR7CKys02xRIEUew6Vo0UUm7msIRhFRjsgo70UGkWUNdM40m6NsSJvKby8dd2OK+TZrjWRqdzO9zdR6stwcqT8/WvsB1DAhhkGsiTw3osmojUH062NyP8AloYxk1pCSR5GZYCeKacHawng1pn8N2LXCuspgQvu65wM1sUkahRgDAFOqG7s9KlBwgot7CFQeoFMjiiQnbGq59BUlFI0smIBS0UUDCjAoooAKKKKACjiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAMUYoooAMUUUUAFFFFABRRRQAGmSA7CB3p5pKBPXQ+cviN4S12HxpqWqx6R9utbslYjvAwcdcdq9S+CuhahoHhOKz1GPZMx83G7OM9q7lo0b7yK31FOUAdBitZVeaNjzMNlkaFZ1U9xaKKKyPUCiiigAooooAMUYoooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACigmigAooooAKKKKACiiigAooooAKKQmkdwgyfpQA6ikJo5xQAtFFFABRRRQAUUUUAFFFFABRRmigAooooAKKKKACiiigAooooAKKKKACiiigAoozRQAUUZFGaACiiigAoopMigBabK2xC3pTqiuhmBvpTW5FR2i2jx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';
 const S = { settings:{}, loaded:false };
 COLS.forEach(c => S[c] = []);
 /* ---------- server ---------- */
 const API = /^(localhost|127\.0\.0\.1)$/.test(location.hostname) ? 'http://127.0.0.1:8799' : 'https://mudeer-api.khuf-school.workers.dev';
 const SELLER = '966535677847';
-const BASE = location.origin + location.pathname;
+// العنوان الرسمي للمنصة؛ النسخة القديمة على GitHub تحوّل إليه مع الحفاظ على الرابط
+const SITE = 'https://mudeer.pages.dev/';
+if (/github\.io$/.test(location.hostname)) location.replace(SITE + location.hash);
+const BASE = /^(localhost|127\.0\.0\.1)$/.test(location.hostname) ? location.origin + location.pathname : SITE;
 const store = { get(k){ try { return localStorage.getItem(k); } catch { return null; } }, set(k,v){ try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k,v); } catch {} } };
 const hashArg = (k) => { const m = location.hash.match(new RegExp('[#&]' + k + '=([0-9a-f]{32})')); return m ? m[1] : ''; };
 const MODE = hashArg('t') ? 'teacher' : hashArg('p') ? 'parent' : 'admin';
@@ -395,22 +433,30 @@ function saveCsv(name, rows){
   const csv = '﻿' + rows.map(r => r.map(v => `"${String(v ?? '').replace(/"/g,'""')}"`).join(',')).join('\r\n');
   saveBlob(name + '.csv', csv, 'text/csv;charset=utf-8');
 }
+// على الجوال يطلق المتصفح afterprint قبل أن يرسم الصفحة، فلو مُسحت الورقة عندها تخرج الطباعة فارغة؛
+// لذلك تبقى الورقة في #printArea حتى الطباعة التالية، ولا تظهر على الشاشة أصلًا.
 function printDoc(inner){
-  $('#printArea').innerHTML = inner; document.body.classList.add('printing');
-  const done = () => { document.body.classList.remove('printing'); $('#printArea').innerHTML = ''; window.removeEventListener('afterprint', done); };
-  window.addEventListener('afterprint', done); setTimeout(() => window.print(), 50);
+  const pa = $('#printArea'); pa.innerHTML = inner; document.body.classList.add('printing');
+  if (navigator.standalone) { // تطبيق الشاشة الرئيسية في iPhone لا يدعم window.print
+    const html = `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>طباعة</title><style>body{margin:16px;background:#fff}${$('#docCss').textContent}@page{size:A4;margin:12mm}@media print{body{margin:0}.paper{border:0}}</style></head><body>${inner}<script>onload=()=>setTimeout(()=>print(),300)<\/script></body></html>`;
+    const w = window.open(URL.createObjectURL(new Blob([html], {type:'text/html'})), '_blank'); if (w) return;
+  }
+  const imgs = [...pa.querySelectorAll('img')].filter(i => !i.complete);
+  Promise.all(imgs.map(i => new Promise(r => { i.onload = i.onerror = r; }))).then(() => setTimeout(() => window.print(), 120));
 }
 async function copyText(v){ try { await navigator.clipboard.writeText(v); toast('تم النسخ: ' + v); } catch { toast('حدّد الرقم وانسخه يدويًا: ' + v); } }
 
 /* ---------- document header ---------- */
 const docHead = (title, sub, no, date) => `<div class="dh">
   <div>المملكة العربية السعودية<br>وزارة التعليم<br>${set().region ? esc(set().region) + '<br>' : ''}${esc(school())}</div>
-  <div class="dt">${esc(title)}${sub ? `<small>${esc(sub)}</small>` : ''}</div>
-  <div class="l">${no ? `الرقم: <span class="num">${esc(no)}</span><br>` : ''}التاريخ: ${esc(date)}<br>العام الدراسي: ${esc(set().year || '١٤٤٨هـ')}</div></div>`;
+  <div class="lg"><img src="${LOGO}" alt="شعار وزارة التعليم"></div>
+  <div class="l">${no ? `الرقم: <span class="num">${esc(no)}</span><br>` : ''}التاريخ: ${esc(date || '..........')}<br>العام الدراسي: ${esc(set().year || '١٤٤٨هـ')}</div></div>
+  ${title ? `<div class="dt">${esc(title)}${sub ? `<small>${esc(sub)}</small>` : ''}</div>` : ''}`;
 const sigRow = (role, name, s) => `<div class="sigrow"><div>${esc(role)}: <b>${esc(name || '—')}</b></div><div class="ln">${s && s.img ? `<img src="${esc(s.img)}" alt="التوقيع">` : '<span class="pend">لم يوقَّع بعد</span>'}</div><div>${s ? 'وقّع في: ' + esc(stamp(s.at)) : ''}</div></div>`;
 
 /* ---------- notices (مساءلات) ---------- */
-const KINDS = ['غياب','تأخر صباحي','خروج قبل نهاية الدوام','عدم دخول حصة'];
+const KINDS = ['غياب','تأخر صباحي','خروج قبل نهاية الدوام','عدم دخول حصة','التأخر عن الحصة','ترك الطلاب دون إشراف','عدم تسليم الخطط أو الرصد','مخالفة إدارية أخرى'];
+const byPeriod = k => /حصة/.test(k);
 const DECISIONS = {
   accept_leave: 'قبول العذر، ويُحتسب من رصيد الإجازة الاضطرارية',
   accept: 'قبول العذر لوجود ما يثبته (مرفق)',
@@ -420,6 +466,10 @@ function kindSentence(n){
   if (n.kind === 'غياب') return 'تبيّن تغيّبكم عن العمل';
   if (n.kind === 'تأخر صباحي') return `تبيّن تأخركم عن بداية الدوام الرسمي${n.minutes ? ` بمقدار ${n.minutes} دقيقة` : ''}`;
   if (n.kind === 'خروج قبل نهاية الدوام') return `تبيّن خروجكم قبل نهاية الدوام الرسمي دون إذن${n.minutes ? ` بمقدار ${n.minutes} دقيقة` : ''}`;
+  if (n.kind === 'التأخر عن الحصة') return `تبيّن تأخركم عن الدخول ${n.period ? 'للحصة ' + n.period : 'للحصة المقررة'}`;
+  if (n.kind === 'ترك الطلاب دون إشراف') return 'تبيّن ترككم الطلاب دون إشراف';
+  if (n.kind === 'عدم تسليم الخطط أو الرصد') return 'تبيّن عدم تسليمكم الخطط أو رصد الدرجات في الموعد المحدد';
+  if (n.kind === 'مخالفة إدارية أخرى') return `لوحظ عليكم ${n.note || 'مخالفة إدارية'}`;
   return `تبيّن عدم دخولكم ${n.period ? 'الحصة ' + n.period : 'الحصة المقررة'}`;
 }
 const nStatus = n => n.status === 'closed' ? ['ok','مغلقة · صدر القرار'] : n.status === 'replied' ? ['info','بانتظار قرار المدير'] : ['warn','بانتظار رد المعلم'];
@@ -476,11 +526,13 @@ const teacherLink = t => t && t.key ? `${BASE}#t=${t.key}` : '';
 const parentLink = p => p && p.key ? `${BASE}#p=${p.key}` : '';
 
 /* ---------- nav & shell ---------- */
-const TABS = [['dash','لوحة المتابعة'],['teachers','المعلمون والغياب'],['notices','المساءلات'],['control','كنترول الاختبارات'],['parents','أولياء الأمور'],['archive','الأرشيف'],['settings','الإعدادات']];
+const TABS = [['dash','لوحة المتابعة'],['sched','متابعة الحصص'],['teachers','المعلمون والغياب'],['notices','المساءلات'],['students','الطلاب'],['control','كنترول الاختبارات'],['parents','أولياء الأمور'],['records','المحاضر والخطابات'],['tasks','المهام'],['archive','الأرشيف'],['settings','الإعدادات']];
 function navBadge(k){
   if (k === 'notices') return S.notices.filter(n => n.status !== 'closed').length;
   if (k === 'parents') return S.parents.filter(p => !p.parentSig).length;
   if (k === 'control') return S.exams.filter(e => e.date === isoDay() && !e.ret).length;
+  if (k === 'tasks') return S.tasks.filter(t => !t.done && t.due && t.due <= isoDay()).length;
+  if (k === 'students') return atRisk().length;
   return 0;
 }
 function renderNav(){
@@ -499,7 +551,7 @@ function render(force){
   renderNav();
   const m = $('#main');
   if (!force && UI.tab === 'settings' && document.getElementById('setForm')) return;
-  const V = {dash:vDash, teachers:vTeachers, notices:vNotices, control:vControl, parents:vParents, archive:vArchive, settings:vSettings}[UI.tab] || vDash;
+  const V = {dash:vDash, sched:vSched, teachers:vTeachers, notices:vNotices, students:vStudents, control:vControl, parents:vParents, records:vRecords, tasks:vTasks, archive:vArchive, settings:vSettings}[UI.tab] || vDash;
   m.innerHTML = V();
 }
 const head = (title, sub, tools) => `<div class="head"><div><h2>${title}</h2>${sub ? `<p>${sub}</p>` : ''}</div>${tools ? `<div class="tools">${tools}</div>` : ''}</div>`;
@@ -527,6 +579,8 @@ function vDash(){
     <div class="kpi ${waitP.length?'bad':''}"><span class="v">${waitP.length}</span><span class="l">بانتظار قرار المدير</span></div>
     <div class="kpi"><span class="v">${exToday.length}</span><span class="l">اختبار اليوم</span></div>
     <div class="kpi ${parPend.length?'warn':''}"><span class="v">${parPend.length}</span><span class="l">نموذج ينتظر ولي الأمر</span></div>
+    ${(() => { const L = todayLessons(); return `<div class="kpi ${L.pct === null ? '' : L.pct >= 95 ? '' : L.pct >= 85 ? 'warn' : 'bad'}"><span class="v">${L.pct === null ? '—' : L.pct + '٪'}</span><span class="l">تنفيذ الحصص اليوم${L.miss ? ` · ${L.miss} لم تُنفَّذ` : ''}</span></div>`; })()}
+    ${(() => { const D = S.attendance.find(x => x.id === today) || {}; const v = Object.entries(D).filter(([k,x]) => k !== 'id' && x); const pr = v.filter(([,x]) => x === 'حاضر' || x === 'متأخر').length; return S.students.length ? `<div class="kpi"><span class="v">${v.length ? Math.round(pr / v.length * 100) + '٪' : '—'}</span><span class="l">حضور الطلاب اليوم</span></div>` : ''; })()}
   </div>
   <div class="grid2">
     <section class="panel"><h3>يحتاج إجراء</h3>
@@ -543,6 +597,13 @@ function vDash(){
         ${set().controlHead ? `<span class="k">رئيس الكنترول</span><span>${esc(set().controlHead)}</span><span>${phoneCell(set().controlPhone)}</span>` : ''}
       </div>
     </section>
+  </div>
+  <div class="grid2">
+    <section class="panel"><h3>الإنذار المبكر للطلاب</h3><p class="sub">يُحدَّث تلقائيًا من الحضور والسلوك حسب الحدود في الإعدادات.</p>
+      ${(() => { const r = atRisk(); return r.length ? `<div class="list">${r.slice(0,8).map(x => `<div class="row"><div><div class="t">${esc(x.s.name)}</div><div class="m">${esc(sClass(x.s))} — ${esc(x.r.join(' · '))}</div></div><button class="btn sm" data-act="studentFile" data-id="${x.s.id}">الملف</button></div>`).join('')}</div>` : `<div class="empty">${S.students.length ? 'لا توجد حالات تستدعي التدخل.' : 'أضف الطلاب من قسم «الطلاب» ليعمل الإنذار المبكر.'}</div>`; })()}</section>
+    <section class="panel"><h3>مهام اليوم</h3>
+      ${(() => { const t = S.tasks.filter(x => !x.done).sort((a,b) => String(a.due||'').localeCompare(String(b.due||''))).slice(0,6); return t.length ? `<div class="list">${t.map(x => `<div class="row"><div><div class="t">${esc(x.title)}</div><div class="m">${x.due ? esc(hij(x.due)) : ''}</div></div><span class="chip ${x.pri === 'عاجل' ? 'bad' : x.pri === 'متوسط' ? 'warn' : 'mute'}">${esc(x.pri || '')}</span></div>`).join('')}</div>` : '<div class="empty">لا مهام مفتوحة.</div>'; })()}
+      <div><button class="btn sm" data-act="tab" data-id="tasks">كل المهام</button></div></section>
   </div>`;
 }
 
@@ -555,7 +616,7 @@ function vTeachers(){
       <td>${phoneCell(t.phone)} ${wa ? `<a class="btn sm wa" href="${esc(wa)}" target="_blank" rel="noopener">واتساب</a>` : ''}</td>
       <td class="num">${g}</td><td class="num">${l}</td><td class="num">${nn}</td>
       <td class="acts"><button class="btn sm" data-act="teacherFile" data-id="${t.id}">السجل</button><button class="btn sm" data-act="copy" data-v="${esc(teacherLink(t))}">نسخ رابط المعلم</button>
-        <button class="btn sm" data-act="recAbs" data-id="${t.id}">تسجيل غياب</button><button class="btn sm" data-act="editTeacher" data-id="${t.id}">تعديل</button><button class="btn sm danger" data-act="delTeacher" data-id="${t.id}">حذف</button></td></tr>`;
+        <button class="btn sm" data-act="recAbs" data-id="${t.id}">تسجيل غياب</button><button class="btn sm" data-act="visit" data-id="${t.id}">زيارة صفية</button><button class="btn sm" data-act="editTeacher" data-id="${t.id}">تعديل</button><button class="btn sm danger" data-act="delTeacher" data-id="${t.id}">حذف</button></td></tr>`;
   }).join('');
   return head('المعلمون والغياب', 'أسماء المعلمين وأرقام جوالاتهم وسجل الغياب والتأخر لكل معلم.',
     (isAdmin() ? `<button class="btn pri" data-act="recAbs">تسجيل غياب أو تأخر</button><button class="btn" data-act="addTeacher">إضافة معلم</button><button class="btn" data-act="bulkTeachers">إضافة مجموعة</button>` : '') + `<button class="btn" data-act="exportAbs">تنزيل سجل الغياب</button>`) + loadingNote() +
@@ -583,12 +644,13 @@ function vNotices(){
 
 function vControl(){
   const ct = UI.cTab;
-  const seg = [['exams','جدول الاختبارات والمظاريف'],['committees','اللجان والطلاب']].map(([k,l]) => `<button data-act="cTab" data-id="${k}" aria-pressed="${ct===k}">${l}</button>`).join('');
+  const seg = [['exams','جدول الاختبارات والمظاريف'],['committees','اللجان والطلاب'],['grading','التصحيح والرصد والتوقيعات']].map(([k,l]) => `<button data-act="cTab" data-id="${k}" aria-pressed="${ct===k}">${l}</button>`).join('');
   const studs = S.committees.reduce((s,c) => s + (c.students||[]).length, 0);
   const done = S.exams.filter(e => e.ret).length;
   const kp = `<div class="kpis"><div class="kpi"><span class="v">${S.committees.length}</span><span class="l">لجنة</span></div><div class="kpi"><span class="v">${studs}</span><span class="l">طالبًا موزعين على اللجان</span></div><div class="kpi"><span class="v">${S.exams.length}</span><span class="l">اختبارًا في الجدول</span></div><div class="kpi ${done<S.exams.length?'warn':''}"><span class="v">${done}/${S.exams.length}</span><span class="l">مظروف أُعيد للكنترول</span></div></div>`;
   let body;
-  if (ct === 'committees') {
+  if (ct === 'grading') body = vGrading();
+  else if (ct === 'committees') {
     body = S.committees.length ? `<div class="cards">${sortBy(S.committees,'name').map(c => `<article class="card"><div class="top"><div><div class="t">${esc(c.name)}</div><div class="m">${esc(c.place||'')}${c.grade ? ' · ' + esc(c.grade) : ''}</div></div><span class="chip info num">${(c.students||[]).length} طالب</span></div>
       <div class="m">أرقام الجلوس: <span class="num">${(c.students||[]).length ? esc(c.students[0].seat) + ' – ' + esc(c.students[c.students.length-1].seat) : '—'}</span></div>
       <div class="acts"><button class="btn sm pri" data-act="viewCommittee" data-id="${c.id}">كشف الطلاب</button>${isAdmin() ? `<button class="btn sm" data-act="editCommittee" data-id="${c.id}">تعديل</button><button class="btn sm danger" data-act="delCommittee" data-id="${c.id}">حذف</button>` : ''}</div></article>`).join('')}</div>`
@@ -598,12 +660,12 @@ function vControl(){
     body = ex.length ? `<div class="tablewrap"><table class="tbl"><thead><tr><th>اليوم والتاريخ</th><th>المادة</th><th>الصف</th><th>الفترة</th><th>اللجنة</th><th>الملاحظ</th><th>استلام الأسئلة</th><th>تسليم الإجابات</th><th></th></tr></thead><tbody>
       ${ex.map(e => `<tr><td>${esc(dayName(e.date))}<div style="font-size:12px;color:var(--muted)">${esc(hij(e.date))}</div></td><td><b>${esc(e.subject)}</b></td><td>${esc(e.grade||'—')}</td><td>${esc(e.period||'—')}</td><td>${esc(committee(e.committeeId)?.name||'—')}</td><td>${esc(tName(e.observerId))}</td>
         <td>${e.recv ? `${sigImg(e.recv,30)}<div style="font-size:12px;color:var(--muted)">${esc(e.recv.name)} · ${esc(stamp(e.recv.at))}</div>` : `<button class="btn sm" data-act="envRecv" data-id="${e.id}">توقيع الاستلام</button>`}</td>
-        <td>${e.ret ? `${sigImg(e.ret,30)}<div style="font-size:12px;color:var(--muted)">حاضر ${esc(e.ret.present)} · غائب ${esc(e.ret.absent)}</div>` : e.recv ? `<button class="btn sm" data-act="envRet" data-id="${e.id}">توقيع التسليم</button>` : '<span class="chip mute">بعد الاستلام</span>'}</td>
+        <td>${e.ret ? `${sigImg(e.ret,30)}<div style="font-size:12px;color:var(--muted)">حاضر ${esc(e.ret.present)} · غائب ${esc(e.ret.absent)}${e.ret.received ? ' · أوراق ' + esc(e.ret.received) : ''}</div>${e.ret.received ? (e.ret.received === e.ret.present ? '<span class="chip ok">مطابق</span>' : '<span class="chip bad">تحقّق: الأوراق لا تطابق الحضور</span>') : ''}` : e.recv ? `<button class="btn sm" data-act="envRet" data-id="${e.id}">توقيع التسليم</button>` : '<span class="chip mute">بعد الاستلام</span>'}</td>
         <td class="acts"><button class="btn sm" data-act="stuAbs" data-id="${e.id}">غياب طالب</button>${isAdmin() ? `<button class="btn sm" data-act="editExam" data-id="${e.id}">تعديل</button><button class="btn sm danger" data-act="delExam" data-id="${e.id}">حذف</button>` : ''}</td></tr>`).join('')}
       </tbody></table></div>` : '<div class="empty">الجدول فارغ. أضف الاختبارات بالمادة والتاريخ واللجنة والملاحظ، ثم يوقّع الملاحظ على استلام الأسئلة وتسليم أوراق الإجابة.</div>';
   }
   return head('كنترول الاختبارات', 'لجان الاختبار، وجدول المواد، وتسليم واستلام المظاريف بتوقيع الملاحظ.',
-    (isAdmin() ? `<button class="btn pri" data-act="${ct==='committees'?'addCommittee':'addExam'}">${ct==='committees'?'إضافة لجنة':'إضافة اختبار'}</button>` : '') + `<button class="btn" data-act="dlEnv">تنزيل محضر المظاريف</button>`) + loadingNote() + kp + `<div class="seg" role="group" aria-label="أقسام الكنترول">${seg}</div>` + body;
+    (isAdmin() && ct !== 'grading' ? `<button class="btn pri" data-act="${ct==='committees'?'addCommittee':'addExam'}">${ct==='committees'?'إضافة لجنة':'إضافة اختبار'}</button>` : '') + `<button class="btn" data-act="dlEnv">تنزيل محضر المظاريف</button>`) + loadingNote() + kp + `<div class="seg" role="group" aria-label="أقسام الكنترول">${seg}</div>` + body;
 }
 
 function vParents(){
@@ -643,6 +705,10 @@ function vSettings(){
       ${f('deputyPhone','جوال الوكيل', s.deputyPhone, 'tel')}
       ${f('controlHead','رئيس لجنة الكنترول', s.controlHead)}
       ${f('controlPhone','جوال رئيس الكنترول', s.controlPhone, 'tel')}
+      ${f('periods','عدد الحصص اليومية', s.periods || 7, 'number')}
+      ${f('missLimit','حد عدم دخول الحصص لإصدار مساءلة', s.missLimit || 2, 'number')}
+      ${f('absLimit','حد غياب الطالب للإنذار المبكر (٪)', s.absLimit || 15, 'number')}
+      ${f('incLimit','عدد المخالفات للإنذار المبكر', s.incLimit || 3, 'number')}
     </div><div><button class="btn pri" type="submit">حفظ الإعدادات</button></div></form>
     <section class="panel"><h3>الدخول للوحة المدير</h3><p class="sub">رمز المدرسة: <b class="phone">${esc(S.code || store.get('mdr.code') || '')}</b> — تحتاجه مع كلمة المرور للدخول من أي جهاز. من يعرفهما يدخل لوحة المدير كاملة، فشاركهما مع الوكيل أو رئيس الكنترول عند الحاجة فقط.</p>
       <div><button class="btn" data-act="changePw">تغيير كلمة المرور</button></div></section>`;
@@ -659,11 +725,12 @@ function teacherForm(id){
     <div class="f"><label for="t_spec">التخصص</label><input id="t_spec" value="${esc(t.specialty)}"></div>
     <div class="f"><label for="t_phone">رقم الجوال</label><input id="t_phone" dir="ltr" inputmode="tel" placeholder="05xxxxxxxx" value="${esc(t.phone)}"></div>
     <div class="f"><label for="t_nid">السجل المدني</label><input id="t_nid" dir="ltr" inputmode="numeric" value="${esc(t.nid)}"></div>
+    <div class="f"><label for="t_role">دوره في الكنترول</label><select id="t_role">${CTRL_ROLES.map(r => `<option value="${r}" ${r === (t.ctrlRole || '') ? 'selected' : ''}>${r || '— يشارك في التصحيح —'}</option>`).join('')}</select><span class="hint">«كنترول» و«ملاحظ» لا يدخلان في توزيع التصحيح التلقائي.</span></div>
     ${id ? `<div class="f full"><label class="check"><input type="checkbox" id="t_rekey"> إلغاء رابط المعلم الحالي وإنشاء رابط جديد</label></div>` : ''}</div>`,
     `<button class="btn pri" id="ok">حفظ</button><button class="btn" data-act="close">إلغاء</button>`);
   $('#ok').onclick = async () => {
     const name = fval('t_name'); if (!name) return toast('اكتب اسم المعلم', 'bad');
-    const data = {...t, name, specialty:fval('t_spec'), phone:fval('t_phone'), nid:fval('t_nid')}; delete data.id;
+    const data = {...t, name, specialty:fval('t_spec'), phone:fval('t_phone'), nid:fval('t_nid'), ctrlRole:fval('t_role')}; delete data.id;
     if (!data.key || document.getElementById('t_rekey')?.checked) data.key = rnd(16);
     if (!id) data.createdAt = Date.now();
     if (await put('teachers/' + (id || newId('teachers')), data)) { closeModal(); toast('تم حفظ بيانات المعلم'); }
@@ -713,7 +780,7 @@ function issueForm(tid, pre){
   $('#ok').onclick = async () => {
     const sig = pads.sig_p?.data(); if (!sig) return toast('وقّع في المربع قبل الإصدار', 'bad');
     const kind = fval('n_k'), m = fval('n_m');
-    const n = {no:nextNo(S.notices), teacherId:fval('n_t'), kind, date:fval('n_d') || today(), issued:today(), minutes: kind === 'عدم دخول حصة' ? '' : m, period: kind === 'عدم دخول حصة' ? m : '', note:fval('n_note'),
+    const n = {no:nextNo(S.notices), teacherId:fval('n_t'), kind, date:fval('n_d') || today(), issued:today(), minutes: byPeriod(kind) ? '' : m, period: byPeriod(kind) ? m : '', note:fval('n_note'),
       status:'issued', principalSig:{img:sig, name:principal(), at:Date.now(), by:me.id}, attachments:[], createdAt:Date.now(), by:me.id, absenceId:pre.absenceId || null};
     const nid = newId('notices');
     if (!await put('notices/' + nid, n)) return;
@@ -779,7 +846,10 @@ function teacherFile(id){
     <h3 style="font-size:15px">الغياب والتأخر (${ab.length})</h3>
     ${ab.length ? `<div class="list">${ab.map(a => `<div class="row"><div><div class="t">${esc(a.type)}${a.minutes ? ' · ' + esc(a.minutes) : ''}</div><div class="m">${esc(dayName(a.date))} ${esc(hij(a.date))}${a.note ? ' · ' + esc(a.note) : ''}</div></div><div class="tools">${a.noticeId ? '<span class="chip info">صدرت مساءلة</span>' : (isAdmin() ? `<button class="btn sm" data-act="issueFromAbs" data-id="${a.id}">إصدار مساءلة</button>` : '')}${isAdmin() ? `<button class="btn sm danger" data-act="delAbs" data-id="${a.id}">حذف</button>` : ''}</div></div>`).join('')}</div>` : '<div class="empty">لا يوجد غياب مسجّل.</div>'}
     <h3 style="font-size:15px">المساءلات (${ns.length})</h3>
-    ${ns.length ? `<div class="list">${ns.map(n => { const [c,l] = nStatus(n); return `<div class="row"><div><div class="t">رقم ${esc(n.no)} · ${esc(n.kind)}</div><div class="m">${esc(hij(n.date))}${n.decision ? ' · ' + esc(DECISIONS[n.decision]) : ''}</div></div><div class="tools"><span class="chip ${c}">${l}</span><button class="btn sm" data-act="viewNotice" data-id="${n.id}">عرض</button></div></div>`; }).join('')}</div>` : '<div class="empty">لا توجد مساءلات.</div>'}`, '', true);
+    ${ns.length ? `<div class="list">${ns.map(n => { const [c,l] = nStatus(n); return `<div class="row"><div><div class="t">رقم ${esc(n.no)} · ${esc(n.kind)}</div><div class="m">${esc(hij(n.date))}${n.decision ? ' · ' + esc(DECISIONS[n.decision]) : ''}</div></div><div class="tools"><span class="chip ${c}">${l}</span><button class="btn sm" data-act="viewNotice" data-id="${n.id}">عرض</button></div></div>`; }).join('')}</div>` : '<div class="empty">لا توجد مساءلات.</div>'}
+    ${(() => { const vs = sortBy(S.visits.filter(v => v.tid === id), 'date', -1); const ls = lessonStat(id);
+      return `<h3 style="font-size:15px">الزيارات الصفية (${vs.length})</h3>${vs.length ? `<div class="list">${vs.map(v => `<div class="row"><div><div class="t num">${v.pct}٪</div><div class="m">${esc(hij(v.date))}${v.lesson ? ' · ' + esc(v.lesson) : ''}</div></div><button class="btn sm" data-act="viewVisit" data-id="${v.id}">عرض</button></div>`).join('')}</div>` : '<div class="empty">لا توجد زيارات.</div>'}
+      <h3 style="font-size:15px">الالتزام بدخول الحصص</h3><p class="m num" style="margin:0">${ls.n} حصة مرصودة · دخل ${ls.inn} · تأخر ${ls.late} · لم يدخل ${ls.miss}${ls.pct !== null ? ' · ' + ls.pct + '٪' : ''}</p>`; })()}`, isAdmin() ? `<button class="btn pri" data-act="visit" data-id="${id}">زيارة صفية جديدة</button>` : '', true);
 }
 
 /* control */
@@ -833,7 +903,7 @@ function envForm(id, kind){
   modal(kind === 'recv' ? 'استلام مظروف الأسئلة' : 'تسليم أوراق الإجابة للكنترول', `<p style="margin:0">${esc(e.subject)} · ${esc(e.grade||'')} · ${esc(dayName(e.date))} ${esc(hij(e.date))} · ${esc(c?.name||'')}</p>
     <div class="fg"><div class="f"><label for="v_t">الملاحظ الموقِّع</label><select id="v_t">${teacherOpts(e.observerId)}</select></div>
     ${kind === 'recv' ? `<div class="f"><label for="v_p">عدد أوراق الأسئلة المستلمة</label><input id="v_p" inputmode="numeric" value="${esc(e.papers || n || '')}"></div>`
-      : `<div class="f"><label for="v_pr">عدد الحاضرين</label><input id="v_pr" inputmode="numeric" value="${n ? n - abs : ''}"></div><div class="f"><label for="v_ab">عدد الغائبين</label><input id="v_ab" inputmode="numeric" value="${abs}"></div>`}
+      : `<div class="f"><label for="v_pr">عدد الحاضرين</label><input id="v_pr" inputmode="numeric" value="${n ? n - abs : ''}"></div><div class="f"><label for="v_ab">عدد الغائبين</label><input id="v_ab" inputmode="numeric" value="${abs}"></div><div class="f"><label for="v_rc">عدد أوراق الإجابة المسلّمة</label><input id="v_rc" inputmode="numeric" value="${n ? n - abs : ''}"></div>`}
     <div class="f full"><label for="v_note">ملاحظات</label><input id="v_note" placeholder="${kind==='recv' ? 'المظروف مختوم وسليم' : 'عدد أوراق الإجابة مطابق'}"></div>
     ${sigField('sig_v', 'توقيع الملاحظ', '')}</div>`,
     `<button class="btn pri" id="ok">توقيع وحفظ</button><button class="btn" data-act="close">إلغاء</button>`);
@@ -841,7 +911,7 @@ function envForm(id, kind){
   $('#ok').onclick = async () => {
     const sig = pads.sig_v?.data(); if (!sig) return toast('وقّع في المربع', 'bad');
     const tid = fval('v_t'); const base = {img:sig, teacherId:tid, name:tName(tid), at:Date.now(), by:me.id, note:fval('v_note')};
-    const upd = kind === 'recv' ? {recv:{...base, papers:fval('v_p')}} : {ret:{...base, present:fval('v_pr'), absent:fval('v_ab')}};
+    const upd = kind === 'recv' ? {recv:{...base, papers:fval('v_p')}} : {ret:{...base, present:fval('v_pr'), absent:fval('v_ab'), received:fval('v_rc')}};
     if (await put('exams/' + id, upd, true)) { closeModal(); toast(kind === 'recv' ? 'سُجّل استلام الأسئلة' : 'سُجّل تسليم أوراق الإجابة'); }
   };
 }
@@ -981,15 +1051,983 @@ document.addEventListener('click', e => {
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('#modalRoot').innerHTML) closeModal(); });
 document.addEventListener('submit', async e => {
   if (e.target.id !== 'setForm') return; e.preventDefault();
-  const keys = ['school','region','year','link','principal','phone','deputy','deputyPhone','controlHead','controlPhone'];
+  const keys = ['school','region','year','principal','phone','deputy','deputyPhone','controlHead','controlPhone','periods','missLimit','absLimit','incLimit'];
   const data = {}; keys.forEach(k => data[k] = fval('s_' + k));
   if (await put('settings/school', data)) { UI.setDirty = false; toast('حُفظت الإعدادات'); }
 });
 document.addEventListener('input', e => { if (e.target.closest('#setForm')) UI.setDirty = true; });
 
+/* ===================== إضافات: الطلاب، متابعة الحصص، الزيارات، المهام، التصحيح، المحاضر ===================== */
+const cfg = () => ({absLimit:+set().absLimit || 15, incLimit:+set().incLimit || 3, missLimit:+set().missLimit || 2, periods:+set().periods || 7});
+// يحفظ المستند كاملًا أول مرة، ثم يدمج الحقول فقط حتى لا يمحو تعديلات جهاز آخر
+const save2 = (col, id, data) => put(col + '/' + id, data, !!S[col].find(x => x.id === id));
+const dots = n => `<span class="dots">${'.'.repeat(n || 30)}</span>`;
+// 13:05 ← ١:٠٥ م
+const tm = t => { const m = String(t || '').match(/^(\d{1,2}):(\d{2})/); if (!m) return t || ''; const h = +m[1]; return `${h % 12 || 12}:${m[2]} ${h < 12 ? 'ص' : 'م'}`; };
+const selOpts = (list, cur) => list.map(o => `<option ${o === cur ? 'selected' : ''}>${esc(o)}</option>`).join('');
+const splitRow = l => l.split(/\s*[-\t،,]\s*/);
+function phoneOf(parts){ return parts.find(x => /\d{9,}/.test(String(x).replace(/\D/g,''))) || ''; }
+
+/* ---------- الطلاب ---------- */
+const DEGREES = {
+  1:{t:'الدرجة الأولى — مخالفة بسيطة', ex:'تأخر عن الحصة، إزعاج، عدم إحضار الكتب', steps:['توجيه شفهي مباشر من المعلم/المرشد','تسجيل الملاحظة في سجل الطالب','إشعار ولي الأمر هاتفيًا عند التكرار']},
+  2:{t:'الدرجة الثانية — مخالفة متوسطة', ex:'تكرار مخالفات الدرجة الأولى، الإهمال المتعمد للواجبات، الغياب بلا عذر', steps:['مقابلة الطالب مع المرشد الطلابي','إشعار خطي لولي الأمر','أخذ تعهد خطي من الطالب','متابعة أسبوعية لمدة أسبوعين']},
+  3:{t:'الدرجة الثالثة — مخالفة كبيرة', ex:'الغش، الإساءة اللفظية، الخروج من المدرسة بلا إذن، التدخين', steps:['استدعاء ولي الأمر وتوقيع محضر','خصم من درجات السلوك وفق اللائحة','تعهد مشدد وإحالة للإرشاد الطلابي','خطة سلوكية فردية لمدة شهر']},
+  4:{t:'الدرجة الرابعة — مخالفة جسيمة', ex:'الاعتداء الجسدي، إتلاف الممتلكات، التزوير، التنمر المتكرر', steps:['عقد لجنة التوجيه الطلابي وتحرير محضر','استدعاء عاجل لولي الأمر','تحويل الطالب للوحدة الإرشادية أو الأخصائي','إشعار إدارة التعليم عند الاقتضاء']},
+  5:{t:'الدرجة الخامسة — مخالفة خطيرة', ex:'حيازة أدوات حادة أو مواد ممنوعة، اعتداء جسيم، تهديد سلامة الآخرين', steps:['عزل الطالب فورًا وتأمين سلامة الجميع','إبلاغ ولي الأمر وإدارة التعليم كتابيًا فورًا','تحرير محضر رسمي مفصّل بالوقائع والشهود','إحالة الحالة للجهة المختصة وفق اللوائح والأنظمة']}
+};
+const ATT = ['حاضر','متأخر','غياب بعذر','غياب بدون عذر'];
+const ATT_C = {'حاضر':'ok','متأخر':'warn','غياب بعذر':'info','غياب بدون عذر':'bad'};
+const student = id => S.students.find(s => s.id === id);
+const sName = id => student(id)?.name || '—';
+const sClass = s => [s.grade, s.cls].filter(Boolean).join(' / ');
+function stuStat(id){
+  let days = 0, abs = 0, exc = 0, late = 0;
+  S.attendance.forEach(d => { const v = d[id]; if (!v) return; days++; if (v === 'غياب بدون عذر') abs++; else if (v === 'غياب بعذر') exc++; else if (v === 'متأخر') late++; });
+  const inc = S.incidents.filter(i => i.studentId === id);
+  return {days, abs, exc, late, rate: days ? Math.round((days - abs - exc) / days * 100) : null, inc, maxDeg: inc.reduce((m,i) => Math.max(m, +i.deg || 0), 0)};
+}
+function atRisk(){
+  const c = cfg();
+  return S.students.map(s => { const st = stuStat(s.id), r = [];
+    if (st.rate !== null && st.rate < 100 - c.absLimit) r.push(`نسبة الحضور ${st.rate}٪`);
+    if (st.inc.length >= c.incLimit) r.push(`${st.inc.length} مخالفات`);
+    if (st.maxDeg >= 4) r.push('مخالفة جسيمة');
+    if (st.late >= 5) r.push(`تأخر ${st.late} مرات`);
+    return {s, st, r}; }).filter(x => x.r.length).sort((a,b) => b.r.length - a.r.length);
+}
+function vStudents(){
+  const tab = UI.sTab || 'list';
+  const seg = [['list','سجل الطلاب'],['att','الحضور اليومي'],['beh','السلوك']].map(([k,l]) => `<button data-act="sTab" data-id="${k}" aria-pressed="${tab===k}">${l}</button>`).join('');
+  const tools = !isAdmin() ? '' : tab === 'list' ? '<button class="btn pri" data-act="addStudent">إضافة طالب</button><button class="btn" data-act="bulkStudents">إضافة مجموعة</button>'
+    : tab === 'beh' ? '<button class="btn pri" data-act="addIncident">تسجيل مخالفة</button>' : '';
+  let body;
+  if (tab === 'att') body = vAttendance();
+  else if (tab === 'beh') body = vBehavior();
+  else {
+    const rows = sortBy(S.students, 'name').map(s => { const st = stuStat(s.id);
+      const wa = waLink(s.phone, `ولي أمر الطالب/ ${s.name}\nالسلام عليكم ورحمة الله وبركاته\n`);
+      return `<tr data-q="${esc([s.name, s.grade, s.cls, s.guard].join(' '))}"><td><b>${esc(s.name)}</b><div style="font-size:12px;color:var(--muted)">${esc(sClass(s))}</div></td>
+        <td>${esc(s.guard || '—')}<div>${s.phone ? `<span class="phone">${esc(s.phone)}</span>` : ''} ${wa ? `<a class="btn sm wa" href="${esc(wa)}" target="_blank" rel="noopener">واتساب</a>` : ''}</div></td>
+        <td>${st.rate === null ? '—' : `<span class="chip ${st.rate >= 90 ? 'ok' : st.rate >= 80 ? 'warn' : 'bad'} num">${st.rate}٪</span>`}</td>
+        <td class="num">${st.abs}</td><td class="num">${st.inc.length}</td>
+        <td class="acts"><button class="btn sm" data-act="studentFile" data-id="${s.id}">الملف</button>${isAdmin() ? `<button class="btn sm" data-act="editStudent" data-id="${s.id}">تعديل</button><button class="btn sm danger" data-act="delStudent" data-id="${s.id}">حذف</button>` : ''}</td></tr>`; }).join('');
+    body = S.students.length ? `<div class="f" style="max-width:360px"><input id="stuQ" placeholder="ابحث بالاسم أو الصف أو الفصل" aria-label="بحث في الطلاب"></div>
+      <div class="tablewrap"><table class="tbl" id="stuTbl"><thead><tr><th>الطالب</th><th>ولي الأمر</th><th>الحضور</th><th>غياب بلا عذر</th><th>مخالفات</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`
+      : '<div class="empty">لا يوجد طلاب بعد. اضغط «إضافة مجموعة» والصق الأسماء من نور أو Excel دفعة واحدة.</div>';
+  }
+  return head('الطلاب', 'سجل الطلاب وأولياء أمورهم، والحضور اليومي، والمخالفات السلوكية مع الإجراء المقترح.', tools) + loadingNote() +
+    `<div class="seg" role="group" aria-label="أقسام الطلاب">${seg}</div>` + body;
+}
+document.addEventListener('input', e => {
+  if (e.target.id !== 'stuQ') return; const q = e.target.value.trim();
+  document.querySelectorAll('#stuTbl tbody tr').forEach(r => { r.hidden = q && !r.dataset.q.includes(q); });
+});
+function studentForm(id){
+  const s = id ? student(id) : {};
+  modal(id ? 'تعديل بيانات طالب' : 'إضافة طالب', `<div class="fg">
+    <div class="f full"><label for="st_n">الاسم الرباعي</label><input id="st_n" value="${esc(s.name)}"></div>
+    <div class="f"><label for="st_g">الصف</label><input id="st_g" value="${esc(s.grade)}" placeholder="الخامس"></div>
+    <div class="f"><label for="st_c">الفصل</label><input id="st_c" value="${esc(s.cls)}" placeholder="أ"></div>
+    <div class="f"><label for="st_pn">ولي الأمر</label><input id="st_pn" value="${esc(s.guard)}"></div>
+    <div class="f"><label for="st_pp">جوال ولي الأمر</label><input id="st_pp" dir="ltr" inputmode="tel" placeholder="05xxxxxxxx" value="${esc(s.phone)}"></div>
+    <div class="f full"><label for="st_note">ملاحظات</label><input id="st_note" value="${esc(s.note)}" placeholder="حالة صحية، احتياج خاص…"></div></div>`,
+    `<button class="btn pri" id="ok">حفظ</button><button class="btn" data-act="close">إلغاء</button>`);
+  $('#ok').onclick = async () => {
+    const name = fval('st_n'); if (!name) return toast('اكتب اسم الطالب', 'bad');
+    const data = {name, grade:fval('st_g'), cls:fval('st_c'), guard:fval('st_pn'), phone:fval('st_pp'), note:fval('st_note'), createdAt:s.createdAt || Date.now()};
+    if (await put('students/' + (id || newId()), data)) { closeModal(); toast('حُفظ الطالب'); }
+  };
+}
+function bulkStudentsForm(){
+  modal('إضافة مجموعة طلاب', `<div class="f full"><label for="bs_txt">سطر لكل طالب: الاسم - الصف - الفصل - جوال ولي الأمر</label><textarea id="bs_txt" style="min-height:220px" placeholder="عبدالله محمد القحطاني - الخامس - أ - 0550000000"></textarea><span class="hint">يمكن الفصل بـ «-» أو فاصلة أو علامة تبويب عند النسخ من Excel أو نور. الصف والفصل والجوال اختيارية.</span></div>`,
+    `<button class="btn pri" id="ok">إضافة</button><button class="btn" data-act="close">إلغاء</button>`);
+  $('#ok').onclick = async () => {
+    const lines = fval('bs_txt').split(/\n+/).map(l => l.trim()).filter(Boolean); if (!lines.length) return;
+    $('#ok').disabled = true; let n = 0;
+    for (const l of lines) { const p = splitRow(l); const phone = phoneOf(p); const rest = p.filter(x => x !== phone);
+      if (await put('students/' + newId(), {name:rest[0] || l, grade:rest[1] || '', cls:rest[2] || '', guard:'', phone, note:'', createdAt:Date.now()})) n++; else break; }
+    closeModal(); toast(`أُضيف ${n} طالبًا`);
+  };
+}
+function studentFile(id){
+  const s = student(id); if (!s) return; const st = stuStat(id);
+  modal(s.name, `<p style="margin:0;color:var(--muted)">${esc(sClass(s))} · ولي الأمر: ${esc(s.guard || '—')} ${s.phone ? '· <span class="phone">' + esc(s.phone) + '</span>' : ''}</p>
+    ${s.note ? `<div class="notice-bar info">${esc(s.note)}</div>` : ''}
+    <div class="kpis"><div class="kpi"><span class="v">${st.rate === null ? '—' : st.rate + '٪'}</span><span class="l">نسبة الحضور</span></div><div class="kpi ${st.abs ? 'warn' : ''}"><span class="v">${st.abs}</span><span class="l">غياب بلا عذر</span></div><div class="kpi"><span class="v">${st.late}</span><span class="l">تأخر</span></div><div class="kpi ${st.inc.length ? 'bad' : ''}"><span class="v">${st.inc.length}</span><span class="l">مخالفات</span></div></div>
+    <h3 style="font-size:15px">سجل السلوك</h3>
+    ${st.inc.length ? `<div class="list">${sortBy(st.inc, 'date', -1).map(i => `<div class="row"><div><div class="t">${esc(DEGREES[i.deg]?.t || '')}</div><div class="m">${esc(hij(i.date))} — ${esc(i.desc || '')}</div></div><span class="chip ${i.status === 'closed' ? 'ok' : 'warn'}">${i.status === 'closed' ? 'عولجت' : 'مفتوحة'}</span></div>`).join('')}</div>` : '<div class="empty">لا توجد مخالفات مسجلة.</div>'}`,
+    isAdmin() ? `<button class="btn pri" data-act="stuParent" data-id="${id}">إشعار لولي الأمر للتوقيع</button><button class="btn" data-act="stuLetter" data-id="${id}">إصدار خطاب</button><button class="btn" data-act="addIncident" data-id="${id}">تسجيل مخالفة</button>` : '', true);
+}
+// ينشئ نموذجًا يوقّعه ولي الأمر من رابطه
+async function parentNotice(sid, kind, body, extra){
+  const s = student(sid); if (!s) return;
+  const p = {kind, student:s.name, grade:sClass(s), date:today(), parentName:s.guard || '', parentPhone:s.phone || '', body, attachments:[], createdAt:Date.now(), no:nextNo(S.parents), key:rnd(16), studentId:sid, ...(extra || {})};
+  const pid = newId(); if (await put('parents/' + pid, p)) { toast('أُنشئ النموذج، أرسله لولي الأمر'); viewParent(pid, p); }
+}
+function stuParentForm(sid){
+  const s = student(sid); if (!s) return; const st = stuStat(sid);
+  const kinds = {
+    'إشعار غياب طالب': `نحيطكم علمًا بأن ابنكم الطالب/ ${s.name} بالصف ${sClass(s)} قد بلغ عدد أيام غيابه دون عذر (${st.abs}) يومًا${st.rate !== null ? '، ونسبة حضوره (' + st.rate + '٪)' : ''}. ونظرًا لأثر الغياب على تحصيله الدراسي نأمل متابعة انتظامه وتزويد المدرسة بما يثبت العذر خلال ثلاثة أيام عمل.`,
+    'استدعاء ولي أمر': `نأمل من سعادتكم التكرم بزيارة المدرسة يوم ...... الموافق ...... الساعة ...... لمناقشة بعض الأمور المتعلقة بابنكم الطالب/ ${s.name} بالصف ${sClass(s)}، بما يحقق مصلحته ويدعم مسيرته الدراسية.`,
+    'إنذار سلوكي': `بناءً على ما رُصد على ابنكم الطالب/ ${s.name} بالصف ${sClass(s)} من مخالفات سلوكية بلغت (${st.inc.length}) مخالفة، فقد رأت إدارة المدرسة توجيه إنذار خطي للطالب مع الالتزام بالإجراءات النظامية المتدرجة الواردة في قواعد السلوك والمواظبة، ونأمل تعاونكم في متابعته.`,
+    'إشعار وتعهد': `نحيطكم علمًا بخصوص ابنكم الطالب/ ${s.name} بالصف ${sClass(s)} بما يلي: …`
+  };
+  modal('إشعار لولي الأمر — ' + s.name, `<div class="fg"><div class="f full"><label for="sp_k">نوع الإشعار</label><select id="sp_k">${selOpts(Object.keys(kinds))}</select></div>
+    <div class="f full"><label for="sp_b">نص الإشعار</label><textarea id="sp_b" style="min-height:140px"></textarea><span class="hint">يتعبأ حسب النوع ويمكن تعديله. يوقّع ولي الأمر من الرابط الذي يصله بالواتساب.</span></div></div>`,
+    `<button class="btn pri" id="ok">إنشاء الإشعار</button><button class="btn" data-act="close">إلغاء</button>`);
+  const fill = () => { $('#sp_b').value = kinds[fval('sp_k')]; }; $('#sp_k').onchange = fill; fill();
+  $('#ok').onclick = () => parentNotice(sid, fval('sp_k'), fval('sp_b'));
+}
+
+function vAttendance(){
+  const date = UI.attDate || today(), g = UI.attGrade || '';
+  const grades = [...new Set(S.students.map(s => s.grade).filter(Boolean))];
+  const list = sortBy(S.students.filter(s => !g || s.grade === g), 'name');
+  const D = S.attendance.find(x => x.id === date) || {};
+  const cnt = {}; ATT.forEach(a => cnt[a] = list.filter(s => D[s.id] === a).length);
+  const un = list.filter(s => !D[s.id]).length;
+  return `<div class="panel"><div class="fg">
+      <div class="f"><label for="attDate">التاريخ</label><input type="date" id="attDate" value="${esc(date)}"><span class="hint">${esc(dayName(date))} ${esc(hij(date))}</span></div>
+      <div class="f"><label for="attGrade">الصف</label><select id="attGrade"><option value="">كل الصفوف</option>${grades.map(x => `<option ${x === g ? 'selected' : ''}>${esc(x)}</option>`).join('')}</select></div></div>
+    <div class="tools">${ATT.map(a => `<span class="chip ${ATT_C[a]}">${a}: ${cnt[a]}</span>`).join('')}<span class="chip mute">لم يُرصد: ${un}</span>
+      ${isAdmin() && un ? '<button class="btn sm" data-act="allPresent">تحديد غير المرصودين حاضرين</button>' : ''}</div></div>
+    ${list.length ? `<div class="tablewrap"><table class="tbl"><thead><tr><th>الطالب</th><th>الحالة</th><th></th></tr></thead><tbody>${list.map(s => { const v = D[s.id];
+      const wa = v === 'غياب بدون عذر' && waLink(s.phone, `ولي أمر الطالب/ ${s.name}\nالسلام عليكم ورحمة الله وبركاته\nنحيطكم علمًا بغياب ابنكم اليوم ${dayName(date)} ${hij(date)} دون عذر. نأمل متابعته وتزويد المدرسة بالعذر إن وجد.\n${school()}`);
+      return `<tr><td><b>${esc(s.name)}</b><div style="font-size:12px;color:var(--muted)">${esc(sClass(s))}</div></td>
+      <td><div class="seg">${ATT.map(a => `<button data-act="mark" data-id="${s.id}" data-v="${a}" aria-pressed="${v === a}">${a}</button>`).join('')}</div></td>
+      <td>${wa ? `<a class="btn sm wa" href="${esc(wa)}" target="_blank" rel="noopener">إشعار ولي الأمر</a>` : ''}</td></tr>`; }).join('')}</tbody></table></div>`
+      : '<div class="empty">لا يوجد طلاب في هذا الصف. أضف الطلاب من «سجل الطلاب».</div>'}
+    <div class="notice-bar info">الغياب بدون عذر يدخل في «الإنذار المبكر» في لوحة المتابعة عند تجاوز ${cfg().absLimit}٪ (يُضبط من الإعدادات).</div>`;
+}
+document.addEventListener('change', e => {
+  if (e.target.id === 'attDate') { UI.attDate = e.target.value; render(true); }
+  if (e.target.id === 'attGrade') { UI.attGrade = e.target.value; render(true); }
+  if (e.target.id === 'schDate') { UI.schDate = e.target.value; UI.schDay = null; render(true); }
+  if (e.target.id === 'schDay') { UI.schDay = +e.target.value; render(true); }
+});
+function markAll(){
+  const date = UI.attDate || today(), g = UI.attGrade || ''; const D = S.attendance.find(x => x.id === date) || {};
+  const upd = {}; S.students.filter(s => (!g || s.grade === g) && !D[s.id]).forEach(s => upd[s.id] = 'حاضر');
+  if (Object.keys(upd).length) save2('attendance', date, upd).then(ok => ok && toast('رُصد الحضور'));
+}
+
+function vBehavior(){
+  const list = sortBy(S.incidents, 'date', -1);
+  return list.length ? `<div class="cards">${list.map(i => { const s = student(i.studentId);
+    return `<article class="card"><div class="top"><div><div class="t">${esc(s ? s.name : i.studentName || '—')}</div><div class="m">${esc(s ? sClass(s) : '')} · ${esc(hij(i.date))}</div></div><span class="chip ${+i.deg >= 4 ? 'bad' : +i.deg >= 3 ? 'warn' : 'info'}">الدرجة ${esc(i.deg)}</span></div>
+      <div class="m">${esc(i.desc || '')}</div>
+      <div class="acts"><span class="chip ${i.status === 'closed' ? 'ok' : 'warn'}">${i.status === 'closed' ? 'عولجت' : 'مفتوحة'}</span>
+        ${isAdmin() ? `<button class="btn sm" data-act="togIncident" data-id="${i.id}">${i.status === 'closed' ? 'إعادة فتح' : 'إغلاق'}</button>${s ? `<button class="btn sm" data-act="incParent" data-id="${i.id}">إشعار ولي الأمر</button>` : ''}<button class="btn sm danger" data-act="delIncident" data-id="${i.id}">حذف</button>` : ''}</div></article>`; }).join('')}</div>`
+    : '<div class="empty">السجل نظيف، لم تُسجَّل مخالفات.</div>';
+}
+function incidentForm(sid){
+  if (!S.students.length) return toast('أضف الطلاب أولًا', 'bad');
+  modal('تسجيل مخالفة سلوكية', `<div class="fg">
+    <div class="f full"><label for="in_s">الطالب</label><select id="in_s">${sortBy(S.students,'name').map(s => `<option value="${s.id}" ${s.id === sid ? 'selected' : ''}>${esc(s.name)} — ${esc(sClass(s))}</option>`).join('')}</select></div>
+    <div class="f"><label for="in_d">التاريخ</label><input id="in_d" type="date" value="${today()}"></div>
+    <div class="f"><label for="in_g">درجة المخالفة</label><select id="in_g">${[1,2,3,4,5].map(d => `<option value="${d}">${DEGREES[d].t}</option>`).join('')}</select></div>
+    <div class="f full"><label for="in_desc">وصف الواقعة (المكان والوقت والشهود)</label><textarea id="in_desc" placeholder="اذكر الوقائع كما هي دون أحكام مسبقة"></textarea></div>
+    <div class="f full notice-bar info" id="in_hint"></div></div>`,
+    `<button class="btn pri" id="ok">حفظ المخالفة</button><button class="btn" data-act="close">إلغاء</button>`);
+  const hint = () => { const d = DEGREES[fval('in_g')]; $('#in_hint').innerHTML = `<b>أمثلة:</b> ${esc(d.ex)}<br><b>الإجراء المقترح:</b><br>${d.steps.map((x,i) => `${i+1}. ${esc(x)}`).join('<br>')}`; };
+  $('#in_g').onchange = hint; hint();
+  $('#ok').onclick = async () => {
+    const data = {studentId:fval('in_s'), date:fval('in_d') || today(), deg:fval('in_g'), desc:fval('in_desc'), status:'open', createdAt:Date.now()};
+    if (await put('incidents/' + newId(), data)) { closeModal(); toast('سُجّلت المخالفة'); }
+  };
+}
+function incParent(id){
+  const i = S.incidents.find(x => x.id === id); const s = i && student(i.studentId); if (!s) return;
+  parentNotice(s.id, 'إشعار مخالفة سلوكية', `نحيطكم علمًا بأن ابنكم الطالب/ ${s.name} بالصف ${sClass(s)} صدرت منه بتاريخ ${hij(i.date)} مخالفة سلوكية من ${DEGREES[i.deg]?.t || ''}، وتتمثل في: ${i.desc || '…'}.\nوقد اتخذت المدرسة الإجراءات النظامية وفق قواعد السلوك والمواظبة، ونأمل تعاونكم في متابعة ابنكم وتوجيهه.`, {incidentId:id});
+}
+
+/* ---------- متابعة الحصص ودخول المعلمين ---------- */
+const DAYS5 = ['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس'];
+const LMARK = [['دخل','✓'],['متأخر','⏱'],['لم يدخل','✗']];
+const wdOf = iso => Math.min(parseD(iso).getDay(), 4);
+function lessonStat(tid){
+  let n = 0, inn = 0, late = 0, miss = 0;
+  S.lessons.forEach(d => Object.entries(d).forEach(([k,v]) => { if (k === 'id' || !v || v.t !== tid) return; n++; if (v.s === 'دخل') inn++; else if (v.s === 'متأخر') late++; else if (v.s === 'لم يدخل') miss++; }));
+  return {n, inn, late, miss, pct: n ? Math.round((inn + late * .5) / n * 100) : null};
+}
+function todayLessons(){
+  const d = today(), L = S.lessons.find(x => x.id === d) || {};
+  const marks = Object.entries(L).filter(([k,v]) => k !== 'id' && v && v.s);
+  const ok = marks.filter(([,v]) => v.s !== 'لم يدخل').length;
+  return {n: marks.length, miss: marks.length - ok, pct: marks.length ? Math.round(ok / marks.length * 100) : null};
+}
+function vSched(){
+  const date = UI.schDate || today(), day = UI.schDay ?? wdOf(date), c = cfg();
+  const rows = S.schedule.filter(e => +e.day === day).sort((a,b) => a.p - b.p);
+  const L = S.lessons.find(x => x.id === date) || {};
+  const done = rows.filter(e => L[e.id]?.s).length;
+  const tStats = sortBy(S.teachers, 'name').map(t => ({t, s:lessonStat(t.id)}));
+  return head('متابعة الحصص', 'رصد دخول المعلمين لحصصهم يوميًا من الجدول الأسبوعي، وسجل الالتزام، ونماذج المتابعة للطباعة.',
+      (isAdmin() ? '<button class="btn pri" data-act="addSlot">إضافة حصة للجدول</button>' : '') + '<button class="btn" data-act="fullSched">الجدول الكامل</button>') + loadingNote() +
+    `<section class="panel"><div class="fg">
+      <div class="f"><label for="schDate">التاريخ</label><input type="date" id="schDate" value="${esc(date)}"><span class="hint">${esc(hij(date))}</span></div>
+      <div class="f"><label for="schDay">اليوم الدراسي</label><select id="schDay">${DAYS5.map((n,i) => `<option value="${i}" ${i === day ? 'selected' : ''}>${n}</option>`).join('')}</select></div></div>
+      <div class="tools"><span class="chip info">رُصد ${done} من ${rows.length} حصة</span>${isAdmin() && rows.length ? '<button class="btn sm" data-act="allIn">الجميع دخل</button>' : ''}<span class="m" style="font-size:13px;color:var(--muted)">✓ دخل · ⏱ متأخر · ✗ لم يدخل. اضغط الرمز مرة أخرى لإلغائه.</span></div>
+      ${rows.length ? `<div class="tablewrap"><table class="tbl" style="min-width:520px"><thead><tr><th>الحصة</th><th>المعلم</th><th>الفصل</th><th>الرصد</th></tr></thead><tbody>${rows.map(e => { const m = L[e.id]?.s;
+        return `<tr><td class="num"><b>${esc(e.p)}</b></td><td>${esc(tName(e.tid))}</td><td>${esc(e.cls || '—')}</td><td><div class="seg">${LMARK.map(([s,sym]) => `<button data-act="lmark" data-id="${e.id}" data-v="${s}" aria-pressed="${m === s}" title="${s}">${sym} ${s}</button>`).join('')}</div></td></tr>`; }).join('')}</tbody></table></div>`
+        : `<div class="empty">لا توجد حصص مسجلة يوم ${DAYS5[day]}. ابنِ الجدول الأسبوعي من زر «إضافة حصة للجدول»، ويتكرر تلقائيًا طوال الفصل.</div>`}</section>
+    <section class="panel"><h3>سجل الالتزام — الفصل الدراسي</h3>
+      ${tStats.length ? `<div class="list">${tStats.map(({t,s}) => `<div class="row"><div><div class="t">${esc(t.name)}</div><div class="m num">${s.n} حصة · دخل ${s.inn} · تأخر ${s.late} · لم يدخل ${s.miss}</div></div><div class="tools">${s.pct !== null ? `<span class="chip ${s.pct >= 95 ? 'ok' : s.pct >= 85 ? 'warn' : 'bad'} num">${s.pct}٪</span>` : ''}${isAdmin() && s.miss >= c.missLimit ? `<button class="btn sm danger" data-act="lessonNotice" data-id="${t.id}">إصدار مساءلة</button>` : ''}</div></div>`).join('')}</div>` : '<div class="empty">أضف المعلمين أولًا.</div>'}</section>
+    <section class="panel"><h3>نماذج المتابعة للطباعة</h3><p class="sub">تُطبع الخانات فارغة مع اسم الفصل المجدول، والخانات المظللة تعني لا يوجد نصاب.</p>
+      <div class="fg"><div class="f"><label for="shT">المعلم (للنموذج الأسبوعي والشهري)</label><select id="shT">${teacherOpts()}</select></div></div>
+      <div class="tools"><button class="btn" data-act="sheet" data-id="day">يومي — كل المعلمين</button><button class="btn" data-act="sheet" data-id="week">أسبوعي — معلم</button><button class="btn" data-act="sheet" data-id="month">شهري — معلم</button></div></section>`;
+}
+function lmark(id, v){
+  const date = UI.schDate || today(), e = S.schedule.find(x => x.id === id); if (!e) return;
+  const cur = (S.lessons.find(x => x.id === date) || {})[id];
+  save2('lessons', date, {[id]: cur?.s === v ? null : {s:v, t:e.tid}});
+}
+function allIn(){
+  const date = UI.schDate || today(), day = UI.schDay ?? wdOf(date); const L = S.lessons.find(x => x.id === date) || {};
+  const upd = {}; S.schedule.filter(e => +e.day === day && !L[e.id]?.s).forEach(e => upd[e.id] = {s:'دخل', t:e.tid});
+  if (Object.keys(upd).length) save2('lessons', date, upd).then(ok => ok && toast('رُصدت الحصص'));
+}
+function slotForm(){
+  if (!S.teachers.length) return toast('أضف المعلمين أولًا', 'bad');
+  const P = cfg().periods;
+  modal('إضافة حصة للجدول الأسبوعي', `<div class="fg">
+    <div class="f full"><label for="sl_t">المعلم</label><select id="sl_t">${teacherOpts(UI.slT)}</select></div>
+    <div class="f"><label for="sl_d">اليوم</label><select id="sl_d">${DAYS5.map((n,i) => `<option value="${i}" ${i === (UI.slD ?? 0) ? 'selected' : ''}>${n}</option>`).join('')}</select></div>
+    <div class="f"><label for="sl_p">الحصة</label><select id="sl_p">${Array.from({length:P}, (_,i) => `<option value="${i+1}">الحصة ${i+1}</option>`).join('')}</select></div>
+    <div class="f full"><label for="sl_c">الفصل</label><input id="sl_c" placeholder="٥/أ"></div></div>
+    <p style="margin:0;color:var(--muted);font-size:13px">بعد الإضافة تبقى النافذة مفتوحة لإدخال الحصة التالية بسرعة.</p>`,
+    `<button class="btn pri" id="ok">إضافة</button><button class="btn" data-act="close">تم</button>`);
+  $('#ok').onclick = async () => {
+    const d = {tid:fval('sl_t'), day:+fval('sl_d'), p:+fval('sl_p'), cls:fval('sl_c')};
+    if (S.schedule.some(x => x.tid === d.tid && +x.day === d.day && +x.p === d.p)) return toast('هذه الحصة مسجلة للمعلم من قبل', 'bad');
+    UI.slT = d.tid; UI.slD = d.day;
+    if (await put('schedule/' + newId(), d)) { toast(`أُضيفت: ${tName(d.tid)} · ${DAYS5[d.day]} · الحصة ${d.p}`); $('#sl_c').value = ''; const ps = $('#sl_p'); if (ps && ps.selectedIndex < ps.options.length - 1) ps.selectedIndex++; }
+  };
+}
+function fullSched(){
+  const P = cfg().periods;
+  modal('الجدول الأسبوعي', S.schedule.length ? DAYS5.map((n,i) => { const r = S.schedule.filter(e => +e.day === i).sort((a,b) => a.p - b.p || tName(a.tid).localeCompare(tName(b.tid)));
+    return `<h3 style="font-size:15px">${n} (${r.length})</h3>${r.length ? `<div class="list">${r.map(e => `<div class="row"><div><span class="num"><b>الحصة ${esc(e.p)}</b></span> · ${esc(tName(e.tid))} · ${esc(e.cls || '')}</div>${isAdmin() ? `<button class="btn sm danger" data-act="delSlot" data-id="${e.id}">حذف</button>` : ''}</div>`).join('')}</div>` : '<div class="m" style="color:var(--muted)">لا حصص</div>'}`; }).join('') : '<div class="empty">الجدول فارغ.</div>',
+    `<span class="m" style="color:var(--muted);font-size:13px">عدد الحصص اليومية: ${P} (من الإعدادات)</span>`, true);
+}
+function sheetDoc(kind, tid){
+  const P = cfg().periods, PS = Array.from({length:P}, (_,i) => i + 1);
+  const t = teacher(tid) || {name:'', specialty:''};
+  const date = UI.schDate || today(), day = UI.schDay ?? wdOf(date);
+  const cell = (tt, dd, pp) => { const e = S.schedule.find(x => x.tid === tt && +x.day === dd && +x.p === pp); return e ? `<td class="bx"><em>${esc(e.cls || '')}</em></td>` : '<td class="off"></td>'; };
+  let title, sub, table;
+  if (kind === 'day') {
+    title = 'نموذج المتابعة اليومية لدخول المعلمين للحصص'; sub = `اليوم: ${DAYS5[day]} — التاريخ: ${hij(date)} — المناوب: ....................`;
+    const ts = sortBy(S.teachers, 'name');
+    table = `<table class="sheet"><thead><tr><th class="n">م</th><th class="nm">اسم المعلم</th>${PS.map(p => `<th>الحصة ${p}</th>`).join('')}<th class="rem">الملاحظات / الإجراء</th></tr></thead><tbody>
+      ${(ts.length ? ts : Array(12).fill(null)).map((x,i) => `<tr><td class="n">${i+1}</td><td class="nm">${x ? esc(x.name) : ''}</td>${PS.map(p => x ? cell(x.id, day, p) : '<td class="bx"></td>').join('')}<td class="rem"></td></tr>`).join('')}</tbody></table>`;
+  } else if (kind === 'week') {
+    title = 'نموذج المتابعة الأسبوعية لدخول المعلم للحصص'; sub = `المعلم: ${t.name || '..........'} — التخصص: ${t.specialty || '..........'} — الأسبوع: .......... — من: ${hij(date)}`;
+    table = `<table class="sheet"><thead><tr><th class="nm">اليوم</th>${PS.map(p => `<th>الحصة ${p}</th>`).join('')}<th class="rem">ملاحظات</th></tr></thead><tbody>${DAYS5.map((n,i) => `<tr><td class="nm">${n}</td>${PS.map(p => cell(tid, i, p)).join('')}<td class="rem"></td></tr>`).join('')}</tbody></table>`;
+  } else {
+    title = 'نموذج المتابعة الشهرية لدخول المعلم للحصص'; sub = `المعلم: ${t.name || '..........'} — التخصص: ${t.specialty || '..........'} — الشهر: ..........`;
+    table = `<table class="sheet sm"><thead><tr><th class="n">م</th><th class="nm">اليوم والتاريخ</th>${PS.map(p => `<th>${p}</th>`).join('')}<th class="rem">ملاحظات</th></tr></thead><tbody>${Array.from({length:22}, (_,i) => `<tr><td class="n">${i+1}</td><td class="nm"></td>${PS.map(() => '<td class="bx"></td>').join('')}<td class="rem"></td></tr>`).join('')}</tbody></table>`;
+  }
+  return `<div class="paper land">${docHead(title, sub, '', hij(today()))}
+    <p class="lg"><b>مفتاح الرصد:</b> ( ✓ ) دخل في وقتها · ( ✗ ) لم يدخل · ( ت ) متأخر · ( ع ) عذر مقبول · ( ح ) احتياط</p>${table}
+    <div class="sigs"><div class="s">المعلم المناوب<div></div></div><div class="s">وكيل الشؤون التعليمية<div></div></div><div class="s">مدير المدرسة: ${esc(principal())}<div></div></div></div></div>`;
+}
+
+/* ---------- الزيارات الصفية ---------- */
+const CRIT = ['التخطيط وإدارة الحصة','التمكن العلمي من المادة','استراتيجيات التدريس والتنويع','التفاعل الصفي وإدارة السلوك','أساليب التقويم والتغذية الراجعة','توظيف الوسائل والتقنية'];
+const LEVEL = ['','يحتاج تطوير','مقبول','جيد','متميز'];
+function visitForm(tid){
+  if (!S.teachers.length) return toast('أضف المعلمين أولًا', 'bad');
+  modal('زيارة صفية', `<div class="fg">
+    <div class="f"><label for="vi_t">المعلم</label><select id="vi_t">${teacherOpts(tid)}</select></div>
+    <div class="f"><label for="vi_d">التاريخ</label><input id="vi_d" type="date" value="${today()}"></div>
+    <div class="f"><label for="vi_c">الصف / الفصل</label><input id="vi_c"></div><div class="f"><label for="vi_s">الدرس</label><input id="vi_s"></div>
+    ${CRIT.map((c,i) => `<div class="f"><label for="vi_${i}">${c}</label><select id="vi_${i}">${[4,3,2,1].map(n => `<option value="${n}">${n} — ${LEVEL[n]}</option>`).join('')}</select></div>`).join('')}
+    <div class="f full"><label for="vi_n">ملاحظات وتوصيات المدير</label><textarea id="vi_n"></textarea></div></div>`,
+    `<button class="btn pri" id="ok">احتساب النتيجة وحفظ</button><button class="btn" data-act="close">إلغاء</button>`, true);
+  $('#ok').onclick = async () => {
+    const sc = CRIT.map((_,i) => +fval('vi_' + i)); const pct = Math.round(sc.reduce((a,b) => a + b, 0) / (sc.length * 4) * 100);
+    const v = {tid:fval('vi_t'), date:fval('vi_d') || today(), cls:fval('vi_c'), lesson:fval('vi_s'), sc, pct, note:fval('vi_n'), createdAt:Date.now()};
+    const id = newId(); if (await put('visits/' + id, v)) { toast(`النتيجة ${pct}٪ — ${pct >= 85 ? 'أداء متميز' : pct >= 70 ? 'أداء جيد يحتاج دعمًا جزئيًا' : 'يحتاج خطة تطوير'}`); viewVisit(id); }
+  };
+}
+function visitDoc(v){
+  const t = teacher(v.tid) || {};
+  return `<div class="paper">${docHead('تقرير زيارة صفية', '', '', hij(v.date))}
+    <table><tr><th>المعلم</th><td>${esc(t.name || '')}</td><th>التخصص</th><td>${esc(t.specialty || '')}</td></tr><tr><th>الصف / الفصل</th><td>${esc(v.cls || '')}</td><th>الدرس</th><td>${esc(v.lesson || '')}</td></tr></table>
+    <h4>نتيجة الزيارة</h4><table><tr><th style="width:auto">المعيار</th><th style="width:18%">الدرجة من ٤</th><th style="width:22%">المستوى</th></tr>${CRIT.map((c,i) => `<tr><td>${c}</td><td class="num">${v.sc[i]}</td><td>${LEVEL[v.sc[i]]}</td></tr>`).join('')}<tr><th>النسبة العامة</th><td class="num"><b>${v.pct}٪</b></td><td>${v.pct >= 85 ? 'متميز' : v.pct >= 70 ? 'جيد' : 'يحتاج تطوير'}</td></tr></table>
+    <h4>الملاحظات والتوصيات</h4><p style="white-space:pre-wrap">${v.note ? esc(v.note) : dots(80)}</p>
+    <div class="sigs"><div class="s">المعلم: ${esc(t.name || '')}<div></div></div><div class="s">مدير المدرسة: ${esc(principal())}<div></div></div></div></div>`;
+}
+function viewVisit(id){
+  const v = S.visits.find(x => x.id === id); if (!v) return;
+  modal('زيارة صفية — ' + tName(v.tid), visitDoc(v), `<button class="btn pri" data-act="printVisit" data-id="${id}">طباعة / PDF</button>${isAdmin() ? `<button class="btn danger" data-act="delVisit" data-id="${id}">حذف</button>` : ''}`, true);
+}
+
+/* ---------- المهام ---------- */
+function vTasks(){
+  const list = [...S.tasks].sort((a,b) => (!!a.done - !!b.done) || String(a.due || '').localeCompare(String(b.due || '')));
+  return head('المهام', 'اجتماعاتك وزياراتك ومتابعاتك اليومية في مكان واحد.', isAdmin() ? '<button class="btn pri" data-act="addTask">إضافة مهمة</button>' : '') + loadingNote() +
+    (list.length ? `<section class="panel"><div class="list">${list.map(x => `<div class="row"><label class="check" style="flex:1;min-width:200px"><input type="checkbox" data-act="doneTask" data-id="${x.id}" ${x.done ? 'checked' : ''}><span><span class="t" style="${x.done ? 'text-decoration:line-through;color:var(--muted)' : ''}">${esc(x.title)}</span><br><span class="m" style="font-size:13px;color:var(--muted)">${x.due ? esc(dayName(x.due) + ' ' + hij(x.due)) : ''}</span></span></label>
+      <div class="tools"><span class="chip ${x.pri === 'عاجل' ? 'bad' : x.pri === 'متوسط' ? 'warn' : 'mute'}">${esc(x.pri || 'عادي')}</span>${isAdmin() ? `<button class="btn sm danger" data-act="delTask" data-id="${x.id}">حذف</button>` : ''}</div></div>`).join('')}</div></section>`
+      : '<div class="empty">لا مهام. سجّل هنا اجتماعاتك وزياراتك ومتابعاتك.</div>');
+}
+function taskForm(){
+  modal('إضافة مهمة', `<div class="fg"><div class="f full"><label for="tk_t">المهمة</label><input id="tk_t" placeholder="اجتماع لجنة التوجيه الطلابي"></div>
+    <div class="f"><label for="tk_d">تاريخ الاستحقاق</label><input id="tk_d" type="date" value="${today()}"></div>
+    <div class="f"><label for="tk_p">الأولوية</label><select id="tk_p"><option>عاجل</option><option selected>متوسط</option><option>عادي</option></select></div></div>`,
+    `<button class="btn pri" id="ok">إضافة</button><button class="btn" data-act="close">إلغاء</button>`);
+  $('#ok').onclick = async () => { const title = fval('tk_t'); if (!title) return toast('اكتب المهمة', 'bad');
+    if (await put('tasks/' + newId(), {title, due:fval('tk_d'), pri:fval('tk_p'), done:false, createdAt:Date.now()})) { closeModal(); toast('أُضيفت المهمة'); } };
+}
+
+/* ---------- التصحيح والمراجعة والتدقيق والرصد ---------- */
+const GR_MATRIX = [['الأول','رياضيات'],['الأول','لغتي'],['الثاني','رياضيات'],['الثاني','لغتي'],['الثالث','رياضيات'],['الثالث','لغتي'],['الثالث','علوم'],['الثالث','إنجليزي'],
+  ['الرابع','رياضيات'],['الرابع','لغتي'],['الرابع','علوم'],['الرابع','إنجليزي'],['الخامس','رياضيات'],['الخامس','لغتي'],['الخامس','علوم'],['الخامس','إنجليزي'],['السادس','رياضيات'],['السادس','لغتي'],['السادس','علوم'],['السادس','إنجليزي']];
+const CTRL_ROLES = ['','مصحح','مراجع','مدقق','كنترول','ملاحظ'];
+const NEAR = {ar:['isl','soc','eng'], isl:['ar','soc'], soc:['isl','ar'], math:['sci'], sci:['math'], eng:['ar']};
+function canon(s){ s = String(s || '').trim();
+  if (/لغتي|عربي|عربية|لغة عربية/.test(s)) return 'ar'; if (/علوم/.test(s)) return 'sci'; if (/رياض/.test(s)) return 'math';
+  if (/إنجليز|انجليز/.test(s)) return 'eng'; if (/إسلام|اسلام|قرآن|توحيد|فقه/.test(s)) return 'isl'; if (/اجتماع/.test(s)) return 'soc'; return 'x_' + s; }
+const sdist = (tc, rc) => tc === rc ? 0 : ((NEAR[rc] || []).indexOf(tc) + 1) || 50;
+const graders = () => S.teachers.filter(t => !['كنترول','ملاحظ'].includes(t.ctrlRole));
+const GR_ROLE = {corrector:'تصحيح', reviewer:'مراجعة', auditor:'تدقيق'};
+function teacherSelBySpec(row, f){
+  const rc = canon(row.subject), cur = row[f] || '';
+  const groups = {0:[], 1:[], 2:[]}; graders().forEach(t => { const d = sdist(canon(t.specialty), rc); groups[d === 0 ? 0 : d < 50 ? 1 : 2].push(t); });
+  const opt = t => `<option value="${t.id}" ${t.id === cur ? 'selected' : ''}>${esc(t.name)}${t.specialty ? ' — ' + esc(t.specialty) : ''}</option>`;
+  return `<select data-gid="${row.id}" data-gf="${f}" aria-label="${GR_ROLE[f]}" ${isAdmin() ? '' : 'disabled'}><option value="">—</option>${cur && !teacher(cur) ? `<option value="${esc(cur)}" selected>${esc(cur)}</option>` : ''}
+    ${[['نفس التخصص',0],['تخصص قريب',1],['آخرون',2]].map(([l,k]) => groups[k].length ? `<optgroup label="${l}">${sortBy(groups[k],'name').map(opt).join('')}</optgroup>` : '').join('')}</select>`;
+}
+function vGrading(){
+  const rows = [...S.grading].sort((a,b) => (a.order ?? 0) - (b.order ?? 0));
+  const inp = (r, f, ph, type) => `<input data-gid="${r.id}" data-gf="${f}" value="${esc(r[f] || '')}" placeholder="${ph || ''}" ${type ? `type="${type}"` : ''} ${isAdmin() ? '' : 'disabled'} style="min-width:${type === 'number' ? 64 : 100}px">`;
+  const rasd = rows.filter(r => r.rasd).length;
+  const tasked = sortBy(S.teachers.filter(t => rows.some(r => r.corrector === t.id || r.reviewer === t.id || r.auditor === t.id) || S.exams.some(e => e.observerId === t.id)), 'name');
+  const signed = tasked.filter(t => S.ctrlsigns.find(c => c.id === t.id)).length;
+  return `<div class="kpis"><div class="kpi"><span class="v">${rows.length}</span><span class="l">مادة للتصحيح</span></div><div class="kpi ${rasd < rows.length ? 'warn' : ''}"><span class="v">${rasd}/${rows.length}</span><span class="l">رُصدت في نور</span></div><div class="kpi ${signed < tasked.length ? 'warn' : ''}"><span class="v">${signed}/${tasked.length}</span><span class="l">معلمًا اعتمد مهامه</span></div></div>
+    ${rows.length ? `<div class="bar" style="grid-template-columns:120px minmax(0,1fr) 44px"><span>تقدم الرصد</span><div class="track"><div class="fill" style="width:${Math.round(rasd / rows.length * 100)}%;background:var(--ok)"></div></div><span class="n">${Math.round(rasd / rows.length * 100)}٪</span></div>` : ''}
+    <div class="tools">${isAdmin() ? `${!rows.length ? '<button class="btn pri" data-act="grSeed">إنشاء جدول المرحلة الابتدائية</button>' : ''}<button class="btn" data-act="grAdd">إضافة سطر</button><button class="btn" data-act="grAuto">توزيع تلقائي عادل</button>` : ''}<button class="btn" data-act="grPrint">طباعة الجدول</button><button class="btn" data-act="sigPrint">طباعة كشف التوقيعات</button></div>
+    ${rows.length ? `<div class="tablewrap"><table class="tbl" style="min-width:1100px"><thead><tr><th>الصف</th><th>المادة</th><th>تاريخ الاختبار</th><th>الأوراق</th><th>المصحح</th><th>المراجع</th><th>المدقق</th><th>التسليم</th><th>الاستلام</th><th>نور</th><th></th></tr></thead><tbody>
+      ${rows.map(r => `<tr><td>${inp(r,'grade','الخامس')}</td><td>${inp(r,'subject','رياضيات')}</td><td>${inp(r,'examDate','الأحد ١/٣')}</td><td>${inp(r,'papers','','number')}</td>
+        <td>${teacherSelBySpec(r,'corrector')}</td><td>${teacherSelBySpec(r,'reviewer')}</td><td>${teacherSelBySpec(r,'auditor')}</td><td>${inp(r,'hand','')}</td><td>${inp(r,'recv','')}</td>
+        <td><label class="check"><input type="checkbox" data-gid="${r.id}" data-gf="rasd" ${r.rasd ? 'checked' : ''} ${isAdmin() ? '' : 'disabled'}> رُصدت</label></td>
+        <td>${isAdmin() ? `<button class="btn sm danger" data-act="grDel" data-id="${r.id}">حذف</button>` : ''}</td></tr>`).join('')}</tbody></table></div>`
+      : '<div class="empty">لا يوجد جدول تصحيح. أنشئ جدول المرحلة الابتدائية بضغطة، أو أضف الأسطر يدويًا.</div>'}
+    <section class="panel"><h3>توقيع المعلمين على مهامهم</h3><p class="sub">يرى كل معلم مهامه (التصحيح والمراجعة والتدقيق والملاحظة) في رابطه الخاص ويعتمدها بتوقيعه.</p>
+      ${tasked.length ? `<div class="list">${tasked.map(t => { const c = S.ctrlsigns.find(x => x.id === t.id); return `<div class="row"><div><div class="t">${esc(t.name)}</div><div class="m">${esc(t.specialty || '')}${t.ctrlRole ? ' · ' + esc(t.ctrlRole) : ''}</div></div><div class="tools">${c ? `${sigImg(c,30)}<span class="chip ok">وقّع ${esc(stamp(c.at))}</span>${isAdmin() ? `<button class="btn sm" data-act="ctrlUnsign" data-id="${t.id}">إلغاء</button>` : ''}` : `<span class="chip warn">بانتظار التوقيع</span>${waLink(t.phone, '') ? `<a class="btn sm wa" href="${esc(waLink(t.phone, `المكرم الأستاذ/ ${t.name}\nنأمل الاطلاع على مهامك في الكنترول واعتمادها بتوقيعك من رابطك:\n${teacherLink(t)}`))}" target="_blank" rel="noopener">واتساب</a>` : ''}`}</div></div>`; }).join('')}</div>` : '<div class="empty">لم تُسند مهام بعد.</div>'}</section>`;
+}
+document.addEventListener('change', e => {
+  const el = e.target.closest('[data-gid]'); if (!el || !isAdmin()) return;
+  const v = el.type === 'checkbox' ? el.checked : el.value;
+  put('grading/' + el.dataset.gid, {[el.dataset.gf]: v}, true);
+});
+async function grSeed(){
+  let i = 0; for (const [grade, subject] of GR_MATRIX) { if (!await put('grading/' + newId(), {grade, subject, order:i++, examDate:'', papers:'', corrector:'', reviewer:'', auditor:'', hand:'', recv:'', rasd:false}, false)) break; }
+  toast('أُنشئ جدول التصحيح');
+}
+function grAdd(){ const mx = S.grading.reduce((m,r) => Math.max(m, r.order ?? 0), 0); put('grading/' + newId(), {grade:'', subject:'', order:mx + 1, rasd:false}); }
+// توزيع عادل: المصحح من نفس التخصص أو أقربه، والمراجع والمدقق بأقل عبء، ثم الملاحظون للاختبارات بلا ملاحظ
+async function grAuto(){
+  const el = graders(); if (!el.length) return toast('أضف المعلمين أولًا', 'bad');
+  const load = Object.fromEntries(S.teachers.map(t => [t.id, 0]));
+  const pickC = (subject, used) => { const rc = canon(subject); return el.filter(t => !used.has(t.id)).sort((a,b) => (sdist(canon(a.specialty), rc) - sdist(canon(b.specialty), rc)) || (load[a.id] - load[b.id]))[0]; };
+  const pickB = (subject, used) => { const rc = canon(subject); return el.filter(t => !used.has(t.id)).sort((a,b) => (load[a.id] - load[b.id]) || (sdist(canon(a.specialty), rc) - sdist(canon(b.specialty), rc)))[0]; };
+  const plan = [...S.grading].sort((a,b) => (a.order ?? 0) - (b.order ?? 0)).map(r => { const used = new Set(), u = {};
+    for (const [f, pick] of [['corrector', pickC], ['reviewer', pickB], ['auditor', pickB]]) { const t = pick(r.subject, used); u[f] = t ? t.id : ''; if (t) { used.add(t.id); load[t.id]++; } }
+    return [r.id, u]; });
+  S.exams.forEach(e => { if (e.observerId && load[e.observerId] !== undefined) load[e.observerId]++; });
+  const obs = S.exams.filter(e => !e.observerId).map(e => { const t = [...S.teachers].sort((a,b) => load[a.id] - load[b.id])[0]; if (t) load[t.id]++; return [e.id, t?.id]; }).filter(x => x[1]);
+  confirmBox('توزيع تلقائي', `سيُوزَّع التصحيح والمراجعة والتدقيق لـ ${plan.length} مادة${obs.length ? ` والملاحظة لـ ${obs.length} اختبار بلا ملاحظ` : ''} بالعدل بين ${el.length} معلمًا مع مراعاة التخصص. يُستبدل التوزيع الحالي.`, 'توزيع', async () => {
+    for (const [id, u] of plan) await put('grading/' + id, u, true);
+    for (const [id, tid] of obs) await put('exams/' + id, {observerId:tid}, true);
+    toast('تم التوزيع');
+  });
+}
+function grDoc(){
+  const rows = [...S.grading].sort((a,b) => (a.order ?? 0) - (b.order ?? 0));
+  return `<div class="paper land">${docHead('متابعة التصحيح والمراجعة والتدقيق والرصد', 'لجنة الكنترول', '', hij(today()))}
+    <table class="sheet"><thead><tr><th class="n">م</th><th>الصف</th><th>المادة</th><th>تاريخ الاختبار</th><th>الأوراق</th><th>المصحح</th><th>المراجع</th><th>المدقق</th><th>التسليم</th><th>الاستلام</th><th>نور</th></tr></thead><tbody>
+    ${rows.map((r,i) => `<tr><td class="n">${i+1}</td><td>${esc(r.grade || '')}</td><td>${esc(r.subject || '')}</td><td>${esc(r.examDate || '')}</td><td>${esc(r.papers || '')}</td><td>${esc(r.corrector ? tName(r.corrector) : '')}</td><td>${esc(r.reviewer ? tName(r.reviewer) : '')}</td><td>${esc(r.auditor ? tName(r.auditor) : '')}</td><td>${esc(r.hand || '')}</td><td>${esc(r.recv || '')}</td><td>${r.rasd ? '✓' : ''}</td></tr>`).join('')}</tbody></table>
+    <div class="sigs"><div class="s">رئيس لجنة الكنترول: ${esc(set().controlHead || '')}<div></div></div><div class="s">مدير المدرسة: ${esc(principal())}<div></div></div></div></div>`;
+}
+function ctrlTasks(tid){
+  const rows = []; S.grading.forEach(r => Object.entries(GR_ROLE).forEach(([f,l]) => { if (r[f] === tid) rows.push({...r, role:l}); }));
+  return {rows, obs:S.exams.filter(e => e.observerId === tid)};
+}
+function sigDoc(){
+  const tasked = sortBy(S.teachers.filter(t => ctrlTasks(t.id).rows.length || ctrlTasks(t.id).obs.length), 'name');
+  return `<div class="paper">${docHead('كشف توقيعات المعلمين على مهام الكنترول', 'التصحيح والمراجعة والتدقيق والملاحظة', '', hij(today()))}
+    <table><tr><th class="n" style="width:6%">م</th><th style="width:auto">المعلم</th><th style="width:auto">المهام</th><th style="width:28%">التوقيع</th></tr>
+    ${tasked.map((t,i) => { const k = ctrlTasks(t.id), c = S.ctrlsigns.find(x => x.id === t.id);
+      return `<tr><td>${i+1}</td><td>${esc(t.name)}</td><td style="font-size:12px">${k.rows.map(r => `${esc(r.role)} ${esc(r.subject)} ${esc(r.grade)}`).join('، ')}${k.obs.length ? (k.rows.length ? '، ' : '') + 'ملاحظة ' + k.obs.length + ' اختبار' : ''}</td><td>${c ? `<img src="${esc(c.img)}" style="height:34px"><br><small>${esc(stamp(c.at))}</small>` : ''}</td></tr>`; }).join('')}</table>
+    <div class="sigs"><div class="s">رئيس لجنة الكنترول: ${esc(set().controlHead || '')}<div></div></div><div class="s">مدير المدرسة: ${esc(principal())}<div></div></div></div></div>`;
+}
+
+/* ---------- المحاضر الجاهزة ---------- */
+const STU = [['student','اسم الطالب'],['grade','الصف والفصل']];
+const WHEN = [['date','التاريخ','date'],['time','الوقت','time']];
+const YESNO = ['نعم','لا'];
+const REC = [
+  {id:'exit', g:'الطلاب', t:'محضر خروج طالب طارئ', sub:'استئذان أثناء اليوم الدراسي',
+    info:[...STU, ['date','التاريخ','date'], ['time','وقت الخروج','time'], ['reason','سبب الخروج','select',['حالة صحية طارئة','ظرف أسري طارئ','موعد طبي','وفاة قريب','استدعاء رسمي','أخرى']], ['receiver','اسم المستلم'], ['relation','صلته بالطالب','select',['الأب','الأم','الأخ','العم','الخال','الجد','مفوَّض من ولي الأمر']], ['rid','رقم هوية المستلم'], ['rphone','جوال المستلم']],
+    text:(d,v) => `في يوم ${v(dayName(d.date))} الموافق ${v(d.date && hij(d.date))} وفي تمام الساعة ${v(tm(d.time))}، سُمح للطالب/ ${v(d.student)} بالصف ${v(d.grade)} بالخروج من المدرسة قبل نهاية الدوام الرسمي بسبب: ${v(d.reason)}، وسُلِّم إلى/ ${v(d.receiver)} (${v(d.relation)}) بعد التحقق من هويته رقم ${v(d.rid)}، ويتحمل المستلم مسؤولية الطالب من لحظة استلامه.`,
+    blocks:[['notes','ملاحظات وإجراءات (إبلاغ ولي الأمر، الحالة الصحية…)',3]], sigs:['المستلم','المعلم المناوب','وكيل شؤون الطلاب','مدير المدرسة']},
+  {id:'injury', g:'الطلاب', t:'محضر إصابة أو حالة صحية لطالب',
+    info:[...STU, ...WHEN, ['place','مكان الحادثة'], ['kind','نوع الحالة','select',['إصابة أثناء الفسحة','إصابة في حصة التربية البدنية','إغماء أو هبوط','ارتفاع في الحرارة','حساسية أو ضيق تنفس','أخرى']], ['informed','إبلاغ ولي الأمر','select',YESNO], ['transfer','النقل','select',['لم يُنقل','نُقل إلى المستشفى','استُدعي الهلال الأحمر','استلمه ولي الأمر']]],
+    blocks:[['desc','وصف الحالة',3],['aid','الإسعافات الأولية والإجراء المتخذ',3]], sigs:['المعلم المناوب','الموجه الصحي','وكيل شؤون الطلاب','مدير المدرسة']},
+  {id:'incident', g:'الطلاب', t:'محضر إثبات واقعة',
+    info:[...WHEN, ['place','المكان'], ['kind','نوع الواقعة','select',['مشاجرة بين طلاب','إساءة لفظية','اعتداء جسدي','تنمر','إتلاف ممتلكات','سرقة أو فقدان','أخرى']]],
+    people:['parties','أطراف الواقعة والشهود',['الاسم','الصفة أو الصف'],6],
+    blocks:[['desc','وصف الواقعة كما حدثت',4],['said','أقوال الأطراف',4],['action','الإجراء المتخذ',3]], sigs:['محرر المحضر','المرشد الطلابي','وكيل شؤون الطلاب','مدير المدرسة']},
+  {id:'seize', g:'الطلاب', t:'محضر ضبط مخالفة', sub:'جوال أو أداة ممنوعة',
+    info:[...STU, ...WHEN, ['place','مكان الضبط'], ['item','المضبوطات'], ['by','اسم من قام بالضبط']],
+    blocks:[['circ','ظروف الضبط',3],['action','الإجراء (حفظ المضبوطات وتسليمها لولي الأمر…)',3]], sigs:['من قام بالضبط','الطالب','وكيل شؤون الطلاب','مدير المدرسة']},
+  {id:'latepick', g:'الطلاب', t:'محضر تأخر استلام طالب بعد الدوام',
+    info:[...STU, ['date','التاريخ','date'], ['endt','نهاية الدوام','time'], ['pickt','وقت الاستلام','time'], ['receiver','اسم المستلم'], ['relation','صلته بالطالب']],
+    blocks:[['action','الإجراءات (الاتصال بولي الأمر، بقاء الطالب مع…)',3]], sigs:['المعلم المناوب','المستلم','مدير المدرسة']},
+  {id:'parentmeet', g:'الطلاب', t:'محضر مقابلة ولي أمر',
+    info:[...STU, ['parent','اسم ولي الأمر'], ['pphone','جوال ولي الأمر'], ['date','التاريخ','date'], ['reason','سبب المقابلة','select',['متابعة المستوى الدراسي','الغياب والتأخر','السلوك','حالة صحية أو اجتماعية','بطلب من ولي الأمر','أخرى']]],
+    blocks:[['talk','ما دار في المقابلة',4],['agreed','ما تم الاتفاق عليه',3]], sigs:['ولي الأمر','المرشد الطلابي','مدير المدرسة']},
+  {id:'pledge', g:'الطلاب', t:'تعهد طالب',
+    info:[...STU, ['date','التاريخ','date'], ['reason','المخالفة']],
+    text:(d,v) => `أتعهد أنا الطالب/ ${v(d.student)} بالصف ${v(d.grade)} بالالتزام بأنظمة المدرسة وتعليماتها، واحترام معلميّ وزملائي، والمحافظة على ممتلكات المدرسة، وعدم تكرار ما صدر مني من: ${v(d.reason)}. وأُقرّ بعلمي أن تكرار المخالفة يستوجب تطبيق الإجراءات النظامية وفق قواعد السلوك والمواظبة.`,
+    sigs:['الطالب','ولي الأمر','المرشد الطلابي','مدير المدرسة']},
+  {id:'parentpledge', g:'الطلاب', t:'تعهد ولي أمر',
+    info:[['parent','اسم ولي الأمر'], ['pid','رقم الهوية'], ...STU, ['date','التاريخ','date'], ['reason','موضوع التعهد']],
+    text:(d,v) => `أتعهد أنا/ ${v(d.parent)} ولي أمر الطالب/ ${v(d.student)} بالصف ${v(d.grade)} بمتابعة ابني فيما يخص: ${v(d.reason)}، والتعاون مع إدارة المدرسة لتحقيق مصلحته، والحضور للمدرسة متى طُلب مني ذلك.`,
+    sigs:['ولي الأمر','مدير المدرسة']},
+  {id:'meeting', g:'الاجتماعات والإدارة', t:'محضر اجتماع', title:d => 'محضر ' + (d.mtype || 'اجتماع'),
+    info:[['mtype','نوع الاجتماع','select',['اجتماع المعلمين','اجتماع مجلس المدرسة','اجتماع لجنة التوجيه الطلابي','اجتماع لجنة التميز والجودة','اجتماع مجلس الآباء والمعلمين','اجتماع لجنة الاختبارات','اجتماع لجنة الأمن والسلامة','اجتماع طارئ']], ['no','رقم الاجتماع'], ['date','التاريخ','date'], ['time','وقت البدء','time'], ['place','المكان'], ['chair','رئيس الاجتماع','text','principal']],
+    blocks:[['agenda','جدول الأعمال',4],['disc','ما تمت مناقشته',5]],
+    table:['recs','التوصيات والقرارات',['التوصية','المسؤول عن التنفيذ','موعد التنفيذ'],5],
+    people:['att','الحاضرون',['الاسم','العمل'],10], sigs:['مقرر الاجتماع','رئيس الاجتماع']},
+  {id:'custody', g:'الاجتماعات والإدارة', t:'محضر استلام وتسليم عهدة',
+    info:[['from','المسلِّم'], ['to','المستلم'], ['date','التاريخ','date'], ['kind','نوع العهدة']],
+    table:['items','بيان العهدة',['الصنف','العدد','الحالة'],8], sigs:['المسلِّم','المستلم','مدير المدرسة']},
+  {id:'evac', g:'الاجتماعات والإدارة', t:'محضر تنفيذ تجربة إخلاء',
+    info:[['date','التاريخ','date'], ['start','وقت إطلاق الإنذار','time'], ['end','وقت اكتمال الإخلاء','time'], ['dur','زمن الإخلاء بالدقائق'], ['nst','عدد الطلاب'], ['nstaff','عدد المنسوبين'], ['point','نقطة التجمع']],
+    blocks:[['obs','الملاحظات وجوانب القصور',4],['recs','التوصيات',3]], sigs:['منسق الأمن والسلامة','وكيل المدرسة','مدير المدرسة']},
+  {id:'general', g:'الاجتماعات والإدارة', t:'محضر عام', title:d => d.title || 'محضر',
+    info:[['title','عنوان المحضر'], ...WHEN, ['place','المكان']],
+    blocks:[['body','نص المحضر',8]], people:['att','الحاضرون',['الاسم','العمل'],6], sigs:['محرر المحضر','مدير المدرسة']},
+  {id:'cheat', g:'الاختبارات', t:'محضر حالة غش في اختبار',
+    info:[...STU, ['seat','رقم الجلوس'], ['subject','المادة'], ['date','التاريخ','date'], ['period','الفترة','select',['الأولى','الثانية','الثالثة']], ['committee','اللجنة'], ['observer','الملاحظ']],
+    blocks:[['desc','وصف الحالة وما ضُبط',3],['said','أقوال الطالب',3],['action','الإجراء المتخذ وفق لائحة تقويم الطالب',3]], sigs:['الملاحظ','رئيس لجنة الكنترول','الطالب','مدير المدرسة']},
+  {id:'envelope', g:'الاختبارات', t:'محضر فتح مظاريف الأسئلة',
+    info:[['subject','المادة'], ['grade','الصف'], ['date','التاريخ','date'], ['time','الوقت','time'], ['count','عدد المظاريف'], ['state','حالة المظاريف','select',['سليمة ومختومة','بها ملاحظة']]],
+    people:['att','الحاضرون',['الاسم','العمل'],4], blocks:[['notes','ملاحظات',2]], sigs:['رئيس لجنة الكنترول','عضو اللجنة','مدير المدرسة']}
+];
+const recTpl = id => REC.find(r => r.id === id);
+const recTitle = (tpl, d) => tpl.title ? tpl.title(d || {}) : tpl.t;
+function recDoc(tpl, d, no){
+  d = d || {};
+  const v = x => x ? esc(x) : dots(24);
+  const show = (k, type) => type === 'date' ? (d[k] ? esc(dayName(d[k]) + ' ' + hij(d[k])) : dots(24)) : type === 'time' ? v(tm(d[k])) : v(d[k]);
+  const pairs = []; for (let i = 0; i < tpl.info.length; i += 2) pairs.push(tpl.info.slice(i, i + 2));
+  const lines = (txt, n) => txt ? `<p style="white-space:pre-wrap">${esc(txt)}</p>` : `<div class="lines">${'<div></div>'.repeat(n || 3)}</div>`;
+  const grid = (cols, txt, n, sign) => { const rows = String(txt || '').split(/\n+/).map(l => l.trim()).filter(Boolean).map(splitRow);
+    const body = rows.length ? rows : Array(n).fill([]);
+    return `<table><tr><th style="width:6%">م</th>${cols.map(c => `<th style="width:auto">${esc(c)}</th>`).join('')}${sign ? '<th style="width:22%">التوقيع</th>' : ''}</tr>${body.map((r,i) => `<tr><td>${i+1}</td>${cols.map((_,j) => `<td>${esc(r[j] || '')}</td>`).join('')}${sign ? '<td></td>' : ''}</tr>`).join('')}</table>`; };
+  const sigName = r => r === 'مدير المدرسة' ? principal() : r === 'رئيس الاجتماع' ? (d.chair || principal()) : '';
+  const sigs = tpl.sigs.map(r => `<div class="s"><b>${esc(r)}</b><span>الاسم: ${sigName(r) ? esc(sigName(r)) : '....................'}</span><span>التوقيع:</span><div></div></div>`).join('');
+  return `<div class="paper">${docHead(recTitle(tpl, d), tpl.sub || '', no || '', d.date ? hij(d.date) : '')}
+    <table>${pairs.map(p => `<tr>${p.map(([k,l,type]) => `<th>${esc(l)}</th><td>${show(k, type)}</td>`).join('')}${p.length < 2 ? '<th></th><td></td>' : ''}</tr>`).join('')}</table>
+    ${tpl.text ? `<p style="margin-top:12px">${tpl.text(d, v)}</p>` : ''}
+    ${tpl.people && tpl.people[0] !== 'att' ? `<h4>${esc(tpl.people[1])}</h4>${grid(tpl.people[2], d[tpl.people[0]], tpl.people[3], true)}` : ''}
+    ${(tpl.blocks || []).map(([k,l,n]) => `<h4>${esc(l)}</h4>${lines(d[k], n)}`).join('')}
+    ${tpl.table ? `<h4>${esc(tpl.table[1])}</h4>${grid(tpl.table[2], d[tpl.table[0]], tpl.table[3])}` : ''}
+    ${tpl.people && tpl.people[0] === 'att' ? `<h4>${esc(tpl.people[1])}</h4>${grid(tpl.people[2], d.att, tpl.people[3], true)}` : ''}
+    <div class="sigs">${sigs}</div></div>`;
+}
+function vRecords(){
+  const tab = UI.rTab || 'tpl';
+  const seg = [['tpl','المحاضر الجاهزة'],['letters','الخطابات والتعاميم'],['saved','السجل المحفوظ']].map(([k,l]) => `<button data-act="rTab" data-id="${k}" aria-pressed="${tab===k}">${l}</button>`).join('');
+  let body;
+  if (tab === 'letters') body = vLetters();
+  else if (tab === 'saved') { const list = sortBy(S.records, 'createdAt', -1);
+    body = list.length ? `<div class="list panel">${list.map(r => `<div class="row"><div><div class="t">${esc(r.title)}</div><div class="m">${r.no ? 'رقم ' + esc(r.no) + ' · ' : ''}${esc(stamp(r.createdAt))}</div></div><div class="tools"><button class="btn sm pri" data-act="viewRec" data-id="${r.id}">عرض وطباعة</button>${r.tpl !== 'letter' ? `<button class="btn sm" data-act="editRec" data-id="${r.id}">تعديل</button>` : ''}${isAdmin() ? `<button class="btn sm danger" data-act="delRec" data-id="${r.id}">حذف</button>` : ''}</div></div>`).join('')}</div>` : '<div class="empty">لم يُحفظ أي محضر أو خطاب بعد.</div>'; }
+  else { const groups = [...new Set(REC.map(r => r.g))];
+    body = groups.map(g => `<section class="panel"><h3>${esc(g)}</h3><div class="cards">${REC.filter(r => r.g === g).map(r => `<article class="card"><div class="t">${esc(r.t)}</div>${r.sub ? `<div class="m">${esc(r.sub)}</div>` : ''}<div class="acts"><button class="btn sm pri" data-act="fillRec" data-id="${r.id}">تعبئة</button><button class="btn sm" data-act="blankRec" data-id="${r.id}">طباعة فارغ</button></div></article>`).join('')}</div></section>`).join(''); }
+  return head('المحاضر والخطابات', 'محاضر جاهزة للتعبئة والطباعة بشعار الوزارة، وخطابات وتعاميم تتعبأ ببيانات المدرسة والطالب.') + loadingNote() +
+    `<div class="seg" role="group" aria-label="أقسام المحاضر">${seg}</div>` + body;
+}
+function recForm(tplId, recId){
+  const rec = recId ? S.records.find(x => x.id === recId) : null;
+  const tpl = recTpl(rec ? rec.tpl : tplId); if (!tpl) return;
+  const d = rec ? rec.data : {date:today(), chair:principal()};
+  const fld = ([k,l,type,opt]) => type === 'select' ? `<div class="f"><label for="rf_${k}">${esc(l)}</label><select id="rf_${k}"><option value="">—</option>${selOpts(opt, d[k])}</select></div>`
+    : `<div class="f"><label for="rf_${k}">${esc(l)}</label><input id="rf_${k}" ${type === 'date' || type === 'time' ? `type="${type}"` : ''} value="${esc(d[k] || (opt === 'principal' ? principal() : ''))}"></div>`;
+  const area = (k, l, hint, n) => `<div class="f full"><label for="rf_${k}">${esc(l)}</label><textarea id="rf_${k}" style="min-height:${Math.max(80, (n || 3) * 26)}px">${esc(d[k] || '')}</textarea>${hint ? `<span class="hint">${hint}</span>` : ''}</div>`;
+  const stuPick = tpl.info.some(f => f[0] === 'student') && S.students.length ? `<div class="f full"><label for="rf_pick">اختيار طالب من السجل (اختياري)</label><select id="rf_pick"><option value="">—</option>${sortBy(S.students,'name').map(s => `<option value="${s.id}">${esc(s.name)} — ${esc(sClass(s))}</option>`).join('')}</select></div>` : '';
+  modal(tpl.t, `<div class="fg">${stuPick}${tpl.info.map(fld).join('')}
+    ${tpl.people && tpl.people[0] !== 'att' ? area(tpl.people[0], tpl.people[1], 'سطر لكل شخص: ' + tpl.people[2].join(' - ')) : ''}
+    ${(tpl.blocks || []).map(([k,l,n]) => area(k, l, '', n)).join('')}
+    ${tpl.table ? area(tpl.table[0], tpl.table[1], 'سطر لكل بند: ' + tpl.table[2].join(' - ')) : ''}
+    ${tpl.people && tpl.people[0] === 'att' ? area('att', tpl.people[1], 'سطر لكل شخص: ' + tpl.people[2].join(' - ') + (S.teachers.length ? ' · <a href="#" id="rf_allT">إدراج كل المعلمين</a>' : '')) : ''}</div>`,
+    `<button class="btn pri" id="ok">حفظ ومعاينة</button><button class="btn" id="pv">طباعة دون حفظ</button><button class="btn" data-act="close">إلغاء</button>`, true);
+  const pick = $('#rf_pick'); if (pick) pick.onchange = () => { const s = student(pick.value); if (!s) return; const set1 = (k, v) => { const el = document.getElementById('rf_' + k); if (el && v) el.value = v; };
+    set1('student', s.name); set1('grade', sClass(s)); set1('parent', s.guard); set1('pphone', s.phone); };
+  const allT = $('#rf_allT'); if (allT) allT.onclick = e => { e.preventDefault(); $('#rf_att').value = sortBy(S.teachers,'name').map(t => `${t.name} - ${t.specialty || 'معلم'}`).join('\n'); };
+  const read = () => { const o = {}; tpl.info.forEach(([k]) => o[k] = fval('rf_' + k)); [tpl.people?.[0], tpl.table?.[0], ...(tpl.blocks || []).map(b => b[0])].filter(Boolean).forEach(k => o[k] = fval('rf_' + k)); return o; };
+  $('#pv').onclick = () => printDoc(recDoc(tpl, read()));
+  $('#ok').onclick = async () => {
+    const data = read(); const id = recId || newId();
+    const doc = {tpl:tpl.id, title:recTitle(tpl, data) + (data.student ? ' — ' + data.student : ''), data, no:rec?.no || nextNo(S.records), createdAt:rec?.createdAt || Date.now()};
+    if (await put('records/' + id, doc)) { toast('حُفظ المحضر'); viewRec(id); }
+  };
+}
+function recPaper(r){ if (r.tpl === 'letter') return letterDoc(r.title, r.text); const tpl = recTpl(r.tpl); return tpl ? recDoc(tpl, r.data, r.no) : ''; }
+function viewRec(id){
+  const r = S.records.find(x => x.id === id); if (!r) return;
+  modal(r.title, recPaper(r), `<button class="btn pri" data-act="printRec" data-id="${id}">طباعة / PDF</button><button class="btn" data-act="dlRec" data-id="${id}">تنزيل</button>${r.tpl !== 'letter' ? `<button class="btn" data-act="editRec" data-id="${id}">تعديل</button>` : ''}`, true);
+}
+
+/* ---------- الخطابات والتعاميم ---------- */
+const LETTERS={
+ 'إشعار ولي أمر بغياب':d=>`المكرم ولي أمر الطالب/ ${d.st}\t\t\tحفظه الله
+السلام عليكم ورحمة الله وبركاته،
+
+نُشعركم بأن ابنكم قد تغيّب عن الدراسة بتاريخ ${d.date} دون عذر مقبول، وقد بلغ عدد أيام غيابه (${d.abs}) يومًا، ونسبة حضوره حتى تاريخه (${d.rate}).
+
+ونظرًا لأثر الغياب المباشر على التحصيل الدراسي، نأمل متابعة انتظام ابنكم وتزويد المدرسة بما يثبت العذر خلال ثلاثة أيام عمل.
+
+شاكرين لكم تعاونكم،
+مدير المدرسة/ ${d.pr}
+${d.school}`,
+ 'استدعاء ولي أمر':d=>`المكرم ولي أمر الطالب/ ${d.st}\t\t\tحفظه الله
+السلام عليكم ورحمة الله وبركاته،
+
+نأمل من سعادتكم التكرم بزيارة المدرسة يوم ______ الموافق ______ في تمام الساعة ______ لمناقشة بعض الأمور المتعلقة بابنكم، بما يحقق مصلحته ويدعم مسيرته الدراسية.
+
+حضوركم عنصر أساسي في معالجة الموضوع، ونؤكد أن اللقاء يهدف إلى التعاون لا المساءلة.
+
+مدير المدرسة/ ${d.pr}
+${d.school}`,
+ 'إنذار سلوكي':d=>`المكرم ولي أمر الطالب/ ${d.st}\t\t\tحفظه الله
+السلام عليكم ورحمة الله وبركاته،
+
+بناءً على ما رُصد من مخالفات سلوكية متكررة بلغت (${d.inc}) مخالفة، فقد رأت إدارة المدرسة توجيه إنذار خطي للطالب، مع الالتزام بالإجراءات النظامية المتدرجة الواردة في لائحة السلوك والمواظبة.
+
+ونأمل تعاونكم في متابعة ابنكم، على أن يُعاد تقييم وضعه بعد مدة (٤) أسابيع من تاريخه.
+
+مدير المدرسة/ ${d.pr}
+${d.school} — ${d.date}`,
+ 'تعهد طالب':d=>`إقرار وتعهد
+
+أنا الطالب/ ${d.st}\t\tالصف: ${d.grade}\t\tالفصل: ${d.cls}
+أتعهد بالالتزام بأنظمة المدرسة وتعليماتها، واحترام معلميّ وزملائي، والمحافظة على ممتلكات المدرسة، وعدم تكرار ما صدر مني.
+وأُقرّ بعلمي أن تكرار المخالفة يستوجب تطبيق الإجراءات النظامية المقررة.
+
+توقيع الطالب: ____________  توقيع ولي الأمر: ____________
+المرشد الطلابي: ____________  مدير المدرسة: ${d.pr}
+التاريخ: ${d.date}`,
+ 'محضر لجنة التوجيه الطلابي':d=>`محضر اجتماع لجنة التوجيه الطلابي
+${d.school} — العام الدراسي ${d.year}
+
+التاريخ: ${d.date}\t\tرقم المحضر: ______
+اسم الطالب: ${d.st}\t\tالصف: ${d.grade}/${d.cls}
+
+أولًا: عرض الحالة
+______________________________________________
+
+ثانيًا: مداولات اللجنة
+______________________________________________
+
+ثالثًا: القرارات والإجراءات المتخذة
+١. ______________________________
+٢. ______________________________
+٣. آلية المتابعة والمدة الزمنية: ______________
+
+الأعضاء:
+مدير المدرسة/ ${d.pr}\t\tالتوقيع: ______
+المرشد الطلابي/ ______\t\tالتوقيع: ______
+رائد الفصل/ ______\t\tالتوقيع: ______`,
+ 'خطة تحسين لطالب متعثر':d=>`خطة تحسين فردية
+الطالب: ${d.st} — ${d.grade}/${d.cls}\t\tتاريخ البدء: ${d.date}
+
+الوضع الحالي: نسبة حضور ${d.rate} · عدد المخالفات ${d.inc}
+
+الهدف العام: رفع مستوى الانتظام والتحصيل خلال (٦) أسابيع.
+
+الإجراءات:
+١. متابعة يومية للحضور من رائد الفصل وتوثيقها.
+٢. جلستان إرشاديتان أسبوعيًا مع المرشد الطلابي.
+٣. تكليف معلم مرافق للدعم الأكاديمي في المواد الضعيفة.
+٤. تواصل أسبوعي مع ولي الأمر لتقرير الحالة.
+٥. تعزيز إيجابي عند تحقق التقدم (شهادة/تكريم).
+
+مؤشرات النجاح: حضور لا يقل عن ٩٠٪ · صفر مخالفات · تحسّن الدرجات بنسبة ٢٠٪.
+المسؤول عن المتابعة: ______\t\tتاريخ التقييم: ______
+
+مدير المدرسة/ ${d.pr}`,
+ 'رد على شكوى ولي أمر':d=>`المكرم/ ولي أمر الطالب ${d.st}\t\t\tحفظه الله
+السلام عليكم ورحمة الله وبركاته،
+
+نشكر لكم تواصلكم، ونفيدكم بأن ما ورد في شكواكم قد تمت دراسته والاستماع لجميع الأطراف ذات العلاقة.
+
+نتيجة الدراسة: ______________________________
+الإجراء المتخذ: ______________________________
+
+ونؤكد لكم أن ملاحظاتكم محل تقدير، وأن باب المدرسة مفتوح لكم في أي وقت.
+
+مدير المدرسة/ ${d.pr}
+${d.school} — ${d.date}`,
+ 'تعميم داخلي للمعلمين':d=>`تعميم داخلي
+${d.school}\t\tالتاريخ: ${d.date}\t\tالرقم: ______
+
+المكرمون أعضاء الهيئة التعليمية\t\t\tوفقهم الله
+السلام عليكم ورحمة الله وبركاته،
+
+الموضوع: ______________________________
+
+نأمل منكم التكرم بـ:
+١. ______________________________
+٢. ______________________________
+٣. ______________________________
+
+شاكرًا لكم جهودكم المتميزة،
+مدير المدرسة/ ${d.pr}`,
+ 'تعميم: مسؤوليات معلم الحصة':d=>`${d.school}
+تعميم داخلي رقم: ______            التاريخ: ${d.date}
+
+المكرمون أعضاء الهيئة التعليمية                    وفقهم الله
+السلام عليكم ورحمة الله وبركاته،
+
+الموضوع: التأخر عن دخول الحصص ومسؤوليات معلم الفصل
+
+تم رصد بعض الملاحظات خلال الأسبوع الماضي، لذا يجب على الجميع مراعاة ما يلي:
+
+• الدخول والخروج من الحصص في وقتها المحدد، وتحمّل المسؤولية كاملة في حال حدوث أي مشكلة أثناء غياب المعلم عن الفصل.
+• عدم تعنيف الطلاب سواء بالضرب أو التأنيب أو الصراخ، واستخدام الأساليب التربوية لمعالجة قضايا الطلاب.
+• عدم السماح لأي ولي أمر بالدخول للصف نهائيًا، وإعادته لمراجعة إدارة المدرسة.
+• عدم السماح لأكثر من طالب بالخروج من الصف في نفس الوقت.
+• عدم تسريح الطلاب قبل جرس نهاية الحصة، وعدم إخراج الطالب من الفصل عقوبةً له.
+• عدم ترك الطلاب دون إشراف مطلقًا، وعند الضرورة القصوى يُبلَّغ المعلم المناوب أو الإدارة.
+• رصد حضور الطلاب وغيابهم في الحصة الأولى وتوثيقه في النظام، والإبلاغ عن أي غياب طارئ.
+• عدم استخدام الجوال أو استقبال الزيارات أو مغادرة الفصل لأي غرض شخصي أثناء الحصة.
+• الالتزام بالتحضير المسبق وتفعيل الوسائل والأنشطة الصفية طوال زمن الحصة.
+• عدم تكليف الطلاب بمهام خارج الفصل أثناء وقت الحصة.
+• التأكد من نظافة الفصل وسلامة أثاثه ومحتوياته قبل الخروج، وتسليم الطلاب لمعلم الحصة التالية.
+• الاستئذان المسبق عن أي غياب أو تأخر متوقع، وتسليم خطة الحصة وأوراق العمل لمعلم الاحتياط.
+
+وسيتم تقديم المساءلة الخطية للمعلم المخالف حسب ما نص عليه الدليل الإجرائي والتنظيمي لمدارس التعليم العام، وسيراعى ذلك في استمارة تقييم الأداء الوظيفي.
+
+شاكرين لكم تعاونكم وجهودكم،
+
+مدير المدرسة/ ${d.pr}
+التوقيع: ______________
+
+نسخة لـ: ملف التعاميم — لوحة غرفة المعلمين — الوكلاء`,
+
+ 'تعميم: تعليمات المعلم المناوب':d=>`${d.school}
+تعميم داخلي رقم: ______            التاريخ: ${d.date}
+
+المكرمون المعلمون المناوبون                    وفقهم الله
+السلام عليكم ورحمة الله وبركاته،
+
+الموضوع: تعليمات المناوبة اليومية ومهام المعلم المناوب
+
+نظرًا لأهمية المناوبة في انضباط المدرسة وسلامة الطلاب، نأمل من المعلم المناوب الالتزام بما يلي:
+
+أولًا: قبل بدء الدوام
+• الحضور قبل بدء الدوام الرسمي بمدة لا تقل عن (١٥) دقيقة والتوقيع في سجل المناوبة.
+• استقبال الطلاب عند البوابة، ومنع دخول أي شخص غير منسوبي المدرسة إلا بإذن الإدارة.
+• الإشراف على الاصطفاف الصباحي وتنظيم الطابور ومتابعة النشاط الصباحي.
+• تسجيل أسماء الطلاب المتأخرين ورفعها للإدارة.
+
+ثانيًا: أثناء الحصص
+• متابعة دخول المعلمين لحصصهم فور الجرس، وتبليغ الإدارة فورًا عن أي تأخر أو عدم دخول.
+• تغطية حصص المعلمين الغائبين بالتنسيق مع وكيل الشؤون التعليمية وتوزيع معلمي الاحتياط.
+• الجولة الدورية على الممرات ودورات المياه والمقصف والفناء أثناء الحصص.
+• عدم السماح لأي طالب بالتجول خارج الفصل دون إذن، وإعادته لفصله.
+• استقبال أولياء الأمور وتوجيههم للإدارة، وعدم السماح بالدخول إلى الفصول نهائيًا.
+
+ثالثًا: الفسحة والانصراف
+• الإشراف المباشر على الفسحة ومتابعة سلامة الطلاب ونظام المقصف.
+• منع خروج أي طالب من المدرسة إلا بإذن رسمي موثّق من الإدارة وبحضور ولي أمره.
+• تنظيم الانصراف ومتابعة صعود الطلاب للحافلات حتى خروج آخر طالب.
+
+رابعًا: الحالات الطارئة
+• التعامل الفوري مع الإصابات والحالات الصحية وإبلاغ الإدارة وولي الأمر، وتوثيق الحالة كتابيًا.
+• الإبلاغ الفوري عن أي خطر في المرافق أو الأجهزة أو الكهرباء.
+• عدم التصرف منفردًا في القضايا السلوكية الجسيمة، وإحالتها للإدارة والمرشد الطلابي.
+
+خامسًا: التوثيق
+• تعبئة نموذج تقرير المناوبة اليومي وتسليمه للإدارة قبل نهاية الدوام.
+• عدم مغادرة موقع المناوبة إلا بإذن، ولا يُكلَّف المناوب بأي عمل يعيق مهمته أثناء يوم مناوبته.
+
+وسيتم تقديم المساءلة الخطية للمعلم المخالف حسب ما نص عليه الدليل الإجرائي والتنظيمي لمدارس التعليم العام، وسيراعى ذلك في استمارة تقييم الأداء الوظيفي.
+
+مدير المدرسة/ ${d.pr}
+التوقيع: ______________`,
+
+ 'نموذج: تقرير المناوبة اليومي':d=>`${d.school}
+نموذج تقرير المناوبة اليومي — العام الدراسي ${d.year}
+
+اسم المعلم المناوب: ______________________
+اليوم: ____________        التاريخ: ${d.date}
+
+أولًا: الاصطفاف الصباحي
+منفّذ ( )   غير منفّذ ( )   ملاحظات: ______________________________
+عدد الطلاب المتأخرين: ______   أسماؤهم: ______________________________
+
+ثانيًا: متابعة دخول المعلمين للحصص
+اسم المعلم / الحصة / الفصل / الحالة (دخل - متأخر - لم يدخل) / الإجراء
+١. ______________ / ____ / ____ / ____________ / ______________
+٢. ______________ / ____ / ____ / ____________ / ______________
+٣. ______________ / ____ / ____ / ____________ / ______________
+٤. ______________ / ____ / ____ / ____________ / ______________
+
+ثالثًا: حصص الاحتياط المغطاة
+المعلم الغائب / الحصة / الفصل / معلم الاحتياط
+١. ______________ / ____ / ____ / ______________
+٢. ______________ / ____ / ____ / ______________
+
+رابعًا: الفسحة والمرافق
+انتظام الفسحة: جيد ( ) متوسط ( ) يحتاج معالجة ( )
+ملاحظات على المرافق أو السلامة: ______________________________
+
+خامسًا: الحالات الطارئة والسلوكية
+الحالة: ______________________________________________
+الإجراء المتخذ: _______________________________________
+تم إبلاغ: الإدارة ( )   ولي الأمر ( )   المرشد الطلابي ( )
+
+سادسًا: الانصراف
+منتظم ( )   يحتاج تنظيمًا ( )   ملاحظات: ____________________
+
+سابعًا: التوصيات
+١. ______________________________________________
+٢. ______________________________________________
+
+توقيع المعلم المناوب: ____________
+اطّلاع مدير المدرسة/ ${d.pr}: ____________`,
+
+ 'نموذج: جدول المناوبة الأسبوعي':d=>`${d.school}
+جدول المناوبة الأسبوعي — العام الدراسي ${d.year}
+الأسبوع: ______        من: ${d.date}        إلى: ____________
+
+اليوم / المناوب الأول / المناوب الثاني / موقع الإشراف
+الأحد     / ______________ / ______________ / ______________
+الاثنين   / ______________ / ______________ / ______________
+الثلاثاء  / ______________ / ______________ / ______________
+الأربعاء  / ______________ / ______________ / ______________
+الخميس    / ______________ / ______________ / ______________
+
+مواقع الإشراف المعتمدة:
+١. البوابة الرئيسة والاصطفاف        ٢. الممر العلوي والفصول
+٣. الفناء والمقصف                  ٤. دورات المياه والممرات
+٥. ساحة الانصراف والحافلات
+
+ملاحظات:
+• يُعد الجدول ملزمًا، ولا يجوز التبديل بين المناوبين إلا بموافقة خطية من الإدارة.
+• على المناوب تسليم تقرير المناوبة اليومي قبل نهاية الدوام.
+
+اعتماد مدير المدرسة/ ${d.pr}        التوقيع: ____________`,
+
+ 'نموذج: تكليف بالمناوبة':d=>`${d.school}
+خطاب تكليف رقم: ______            التاريخ: ${d.date}
+
+سعادة المعلم/ ______________________                    المحترم
+السلام عليكم ورحمة الله وبركاته،
+
+الموضوع: تكليف بالمناوبة اليومية
+
+بناءً على ما تقتضيه مصلحة العمل، وثقةً بقدراتكم، فقد تقرر تكليفكم بالمناوبة اليومية يوم (____________) اعتبارًا من تاريخ ${d.date} وحتى نهاية الفصل الدراسي، وفق التعليمات المرفقة بتعميم المناوبة.
+
+آملين منكم الالتزام بمهام المناوبة كاملة، وتعبئة تقرير المناوبة اليومي وتسليمه للإدارة قبل نهاية الدوام.
+
+سائلين الله لكم التوفيق،
+
+مدير المدرسة/ ${d.pr}
+التوقيع: ______________
+
+علمت بالتكليف — اسم المعلم: ______________  التوقيع: ______  التاريخ: ${d.date}`,
+
+ 'تعميم: الالتزام بدخول الحصص':d=>`بسم الله الرحمن الرحيم
+
+${d.school}
+تعميم داخلي رقم: ______            التاريخ: ${d.date}
+
+المكرمون أعضاء الهيئة التعليمية                    وفقهم الله
+السلام عليكم ورحمة الله وبركاته،
+
+الموضوع: الالتزام بدخول الحصص في وقتها
+
+انطلاقًا من حرص المدرسة على استثمار زمن الحصة الدراسية، وحفاظًا على انضباط البيئة التعليمية وسلامة الطلاب، نأمل من الجميع التقيد بما يلي:
+
+١. التوجه إلى الفصل فور سماع جرس بداية الحصة ودون أي تأخير، وعدم البقاء في غرفة المعلمين أو الممرات.
+٢. عدم مغادرة الفصل قبل جرس نهاية الحصة، وعدم تسريح الطلاب مبكرًا لأي سبب.
+٣. عدم ترك الطلاب دون إشراف مطلقًا؛ وعند الضرورة القصوى يُبلَّغ وكيل المدرسة أو المدير قبل المغادرة.
+٤. الاستئذان المسبق كتابيًا لأي غياب أو تأخر متوقع، مع تسليم خطة الحصة لمعلم الاحتياط.
+٥. الالتزام بجدول الحصص المعتمد، وعدم تبادل الحصص بين المعلمين إلا بموافقة إدارة المدرسة.
+٦. عدم استقبال الزيارات أو إجراء المكالمات أثناء الحصة.
+٧. تفعيل الحصة من بدايتها حتى نهايتها بما يحقق أهداف الدرس، وتسليم الطلاب لمعلم الحصة التالية.
+
+وتفيدكم الإدارة بأن دخول الحصص يُرصد يوميًا وفق نموذج المتابعة المعتمد، وأن ما يُرصد من مخالفات يُعالج بالإجراءات النظامية المتدرجة، ويُعد ضمن عناصر تقويم الأداء الوظيفي.
+
+شاكرين لكم جهودكم وتعاونكم،
+
+مدير المدرسة/ ${d.pr}
+التوقيع: ______________
+
+نسخة لـ: ملف التعاميم — لوحة إعلانات غرفة المعلمين — الوكلاء`,
+
+ 'تعليمات دخول الحصص (كاملة)':d=>`${d.school}
+تعليمات تنظيم دخول الحصص ومتابعتها
+العام الدراسي ${d.year}                    تاريخ الاعتماد: ${d.date}
+
+أولًا: الهدف والنطاق
+١. تنظيم دخول المعلمين لحصصهم وضمان عدم إهدار زمن الحصة.
+٢. تسري هذه التعليمات على جميع أعضاء الهيئة التعليمية دون استثناء، وعلى جميع الحصص بما فيها حصص الانتظار والنشاط.
+
+ثانيًا: مواعيد الحصص
+٣. يبدأ زمن الحصة من جرس البداية وينتهي بجرس النهاية، ويُعد المعلم متأخرًا إذا لم يدخل خلال (٣) دقائق من الجرس.
+٤. يُعد المعلم غير منفذ للحصة إذا لم يدخل الفصل خلال (١٠) دقائق دون عذر مقبول.
+٥. زمن الانتقال بين الفصول جزء من مسؤولية المعلم، ولا يُقبل الاعتذار بالتأخر بسبب البُعد إلا في الحالات المعتمدة من الإدارة.
+
+ثالثًا: آلية الدخول والخروج
+٦. يستقبل المعلم طلابه عند باب الفصل ويتأكد من انتظامهم قبل بدء الدرس.
+٧. يتحقق المعلم من حضور الطلاب ويرصده في الحصة الأولى ويبلغ عن أي غياب طارئ.
+٨. لا يُسمح بإخراج الطالب من الحصة عقوبةً؛ وتُعالج المخالفات وفق لائحة السلوك والمواظبة.
+٩. لا يغادر المعلم الفصل إلا بعد جرس النهاية وتسليم الطلاب للحصة التالية.
+
+رابعًا: الاستئذان والاحتياط
+١٠. يُقدَّم طلب الاستئذان قبل يوم عمل واحد على الأقل، عدا الحالات الطارئة فيُبلَّغ فورًا هاتفيًا.
+١١. على المعلم المستأذن تسليم خطة الحصة وأوراق العمل لوكيل الشؤون التعليمية.
+١٢. يلتزم معلم الاحتياط بتنفيذ الحصة كاملة وفق الخطة المسلّمة، لا بمجرد الإشراف على الطلاب.
+١٣. لا يُعد إبلاغ الزميل بديلًا عن إبلاغ الإدارة رسميًا.
+
+خامسًا: المتابعة والرصد
+١٤. تتولى إدارة المدرسة الرصد اليومي لدخول الحصص عبر نموذج المتابعة المعتمد (دخل / متأخر / لم يدخل).
+١٥. يُحتسب لكل معلم مؤشر التزام تراكمي طوال الفصل الدراسي، ويُطلع عليه المعلم عند طلبه.
+١٦. تُعرض نتائج الالتزام في تقرير أسبوعي داخلي، ويُوثَّق ملخصها في ملف الأداء.
+
+سادسًا: الإجراءات المتدرجة عند المخالفة
+١٧. المخالفة الأولى: توجيه شفهي موثّق من مدير المدرسة.
+١٨. المخالفة الثانية: خطاب مساءلة خطي يُجاب عنه خلال ثلاثة أيام عمل.
+١٩. المخالفة الثالثة: لفت نظر خطي يُودع في ملف المعلم.
+٢٠. التكرار بعد ذلك: إحالة الموضوع لإدارة التعليم وفق الأنظمة واللوائح المعتمدة.
+٢١. لا يُنتقل إلى إجراء لاحق دون توثيق ما قبله، ويُمنح المعلم حق الرد قبل أي إجراء.
+
+سابعًا: الأعذار المقبولة
+٢٢. تُقبل الأعذار الطارئة الموثقة (الحالات الصحية، التكليف الرسمي، أمر إداري من الإدارة)، ويُثبت العذر في السجل ولا يُحتسب مخالفة.
+٢٣. تكرار الأعذار غير الموثقة يُعامل معاملة المخالفة.
+
+ثامنًا: التحفيز
+٢٤. يُكرَّم المعلمون الحاصلون على التزام (١٠٠٪) في نهاية كل فصل دراسي بخطاب شكر يُودع في ملفاتهم.
+
+تاسعًا: السريان
+٢٥. يُعمل بهذه التعليمات اعتبارًا من تاريخ اعتمادها، ويُلغى ما يتعارض معها.
+٢٦. مسؤولية تنفيذ هذه التعليمات تقع على وكيل الشؤون التعليمية بإشراف مدير المدرسة.
+
+اطلعت وأقر بالالتزام:
+اسم المعلم: ______________  التوقيع: ______  التاريخ: ${d.date}
+
+مدير المدرسة/ ${d.pr}`,
+
+ 'خطاب شكر لمعلم':d=>`المكرم الأستاذ/ ______\t\t\tالمحترم
+السلام عليكم ورحمة الله وبركاته،
+
+يسرّ إدارة ${d.school} أن تتقدم لكم بخالص الشكر والتقدير على ما بذلتموه من جهد متميز أسهم في رفع مستوى الأداء وتحقيق أهداف المدرسة.
+
+سائلين الله لكم دوام التوفيق، ومثمنين عطاءكم المستمر.
+
+مدير المدرسة/ ${d.pr}\t\tالتاريخ: ${d.date}`,
+ 'تقرير زيارة صفية':d=>`تقرير زيارة صفية
+${d.school} — ${d.year}
+
+المعلم: ______\t\tالمادة: ______\t\tالصف: ______
+التاريخ: ${d.date}\t\tالحصة: ______
+
+نقاط القوة:
+١. ______________________________
+٢. ______________________________
+
+فرص التطوير:
+١. ______________________________
+٢. ______________________________
+
+التوصيات وآلية المتابعة:
+______________________________
+موعد الزيارة القادمة: ______
+
+مدير المدرسة/ ${d.pr}\t\tتوقيع المعلم: ______`
+};
+function letterData(sid){
+  const s = sid ? student(sid) : null, st = s ? stuStat(s.id) : null;
+  return {st:s ? s.name : '______', grade:s ? s.grade || '______' : '______', cls:s ? s.cls || '______' : '______', abs:st ? st.abs : '__', inc:st ? st.inc.length : '__', rate:st && st.rate !== null ? st.rate + '٪' : '__',
+    date:hij(today()), pr:principal(), school:school(), year:set().year || '١٤٤٨هـ'};
+}
+const letterDoc = (title, text) => `<div class="paper">${docHead(title.replace(/^(نموذج|تعميم): /, ''), '', '', hij(today()))}<div class="ltext">${esc(text)}</div></div>`;
+function vLetters(){
+  const key = UI.lKey || Object.keys(LETTERS)[0], sid = UI.lSid || '';
+  return `<section class="panel"><div class="fg">
+      <div class="f"><label for="lKey">نوع الخطاب</label><select id="lKey">${selOpts(Object.keys(LETTERS), key)}</select></div>
+      <div class="f"><label for="lSid">الطالب (اختياري)</label><select id="lSid"><option value="">— بدون —</option>${sortBy(S.students,'name').map(s => `<option value="${s.id}" ${s.id === sid ? 'selected' : ''}>${esc(s.name)}</option>`).join('')}</select></div>
+      <div class="f full"><label for="lTxt">نص الخطاب (يمكن تعديله قبل الطباعة)</label><textarea id="lTxt" style="min-height:360px;font-size:14px">${esc(LETTERS[key](letterData(sid)))}</textarea></div></div>
+      <div class="tools"><button class="btn pri" data-act="printLetter">طباعة / PDF</button><button class="btn" data-act="copyLetter">نسخ النص</button>${isAdmin() ? '<button class="btn" data-act="saveLetter">حفظ في السجل</button>' : ''}</div>
+      <p class="sub">راجع النص وعدّله بما يتوافق مع لوائح إدارتكم التعليمية قبل الاعتماد والتوقيع.</p></section>`;
+}
+document.addEventListener('change', e => {
+  if (e.target.id === 'lKey') { UI.lKey = e.target.value; render(true); }
+  if (e.target.id === 'lSid') { UI.lSid = e.target.value; render(true); }
+});
+
+/* ---------- البوابة: مهام المعلم في الكنترول ---------- */
+function teacherCtrlPanel(){
+  const t = S.teachers[0]; const k = ctrlTasks(t.id); if (!k.rows.length && !k.obs.length) return '';
+  const c = S.ctrlsigns[0];
+  return `<section class="panel"><h3>مهامي في الكنترول</h3>
+    ${k.rows.length ? `<div class="tablewrap"><table class="tbl" style="min-width:480px"><thead><tr><th>المادة</th><th>الصف</th><th>مهمتي</th><th>تاريخ الاختبار</th><th>التسليم</th></tr></thead><tbody>${k.rows.map(r => `<tr><td>${esc(r.subject || '')}</td><td>${esc(r.grade || '')}</td><td><span class="chip info">${esc(r.role)}</span></td><td>${esc(r.examDate || '—')}</td><td>${esc(r.hand || '—')}</td></tr>`).join('')}</tbody></table></div>` : ''}
+    ${k.obs.length ? `<p class="sub">الملاحظة في ${k.obs.length} اختبار، تجدها في «مظاريف الاختبارات» أدناه.</p>` : ''}
+    ${c ? `<div class="done">اعتمدت مهامك بتوقيعك في ${esc(stamp(c.at))}.</div>` : '<div><button class="btn pri" data-act="ctrlSign">أعتمد مهامي وأوقّع</button></div>'}</section>`;
+}
+function ctrlSignForm(){
+  const t = S.teachers[0];
+  modal('اعتماد مهام الكنترول', `<p style="margin:0">أقر أنا <b>${esc(t.name)}</b> بالاطلاع على المهام المسندة إليّ في لجنة الكنترول والالتزام بتنفيذها في مواعيدها.</p>${sigField('sig_c', 'التوقيع', t.name)}`,
+    `<button class="btn pri" id="ok">اعتماد وتوقيع</button><button class="btn" data-act="close">إلغاء</button>`);
+  requestAnimationFrame(() => mountSig('sig_c'));
+  $('#ok').onclick = async () => { const img = pads.sig_c?.data(); if (!img) return toast('وقّع في المربع', 'bad');
+    try { await api(`/t/${KEY}/ctrlsign`, {method:'POST', json:{sig:{img, name:t.name}}}); S.ctrlsigns = [{id:t.id, img, name:t.name, at:Date.now()}]; closeModal(); render(); toast('اعتُمدت مهامك'); } catch(e){ toast(errMsg(e), 'bad'); } };
+}
+
+Object.assign(ACT, {
+  sTab: id => { UI.sTab = id; render(true); }, rTab: id => { UI.rTab = id; render(true); }, cTab: id => { UI.cTab = id; render(true); },
+  addStudent: () => studentForm(), editStudent: studentForm, bulkStudents: bulkStudentsForm, studentFile,
+  delStudent: id => confirmBox('حذف طالب', `سيُحذف «${sName(id)}» من السجل. تبقى مخالفاته ونماذج ولي أمره السابقة.`, 'حذف', () => del('students/' + id)),
+  stuParent: stuParentForm, stuLetter: id => { closeModal(); UI.lSid = id; UI.rTab = 'letters'; UI.lKey = 'استدعاء ولي أمر'; go('records'); },
+  mark: (id, b) => { const date = UI.attDate || today(); const cur = (S.attendance.find(x => x.id === date) || {})[id]; save2('attendance', date, {[id]: cur === b.dataset.v ? null : b.dataset.v}); },
+  allPresent: markAll,
+  addIncident: id => incidentForm(id), incParent,
+  togIncident: id => { const i = S.incidents.find(x => x.id === id); if (i) put('incidents/' + id, {status: i.status === 'closed' ? 'open' : 'closed'}, true); },
+  delIncident: id => confirmBox('حذف مخالفة', 'ستُحذف المخالفة من سجل الطالب.', 'حذف', () => del('incidents/' + id)),
+  lmark: (id, b) => lmark(id, b.dataset.v), allIn, addSlot: slotForm, fullSched,
+  delSlot: id => confirmBox('حذف حصة', 'ستُحذف الحصة من الجدول الأسبوعي.', 'حذف', async () => { await del('schedule/' + id); }),
+  lessonNotice: id => issueForm(id, {type:'عدم دخول حصة'}),
+  sheet: kind => { const tid = fval('shT'); if (kind !== 'day' && !tid) return toast('أضف معلمًا أولًا', 'bad'); printDoc(sheetDoc(kind, tid)); },
+  visit: id => visitForm(id), viewVisit, printVisit: id => { const v = S.visits.find(x => x.id === id); if (v) printDoc(visitDoc(v)); },
+  delVisit: id => confirmBox('حذف زيارة', 'ستُحذف الزيارة الصفية.', 'حذف', () => del('visits/' + id)),
+  addTask: taskForm, doneTask: id => { const t = S.tasks.find(x => x.id === id); if (t) put('tasks/' + id, {done: !t.done}, true); },
+  delTask: id => del('tasks/' + id),
+  grSeed, grAdd, grAuto, grDel: id => confirmBox('حذف سطر', 'سيُحذف السطر من جدول التصحيح.', 'حذف', () => del('grading/' + id)),
+  grPrint: () => printDoc(grDoc()), sigPrint: () => printDoc(sigDoc()),
+  ctrlUnsign: id => confirmBox('إلغاء توقيع', `سيُلغى توقيع «${tName(id)}» ليعيد اعتماد مهامه.`, 'إلغاء التوقيع', () => del('ctrlsigns/' + id)),
+  ctrlSign: ctrlSignForm,
+  fillRec: id => recForm(id), editRec: id => recForm(null, id), blankRec: id => printDoc(recDoc(recTpl(id), {})), viewRec,
+  printRec: id => { const r = S.records.find(x => x.id === id); if (r) printDoc(recPaper(r)); },
+  dlRec: id => { const r = S.records.find(x => x.id === id); if (r) saveHtml(r.title, recPaper(r)); },
+  delRec: id => confirmBox('حذف من السجل', 'سيُحذف المحضر المحفوظ نهائيًا.', 'حذف', () => del('records/' + id)),
+  printLetter: () => printDoc(letterDoc(UI.lKey || Object.keys(LETTERS)[0], fval('lTxt'))),
+  copyLetter: async () => { try { await navigator.clipboard.writeText(fval('lTxt')); toast('نُسخ النص'); } catch { toast('حدّد النص وانسخه يدويًا', 'bad'); } },
+  saveLetter: async () => { const title = UI.lKey || Object.keys(LETTERS)[0]; const sid = UI.lSid; const id = newId();
+    if (await put('records/' + id, {tpl:'letter', title: title + (sid ? ' — ' + sName(sid) : ''), text:fval('lTxt'), createdAt:Date.now()})) toast('حُفظ الخطاب في السجل'); }
+});
+
 /* ---------- boot ---------- */
 /* ---------- admin: login & sync ---------- */
-function gate(html){ $('#appRoot').hidden = true; $('#gateRoot').innerHTML = `<div class="gate"><div class="box">${html}</div></div>`; const i = $('#gateRoot input'); if (i) i.focus(); }
+function gate(html){ $('#appRoot').hidden = true; $('#gateRoot').innerHTML = `<div class="gate"><div class="box"><div class="logo"><img src="${LOGO}" alt="شعار وزارة التعليم"></div>${html}</div></div>`; const i = $('#gateRoot input'); if (i) i.focus(); }
 const CODE_CH = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 function newCode(){ let c = store.get('mdr.newcode'); if (!c) { const r = crypto.getRandomValues(new Uint8Array(8)); c = [...r].map(x => CODE_CH[x % 32]).join('').replace(/^(.{4})/, '$1-'); store.set('mdr.newcode', c); } return c; }
 const signedIn = r => { token = r.token; store.set('mdr.token', token); store.set('mdr.code', r.code); S.code = r.code; history.replaceState(null, '', location.pathname); startAdmin(); };
@@ -1064,15 +2102,17 @@ function changePwForm(){
 }
 
 /* ---------- teacher & parent portals ---------- */
-const portalHead = (title, sub) => `<div class="brandbar"><div><span class="m">${set().region ? esc(set().region) + ' · ' : ''}${esc(school())}</span><h1>${esc(title)}</h1>${sub ? `<span class="m">${sub}</span>` : ''}</div>
+const portalHead = (title, sub) => `<div class="brandbar"><div class="logo" style="width:96px;background:#fff;border-radius:8px;padding:5px 7px"><img src="${LOGO}" alt="شعار وزارة التعليم" style="display:block;width:100%"></div><div style="flex:1;min-width:200px"><span class="m">${set().region ? esc(set().region) + ' · ' : ''}${esc(school())}</span><h1>${esc(title)}</h1>${sub ? `<span class="m">${sub}</span>` : ''}</div>
   <div class="contact"><span class="k">مدير المدرسة</span><span>${esc(principal())}</span><span>${set().phone ? `<a class="phone" href="tel:${esc(set().phone)}">${esc(set().phone)}</a>` : ''}</span></div></div>`;
 function renderTeacher(){
   const t = S.teachers[0]; if (!t) return;
   const ns = sortBy(S.notices, 'createdAt', -1), ex = [...S.exams].sort((a,b) => (a.date+a.period).localeCompare(b.date+b.period));
-  const pend = ns.filter(n => n.status === 'issued').length + ex.filter(e => !e.recv || !e.ret).length;
+  const ck = ctrlTasks(t.id);
+  const pend = ns.filter(n => n.status === 'issued').length + ex.filter(e => !e.recv || !e.ret).length + ((ck.rows.length || ck.obs.length) && !S.ctrlsigns.length ? 1 : 0);
   $('#gateRoot').innerHTML = `<div class="portal">${portalHead('الأستاذ/ ' + t.name, esc(t.specialty || ''))}
     ${pend ? `<div class="notice-bar">لديك ${pend} ${pend === 1 ? 'إجراء ينتظر' : 'إجراءات تنتظر'} توقيعك.</div>` : '<div class="done">لا يوجد ما ينتظر توقيعك. شكرًا لك.</div>'}
     <section class="panel"><h3>المساءلات</h3>${ns.length ? `<div class="list">${ns.map(n => { const [c,l] = nStatus(n); return `<div class="row"><div><div class="t">مساءلة رقم <span class="num">${esc(n.no)}</span> · ${esc(n.kind)}</div><div class="m">${esc(dayName(n.date))} ${esc(hij(n.date))}${n.decision ? ' · القرار: ' + esc(DECISIONS[n.decision]) : ''}</div></div><div class="tools"><span class="chip ${c}">${l}</span>${n.status === 'issued' ? `<button class="btn sm pri" data-act="reply" data-id="${n.id}">كتابة الإفادة والتوقيع</button>` : ''}<button class="btn sm" data-act="viewNotice" data-id="${n.id}">عرض</button></div></div>`; }).join('')}</div>` : '<div class="empty">لا توجد مساءلات عليك.</div>'}</section>
+    ${teacherCtrlPanel()}
     <section class="panel"><h3>مظاريف الاختبارات</h3><p class="sub">وقّع عند استلام مظروف الأسئلة من الكنترول، ثم عند تسليم أوراق الإجابة.</p>${ex.length ? `<div class="list">${ex.map(e => `<div class="row"><div><div class="t">${esc(e.subject)} · ${esc(e.grade||'')}</div><div class="m">${esc(dayName(e.date))} ${esc(hij(e.date))} · الفترة ${esc(e.period||'')} · ${esc(committee(e.committeeId)?.name||'')}</div></div><div class="tools">
       ${e.recv ? '<span class="chip ok">استُلمت الأسئلة</span>' : `<button class="btn sm pri" data-act="envRecv" data-id="${e.id}">توقيع الاستلام</button>`}
       ${e.ret ? '<span class="chip ok">سُلّمت الإجابات</span>' : e.recv ? `<button class="btn sm pri" data-act="envRet" data-id="${e.id}">توقيع التسليم</button>` : ''}</div></div>`).join('')}</div>` : '<div class="empty">لم تُسند إليك ملاحظة اختبارات.</div>'}</section>
@@ -1088,7 +2128,7 @@ function renderParent(){
 async function startPortal(){
   gate('<p>جارٍ فتح النموذج…</p>');
   try {
-    if (MODE === 'teacher') { const d = await api('/t/' + KEY); S.teachers = [d.teacher]; S.notices = d.notices; S.exams = d.exams; S.committees = d.committees; S.settings = d.settings; }
+    if (MODE === 'teacher') { const d = await api('/t/' + KEY); S.teachers = [d.teacher]; S.notices = d.notices; S.exams = d.exams; S.committees = d.committees; S.grading = d.grading || []; S.ctrlsigns = d.ctrlsign ? [{id:d.teacher.id, ...d.ctrlsign}] : []; S.settings = d.settings; }
     else { const d = await api('/p/' + KEY); S.parents = [d.form]; S.settings = d.settings; }
     S.loaded = true; $('#gateRoot').innerHTML = ''; render();
   } catch(e){ gate(`<h1>تعذّر فتح الرابط</h1><p>${esc(errMsg(e))}</p><p>تواصل مع إدارة المدرسة للحصول على رابط صحيح.</p>`); }
