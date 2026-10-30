@@ -327,7 +327,10 @@ const hashArg = (k) => { const m = location.hash.match(new RegExp('[#&]' + k + '
 const MODE = hashArg('t') ? 'teacher' : hashArg('p') ? 'parent' : 'admin';
 const KEY = hashArg('t') || hashArg('p');
 let token = store.get('mdr.token');
+const DEV = store.get('mdr.dev') || [...crypto.getRandomValues(new Uint8Array(16))].map(b => b.toString(16).padStart(2, '0')).join(''); store.set('mdr.dev', DEV);
+const devInfo = () => { const u = navigator.userAgent; return {device:DEV, deviceName:`${/iPhone|iPad/.test(u) ? 'آيفون' : /Android/.test(u) ? 'أندرويد' : 'كمبيوتر'} · ${/Edg/.test(u) ? 'Edge' : /Chrome/.test(u) ? 'Chrome' : /Safari/.test(u) ? 'Safari' : /Firefox/.test(u) ? 'Firefox' : 'متصفح'}`}; };
 const ERR = {
+  too_many_devices:'الحساب مفتوح على ثلاثة أجهزة.', too_many_moves:'استُبدلت الأجهزة كثيرًا هذا الشهر. أخرج جهازًا من الإعدادات أو تواصل مع البائع.',
   wrong_password:'كلمة المرور غير صحيحة.', wrong_login:'رمز المدرسة أو كلمة المرور غير صحيحة.', bad_key:'مفتاح التفعيل غير صحيح لرمز المدرسة هذا. انسخه كاملًا كما وصلك.', bad_code:'رمز المدرسة غير صحيح.', already_registered:'هذه المدرسة مسجلة من قبل. ادخل برمزها وكلمة مرورها.', too_many_attempts:'محاولات كثيرة خاطئة. انتظر ربع ساعة ثم أعد المحاولة.', weak_password:'كلمة المرور قصيرة، اكتب ٦ أحرف أو أرقام على الأقل.',
   unauthorized:'انتهت الجلسة. سجّل الدخول من جديد.', already_replied:'سبق إرسال الإفادة على هذه المساءلة.', already_signed:'سبق التوقيع على هذا النموذج.', receive_first:'وقّع على استلام الأسئلة أولًا.',
   too_large:'الملف أكبر من ١٠ ميجابايت. اضغطه أو صوّره بدقة أقل.', unsupported_type:'نوع الملف غير مدعوم. ارفع PDF أو صورة.', not_found:'الرابط غير صحيح أو حُذف النموذج.'
@@ -340,7 +343,7 @@ async function api(path, opt = {}){
   try { r = await fetch(API + '/api' + path, {method: opt.method || 'GET', headers, body: opt.body}); }
   catch { throw {code:'network', message:'تعذّر الاتصال بالخادم. تحقق من الإنترنت ثم أعد المحاولة.'}; }
   const data = await r.json().catch(() => ({}));
-  if (!r.ok) { const code = data.error || 'server_error'; if (code === 'unauthorized' && MODE === 'admin') { token = null; store.set('mdr.token', null); setTimeout(showLogin, 0); } throw {code, message: ERR[code] || 'تعذّر إكمال العملية. أعد المحاولة.'}; }
+  if (!r.ok) { const code = data.error || 'server_error'; if (code === 'unauthorized' && MODE === 'admin') { token = null; store.set('mdr.token', null); setTimeout(showLogin, 0); } throw {code, data, message: ERR[code] || 'تعذّر إكمال العملية. أعد المحاولة.'}; }
   return data;
 }
 const me = { admin: MODE === 'admin', ready:false, offline:false };
@@ -717,8 +720,8 @@ function vSettings(){
       ${f('incLimit','عدد المخالفات للإنذار المبكر', s.incLimit || 3, 'number')}
     </div><div><button class="btn pri" type="submit">حفظ الإعدادات</button></div></form>
     <section class="panel"><h3>الدخول للوحة المدير</h3><p class="sub">رمز المدرسة: <b class="phone">${esc(S.code || store.get('mdr.code') || '')}</b> — تحتاجه مع كلمة المرور للدخول من أي جهاز. من يعرفهما يدخل لوحة المدير كاملة، فشاركهما مع الوكيل أو رئيس الكنترول عند الحاجة فقط.</p>
-      <p class="sub">يمكن فتح الحساب نفسه من أي عدد من الجوالات وأجهزة الكمبيوتر برمز المدرسة وكلمة المرور. واحتفظ بمفتاح التفعيل، فهو طريقة استعادة كلمة المرور.</p>
-      <div class="tools"><button class="btn" data-act="changePw">تغيير كلمة المرور</button><button class="btn" data-act="showKey">مفتاح التفعيل</button></div></section>`;
+      <p class="sub">يُفتح الحساب على ثلاثة أجهزة كحد أقصى من جوال وكمبيوتر. واحتفظ بمفتاح التفعيل، فهو طريقة استعادة كلمة المرور.</p>
+      <div class="tools"><button class="btn" data-act="changePw">تغيير كلمة المرور</button><button class="btn" data-act="devices">الأجهزة</button><button class="btn" data-act="showKey">مفتاح التفعيل</button></div></section>`;
 }
 
 /* ---------- forms ---------- */
@@ -1999,7 +2002,9 @@ function showLogin(){
   $('#toReg').onclick = e => { e.preventDefault(); showRegister(); };
   $('#toReset').onclick = e => { e.preventDefault(); showReset(); };
   $('#gForm').onsubmit = async e => { e.preventDefault();
-    try { signedIn(await api('/login', {method:'POST', json:{code:fval('g_code'), password:fval('g_pw')}})); } catch(err){ toast(errMsg(err), 'bad'); } };
+    const body = {code:fval('g_code'), password:fval('g_pw'), ...devInfo()};
+    try { signedIn(await api('/login', {method:'POST', json:body})); } catch(err){ if (err.code !== 'too_many_devices') return toast(errMsg(err), 'bad');
+      confirmBox('الحساب مفتوح على ثلاثة أجهزة', `الأجهزة الحالية: ${err.data.devices.map(d => d.name || 'جهاز').join('، ')}. للدخول من هذا الجهاز يخرج أقدم جهاز منها.`, 'إخراج الأقدم والدخول', async () => { try { signedIn(await api('/login', {method:'POST', json:{...body, replace:true}})); } catch(e){ toast(errMsg(e), 'bad'); } }); } };
 }
 function showReset(){
   const code = store.get('mdr.code') || ''; const wa = () => waLink(SELLER, `السلام عليكم، أحتاج استعادة مفتاح تفعيل منصة المدير.\nرمز المدرسة: ${fval('x_code') || '—'}`);
@@ -2013,7 +2018,7 @@ function showReset(){
     <p style="margin-top:14px"><a href="#" id="toSeller">فقدت المفتاح أو رمز المدرسة؟ تواصل مع البائع</a></p><p><a href="#" id="toLogin">رجوع إلى الدخول</a></p>`);
   $('#toSeller').onclick = e => { e.preventDefault(); window.open(wa(), '_blank', 'noopener'); }; $('#toLogin').onclick = e => { e.preventDefault(); showLogin(); };
   $('#gForm').onsubmit = async e => { e.preventDefault(); if (fval('x_pw') !== fval('x_pw2')) return toast('كلمتا المرور غير متطابقتين', 'bad');
-    try { signedIn(await api('/reset', {method:'POST', json:{code:fval('x_code'), key:fval('x_key'), password:fval('x_pw')}})); toast('تغيّرت كلمة المرور'); } catch(err){ toast(errMsg(err), 'bad'); } };
+    try { signedIn(await api('/reset', {method:'POST', json:{code:fval('x_code'), key:fval('x_key'), password:fval('x_pw'), ...devInfo()}})); toast('تغيّرت كلمة المرور'); } catch(err){ toast(errMsg(err), 'bad'); } };
 }
 function showRegister(){
   // رابط التفعيل من البائع يحمل رمز المدرسة والمفتاح: #code=XXXX-XXXX&key=...
@@ -2044,7 +2049,7 @@ function showRegister(){
     if (!fval('r_key')) return toast('الصق مفتاح التفعيل', 'bad');
     if (!fval('r_school')) return toast('اكتب اسم المدرسة', 'bad');
     if (fval('r_pw') !== fval('r_pw2')) return toast('كلمتا المرور غير متطابقتين', 'bad');
-    try { signedIn(await api('/register', {method:'POST', json:{code, key:fval('r_key'), school:fval('r_school'), region:fval('r_region'), year:fval('r_year'), principal:fval('r_n'), phone:fval('r_ph'), password:fval('r_pw')}})); store.set('mdr.newcode', null); }
+    try { signedIn(await api('/register', {method:'POST', json:{code, key:fval('r_key'), school:fval('r_school'), region:fval('r_region'), year:fval('r_year'), principal:fval('r_n'), phone:fval('r_ph'), password:fval('r_pw'), ...devInfo()}})); store.set('mdr.newcode', null); }
     catch(err){ toast(errMsg(err), 'bad'); } };
 }
 async function loadAll(manual){
@@ -2068,7 +2073,7 @@ function changePwForm(){
     `<button class="btn pri" id="ok">حفظ</button><button class="btn" data-act="close">إلغاء</button>`);
   $('#ok').onclick = async () => {
     if (fval('pw_n') !== fval('pw_n2')) return toast('كلمتا المرور غير متطابقتين', 'bad');
-    try { const r = await api('/password', {method:'POST', json:{old:fval('pw_o'), password:fval('pw_n')}}); token = r.token; store.set('mdr.token', token); closeModal(); toast('تغيّرت كلمة المرور'); } catch(e){ toast(errMsg(e), 'bad'); }
+    try { const r = await api('/password', {method:'POST', json:{old:fval('pw_o'), password:fval('pw_n'), ...devInfo()}}); token = r.token; store.set('mdr.token', token); closeModal(); toast('تغيّرت كلمة المرور'); } catch(e){ toast(errMsg(e), 'bad'); }
   };
 }
 
@@ -2858,7 +2863,9 @@ document.addEventListener('change', e => { if (e.target.id === 'pCls') { UI.pCls
 async function showKey(){ try { const r = await api('/licence'); const wa = waLink(SELLER, `السلام عليكم، أحتاج نسخة من مفتاح تفعيل منصة المدير.\nرمز المدرسة: ${r.code}`);
     modal('مفتاح التفعيل', r.key ? `<p class="sub">احتفظ به في مكان آمن، ولا تشاركه إلا مع من يدير الحساب.</p><p class="phone" dir="ltr" style="word-break:break-all">${esc(r.key)}</p>` : '<p>هذا الحساب أُنشئ قبل حفظ المفتاح. اطلب نسخة من البائع برمز مدرستك.</p>', r.key ? `<button class="btn pri" id="kc">نسخ المفتاح</button>` : `<a class="btn pri" href="${esc(wa)}" target="_blank" rel="noopener">طلب المفتاح</a>`);
     const c = $('#kc'); if (c) c.onclick = () => copyText(r.key); } catch(e){ toast(errMsg(e), 'bad'); } }
-Object.assign(ACT, {showKey, addParent:() => noticeForm(), stuParent:noticeForm, exportStudents:exportStudentsForm});
+async function devicesForm(){ try { const r = await api('/devices');
+    modal(`الأجهزة (${r.devices.length} من ${r.max})`, r.devices.length ? `<div class="list">${r.devices.map(d => `<div class="row"><div><div class="t">${esc(d.name || 'جهاز')}</div><div class="m">${d.id === r.current ? 'هذا الجهاز · ' : ''}آخر دخول: ${esc(stamp(d.at))}</div></div>${d.id === r.current ? '' : `<button class="btn sm danger" data-act="devDel" data-id="${esc(d.id)}">إخراج</button>`}</div>`).join('')}</div>` : '<div class="empty">لا توجد أجهزة مسجلة بعد. تُسجَّل عند تسجيل الدخول.</div>'); } catch(e){ toast(errMsg(e), 'bad'); } }
+Object.assign(ACT, {devices:devicesForm, devDel:async id => { try { await api('/devices/' + id, {method:'DELETE'}); toast('خرج الجهاز'); devicesForm(); } catch(e){ toast(errMsg(e), 'bad'); } }, showKey, addParent:() => noticeForm(), stuParent:noticeForm, exportStudents:exportStudentsForm});
 
 /* ===================== إصدار المراقبة ونسخة المعلم الموقعة ===================== */
 const issue = () => S.ctrlissue.find(x => x.id === 'current');
