@@ -232,11 +232,12 @@ table.tbl{border-collapse:collapse;width:100%;min-width:640px;font-size:14px}
 .paper table.sheet{table-layout:fixed;font-size:12.5px}
 .paper table.sheet th,.paper table.sheet td{width:auto;text-align:center;height:30px;padding:2px 4px}
 .paper table.sheet.sm th,.paper table.sheet.sm td{height:22px;font-size:11px}
-.paper table.sheet .nm{width:150px;text-align:start}
-.paper table.sheet .n{width:34px}
-.paper table.sheet .rem{width:120px}
-.paper table.sheet td.off{background:repeating-linear-gradient(45deg,#f2f2f2,#f2f2f2 4px,#e2e2e2 4px,#e2e2e2 8px)}
-.paper table.sheet td.bx em{font-size:9.5px;color:#666;font-style:normal;display:block}
+.paper table.sheet .nm{width:13%;text-align:start}
+.paper table.sheet .n{width:4%}
+.paper table.sheet .rem{width:12%}
+.paper table.sheet td.off{-webkit-print-color-adjust:exact;print-color-adjust:exact;background:repeating-linear-gradient(45deg,#f2f2f2,#f2f2f2 4px,#e2e2e2 4px,#e2e2e2 8px)}
+.paper table.sheet td.bx em{font-size:11px;line-height:1.3;color:#444;font-style:normal;display:block;overflow-wrap:anywhere}
+.paper table.sheet td.bx em small{display:block;font-size:10.5px;color:#666}
 @media (max-width:600px){.paper{padding:18px 16px}.paper .dh{grid-template-columns:1fr;text-align:center}.paper .dh .l{text-align:center}.paper .dh .lg{order:-1;justify-self:center}.paper .sigrow{grid-template-columns:1fr}}
 </style>
 <style>
@@ -458,7 +459,8 @@ function saveCsv(name, rows){
 function printDoc(inner){
   const pa = $('#printArea'); pa.innerHTML = inner; document.body.classList.add('printing');
   if (navigator.standalone) { // تطبيق الشاشة الرئيسية في iPhone لا يدعم window.print
-    const html = `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>طباعة</title><style>body{margin:16px;background:#fff}${$('#docCss').textContent}@page{size:A4;margin:12mm}@media print{body{margin:0}.paper{border:0}}</style></head><body>${inner}<script>onload=()=>setTimeout(()=>print(),300)<\/script></body></html>`;
+    const land = inner.includes('paper land');
+    const html = `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=${land ? 1140 : 820}"><title>طباعة</title><style>body{margin:16px;background:#fff}${$('#docCss').textContent}@page{size:A4 ${land ? 'landscape' : 'portrait'};margin:${land ? 8 : 12}mm}@media print{body{margin:0}.paper{border:0}}</style></head><body>${inner}<script>onload=()=>setTimeout(()=>print(),300)<\/script></body></html>`;
     const w = window.open(URL.createObjectURL(new Blob([html], {type:'text/html'})), '_blank'); if (w) return;
   }
   const imgs = [...pa.querySelectorAll('img')].filter(i => !i.complete);
@@ -1292,11 +1294,14 @@ function fullSched(){
     return `<h3 style="font-size:15px">${n} (${r.length})</h3>${r.length ? `<div class="list">${r.map(e => `<div class="row"><div><span class="num"><b>الحصة ${esc(e.p)}</b></span> · ${esc(tName(e.tid))} · ${esc(e.cls || '')}</div>${isAdmin() ? `<button class="btn sm danger" data-act="delSlot" data-id="${e.id}">حذف</button>` : ''}</div>`).join('')}</div>` : '<div class="m" style="color:var(--muted)">لا حصص</div>'}`; }).join('') : '<div class="empty">الجدول فارغ.</div>',
     `<span class="m" style="color:var(--muted);font-size:13px">عدد الحصص اليومية: ${P} (من الإعدادات)</span>`, true);
 }
+function slotShort(v){ const [c, ...sub] = String(v || '').split(' - '), m = c.match(/^(\S+)(?:\s+\S+)?\s*\/\s*(.+)$/);
+  const cls = m ? (m[2].trim() === '1' ? m[1] : `${m[1]} / ${m[2].trim()}`) : c.replace(/\s+(الابتدائي|المتوسط|الثانوي)$/, '');
+  return esc(cls) + (sub.length ? `<small>${esc(sub.join(' - '))}</small>` : ''); }
 function sheetDoc(kind, tid){
   const P = cfg().periods, PS = Array.from({length:P}, (_,i) => i + 1);
   const t = teacher(tid) || {name:'', specialty:''};
   const date = UI.schDate || today(), day = UI.schDay ?? wdOf(date);
-  const cell = (tt, dd, pp) => { const e = S.schedule.find(x => x.tid === tt && +x.day === dd && +x.p === pp); return e ? `<td class="bx"><em>${esc(e.cls || '')}</em></td>` : '<td class="off"></td>'; };
+  const cell = (tt, dd, pp) => { const e = S.schedule.find(x => x.tid === tt && +x.day === dd && +x.p === pp); return e ? `<td class="bx"><em>${slotShort(e.cls)}</em></td>` : '<td class="off"></td>'; };
   let title, sub, table;
   if (kind === 'day') {
     title = 'نموذج المتابعة اليومية لدخول المعلمين للحصص'; sub = `اليوم: ${DAYS5[day]} — التاريخ: ${hij(date)} — المناوب: ....................`;
@@ -2569,7 +2574,7 @@ const cellStr = v => String(v ?? '').replace(/\s+/g,' ').trim();
 function cleanPhone(v){ let d = digits(v).replace(/\D/g,''); if (d.startsWith('00')) d = d.slice(2); if (d.startsWith('966')) d = d.slice(3); if (d.length === 9 && d[0] === '5') d = '0' + d; return d; }
 
 // تحديد معنى كل عمود من عنوانه، فيقبل ملف نور أو ملف المنصة أو أي ملف بعناوين مقاربة
-function stuColOf(h){ const c = normAr(h); if (!c || c.length > 40) return '';
+function stuColOf(h){ const c = normAr(h); if (!c || c.length > 40 || /تاريخ|قريب/.test(c)) return '';
   if (/واتس|whatsapp/i.test(c)) return 'wa';
   if (/جوال|هاتف|موبايل|تواصل|mobile|phone/i.test(c)) return 'phone';
   if (/ولي/.test(c)) return /هويه|سجل/.test(c) ? '' : 'guard';
@@ -2595,7 +2600,9 @@ function parseStudents(sheets, defaults){
     if (hi < 0) { map = guessCols(rows); if (map.name === undefined) return; }
     Object.keys(map).forEach(k => found.add(k));
     let grade = '', cls = '';
-    const scan = r => { const t = r.map(cellStr).filter(Boolean).join(' '); const g = after(t, 'الصف'), c = after(t, 'الفصل'); if (g) grade = g; if (c) cls = c; };
+    const scan = r => { const cs = r.map(cellStr).filter(v => v && !/^[:：]$/.test(v)), lb = cs.findIndex(v => /^(الصف|الفصل)\s*[:：]?$/.test(v));
+      if (lb >= 0 && cs.length === 2) { const v = cs[1 - lb]; if (/الصف/.test(cs[lb])) grade = v; else cls = v; return; }
+      const t = cs.join(' '), g = after(t, 'الصف'), c = after(t, 'الفصل'); if (g) grade = g; if (c) cls = c; };
     rows.slice(0, Math.max(hi, 0)).forEach(scan); if (!grade && /الصف/.test(sheet)) scan([sheet]);
     rows.slice(hi + 1).forEach(r => {
       const name = cellStr(r[map.name]); const rh = stuHeader(r);
@@ -2709,7 +2716,7 @@ function quickSched(){
   const changes = () => { const docs = [], dels = [];
     q.cells.forEach((cls, k) => { const b = q.base.get(k); if (b && (b.cls || '') === cls) return; const [tid, day, p] = k.split('|'); docs.push(b ? {...b, cls} : {id:newId(), tid, day:+day, p:+p, cls}); });
     q.base.forEach((b, k) => { if (!q.cells.has(k)) dels.push(b.id); }); return {docs, dels}; };
-  const clash = (tid, d, p, cls) => { if (!cls) return ''; for (const [k, v] of q.cells) { const [t, dd, pp] = k.split('|'); if (t !== tid && +dd === d && +pp === p && v === cls) return t; } return ''; };
+  const clash = (tid, d, p, cls) => { if (!cls) return ''; for (const [k, v] of q.cells) { const [t, dd, pp] = k.split('|'); if (t !== tid && +dd === d && +pp === p && slotCls(v) === slotCls(cls)) return t; } return ''; };
   const draw = () => { const n = [...q.cells.keys()].filter(k => k.startsWith(q.tid + '|')).length; const ch = changes();
     $('#qsBody').innerHTML = `<div class="fg"><div class="f full"><label for="qs_t">المعلم</label><select id="qs_t">${teacherOpts(q.tid)}</select><span class="hint">نصابه: ${n} حصة</span></div></div>
       <div class="tools"><span class="lb">الصف</span><div class="seg">${grades.map(g => `<button type="button" data-qg="${esc(g)}" aria-pressed="${g === q.g}">${esc(g)}</button>`).join('')}</div></div>
@@ -2731,11 +2738,20 @@ function quickSched(){
   $('#qs_xl').onclick = () => { const hd = ['المعلم']; DAYS5.forEach(d => { for (let p = 1; p <= P; p++) hd.push(`${d} ${p}`); });
     saveXlsx('قالب الجدول المدرسي', [{name:'الجدول', rows:[hd, ...sortBy(S.teachers,'name').map(t => { const r = [t.name]; DAYS5.forEach((_,d) => { for (let p = 1; p <= P; p++) r.push(q.cells.get(`${t.id}|${d}|${p}`) || ''); }); return r; })]}]); };
   $('#qs_up').onchange = async e => { const f = e.target.files[0]; if (!f) return;
-    try { const r = applySchedule(await readBook(f), q, P); draw();
-      $('#qs_msg').innerHTML = `<div class="notice-bar info">قُرئ جدول ${r.ok} معلمًا (${r.cells} حصة). راجع الجدول ثم اضغط «حفظ الجدول».${r.miss.length ? `<br>أسماء لم تطابق أي معلم في المنصة: ${esc(r.miss.join('، '))}` : ''}${r.over ? `<br>تُركت ${r.over} خانة تتجاوز عدد الحصص في الإعدادات.` : ''}</div>`;
+    try { const book = await readBook(f); const show = () => { const r = applySchedule(book, q, P); draw();
+        $('#qs_msg').innerHTML = `<div class="notice-bar info">قُرئ جدول ${r.ok} معلمًا (${r.cells} حصة). راجع الجدول ثم اضغط «حفظ الجدول».${r.miss.length ? `<br>أسماء غير موجودة في المنصة: ${esc(r.miss.join('، '))}<br><button type="button" class="btn sm pri" id="qs_addT">إضافة هؤلاء المعلمين</button>` : ''}${r.over ? `<br>تُركت ${r.over} خانة تتجاوز عدد الحصص في الإعدادات.` : ''}</div>`;
+        const add = $('#qs_addT'); if (add) add.onclick = async () => { add.disabled = true; try { await bulkPut('teachers', r.miss.map(name => ({id:newId(), name, specialty:'', phone:'', nid:'', key:rnd(16), createdAt:Date.now()}))); show(); } catch(err){ toast(errMsg(err), 'bad'); add.disabled = false; } }; };
+      show();
     } catch(err){ toast(err.message || 'تعذّرت قراءة الملف', 'bad'); } e.target.value = ''; };
   draw();
 }
+const GR_ABBR = {ول:'الأول', اول:'الأول', الاول:'الأول', اني:'الثاني', ثاني:'الثاني', الثاني:'الثاني', الث:'الثالث', ثالث:'الثالث', الثالث:'الثالث', ابع:'الرابع', رابع:'الرابع', الرابع:'الرابع', امس:'الخامس', خامس:'الخامس', الخامس:'الخامس', ادس:'السادس', سادس:'السادس', السادس:'السادس'};
+const SUB_ABBR = [[/ياضي/, 'رياضيات'], [/سلام/, 'إسلامية'], [/نجليز/, 'إنجليزي'], [/جتماع/, 'اجتماعيات'], [/قمية/, 'رقمية'], [/شاط/, 'نشاط']];
+// «ابع رياضيا» تصبح «الرابع الابتدائي / 1 - رياضيات» إذا كان للصف فصل واحد في سجل الطلاب
+function normSlot(v){ const parts = cellStr(v).replace(/\s*-\s*/g, ' ').split(' '), g = GR_ABBR[normAr(parts[0])]; if (!g) return cellStr(v);
+  const rest = parts.slice(1).join(' '), sub = (SUB_ABBR.find(([re]) => re.test(rest)) || [])[1] || rest, cl = classList().filter(c => c.split(' ')[0] === g);
+  return [cl.length === 1 ? cl[0] : g, sub].filter(Boolean).join(' - '); }
+const slotCls = v => String(v).split(' - ')[0];
 const DAY_RE = {الاحد:0, الاثنين:1, الثلاثاء:2, الاربعاء:3, الخميس:4};
 const dayOf = v => { const c = normAr(v); for (const k in DAY_RE) if (c.includes(k)) return DAY_RE[k]; return -1; };
 const numOf = v => { const m = digits(v).match(/\d+/); return m ? +m[0] : 0; };
@@ -2765,7 +2781,7 @@ function applySchedule(sheets, q, P){ const list = readSlots(sheets); if (!list.
   let ok = 0, cells = 0, over = 0; const miss = [];
   list.forEach(({name, cells:cs}) => { const t = findTeacher(name); if (!t) { if (cs.length) miss.push(name); return; } if (!cs.length) return; ok++;
     [...q.cells.keys()].filter(k => k.startsWith(t.id + '|')).forEach(k => q.cells.delete(k));
-    cs.forEach(c => { if (c.p > P || c.p < 1) { over++; return; } q.cells.set(`${t.id}|${c.day}|${c.p}`, c.cls); cells++; }); });
+    cs.forEach(c => { if (c.p > P || c.p < 1) { over++; return; } q.cells.set(`${t.id}|${c.day}|${c.p}`, normSlot(c.cls)); cells++; }); });
   return {ok, cells, over, miss}; }
 
 /* ===================== الفصول: التصفية والتصدير ===================== */
