@@ -175,6 +175,10 @@ table.tbl{border-collapse:collapse;width:100%;min-width:640px;font-size:14px}
 .radios{display:flex;flex-direction:column;gap:6px}
 .radios label{display:flex;gap:8px;align-items:flex-start;font-weight:500;color:var(--ink);font-size:14px;border:1px solid var(--line);border-radius:8px;padding:8px 10px;cursor:pointer}
 .check{display:flex;gap:8px;align-items:center;font-size:14px}
+.pick{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:6px;max-height:230px;overflow:auto;background:var(--sunk);border-radius:8px;padding:10px}
+.qgrid{min-width:640px}.qgrid td,.qgrid th{padding:4px;text-align:center}
+.qc{all:unset;box-sizing:border-box;display:block;width:100%;min-width:62px;min-height:40px;line-height:1.25;padding:4px;border-radius:6px;background:var(--sunk);color:var(--muted);font-size:12px;cursor:pointer;text-align:center}
+.qc.on{background:var(--accent-soft);color:var(--accent);font-weight:600}.qc.clash{background:var(--bad-soft);color:var(--bad)}
 .sigbox{border:1.5px dashed var(--line);border-radius:10px;background:#FFFFFF;position:relative}
 .sigbox canvas{display:block;width:100%;height:170px;touch-action:none;cursor:crosshair}
 .sigbox .ph{position:absolute;inset:auto 12px 10px auto;font-size:12px;color:#8A9893;pointer-events:none}
@@ -307,7 +311,7 @@ const waLink = (phone, text) => { const n = intl(phone); return n ? `https://wa.
 const phoneCell = p => p ? `<span class="phone">${esc(p)}</span> <button class="btn sm" data-act="copy" data-v="${esc(p)}" title="نسخ الرقم">نسخ</button>` : '<span class="m">—</span>';
 
 /* ---------- state ---------- */
-const COLS = ['teachers','absences','notices','committees','exams','parents','docs','students','attendance','incidents','schedule','lessons','visits','tasks','grading','ctrlsigns','records'];
+const COLS = ['teachers','absences','notices','committees','exams','parents','docs','students','attendance','incidents','schedule','lessons','visits','tasks','grading','ctrlsigns','records','recsigns','ctrlissue','sendlog'];
 const LOGO = 'data:image/jpeg;base64,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xKKjsITxXhnx+1a/hv7az3zW9q8jLJICQrDjg17mayte0HTdbtvs+o20c0YOQGUGrhLlZxZhh6lejyQdmeM/AG/1Y+J73TIbiS40ZFDh85CtjgV74OlZOheH9L0SLytNs4rdCMEIoGfc1rUpO7uVgKE6FJQm7sKKKKk7RCK89+Inwy0rxTdJfbPKvFJzIHKk/WvQ6KcZOOxz4jDU8RDkqK6OG+HPgHTPBYf7J5jTXCjzHZt3NdwOOKWkOKJSctyqFCnQjywVkKOlBrkvEnj/AMN6FMILzUI1m3FTHySMeuK3tE1Wx1e0jurGdZonUMGU8c03FpXFHE05zcIvUuSoJEKsMg15j4j+CvhPWNdbVnSeKSWTfMqSYVvoO1eo9aKFJrYVfCUsR/EVzO0HSrTR7CKys02xRIEUew6Vo0UUm7msIRhFRjsgo70UGkWUNdM40m6NsSJvKby8dd2OK+TZrjWRqdzO9zdR6stwcqT8/WvsB1DAhhkGsiTw3osmojUH062NyP8AloYxk1pCSR5GZYCeKacHawng1pn8N2LXCuspgQvu65wM1sUkahRgDAFOqG7s9KlBwgot7CFQeoFMjiiQnbGq59BUlFI0smIBS0UUDCjAoooAKKKKACjiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAMUYoooAMUUUUAFFFFABRRRQAGmSA7CB3p5pKBPXQ+cviN4S12HxpqWqx6R9utbslYjvAwcdcdq9S+CuhahoHhOKz1GPZMx83G7OM9q7lo0b7yK31FOUAdBitZVeaNjzMNlkaFZ1U9xaKKKyPUCiiigAooooAMUYoooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACigmigAooooAKKKKACiiigAooooAKKQmkdwgyfpQA6ikJo5xQAtFFFABRRRQAUUUUAFFFFABRRmigAooooAKKKKACiiigAooooAKKKKACiiigAoozRQAUUZFGaACiiigAoopMigBabK2xC3pTqiuhmBvpTW5FR2i2jx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';
 const S = { settings:{}, loaded:false };
 COLS.forEach(c => S[c] = []);
@@ -657,12 +661,13 @@ function vNotices(){
 
 function vControl(){
   const ct = UI.cTab;
-  const seg = [['exams','جدول الاختبارات والمظاريف'],['committees','اللجان والطلاب'],['grading','التصحيح والرصد والتوقيعات']].map(([k,l]) => `<button data-act="cTab" data-id="${k}" aria-pressed="${ct===k}">${l}</button>`).join('');
+  const seg = [['exams','جدول الاختبارات والمظاريف'],['committees','اللجان والطلاب'],['grading','التصحيح والرصد والتوقيعات'],['issue','إصدار المراقبة']].map(([k,l]) => `<button data-act="cTab" data-id="${k}" aria-pressed="${ct===k}">${l}</button>`).join('');
   const studs = S.committees.reduce((s,c) => s + (c.students||[]).length, 0);
   const done = S.exams.filter(e => e.ret).length;
   const kp = `<div class="kpis"><div class="kpi"><span class="v">${S.committees.length}</span><span class="l">لجنة</span></div><div class="kpi"><span class="v">${studs}</span><span class="l">طالبًا موزعين على اللجان</span></div><div class="kpi"><span class="v">${S.exams.length}</span><span class="l">اختبارًا في الجدول</span></div><div class="kpi ${done<S.exams.length?'warn':''}"><span class="v">${done}/${S.exams.length}</span><span class="l">مظروف أُعيد للكنترول</span></div></div>`;
   let body;
   if (ct === 'grading') body = vGrading();
+  else if (ct === 'issue') body = vIssue();
   else if (ct === 'committees') {
     body = S.committees.length ? `<div class="cards">${sortBy(S.committees,'name').map(c => `<article class="card"><div class="top"><div><div class="t">${esc(c.name)}</div><div class="m">${esc(c.place||'')}${c.grade ? ' · ' + esc(c.grade) : ''}</div></div><span class="chip info num">${(c.students||[]).length} طالب</span></div>
       <div class="m">أرقام الجلوس: <span class="num">${(c.students||[]).length ? esc(c.students[0].seat) + ' – ' + esc(c.students[c.students.length-1].seat) : '—'}</span></div>
@@ -678,7 +683,7 @@ function vControl(){
       </tbody></table></div>` : '<div class="empty">الجدول فارغ. أضف الاختبارات بالمادة والتاريخ واللجنة والملاحظ، ثم يوقّع الملاحظ على استلام الأسئلة وتسليم أوراق الإجابة.</div>';
   }
   return head('كنترول الاختبارات', 'لجان الاختبار، وجدول المواد، وتسليم واستلام المظاريف بتوقيع الملاحظ.',
-    (isAdmin() && ct !== 'grading' ? `<button class="btn pri" data-act="${ct==='committees'?'addCommittee':'addExam'}">${ct==='committees'?'إضافة لجنة':'إضافة اختبار'}</button>` : '') + `<button class="btn" data-act="dlEnv">تنزيل محضر المظاريف</button>`) + loadingNote() + kp + `<div class="seg" role="group" aria-label="أقسام الكنترول">${seg}</div>` + body;
+    (isAdmin() && (ct === 'exams' || ct === 'committees') ? `<button class="btn pri" data-act="${ct==='committees'?'addCommittee':'addExam'}">${ct==='committees'?'إضافة لجنة':'إضافة اختبار'}</button>` : '') + `<button class="btn" data-act="dlEnv">تنزيل محضر المظاريف</button>`) + loadingNote() + kp + `<div class="seg" role="group" aria-label="أقسام الكنترول">${seg}</div>` + body;
 }
 
 function vParents(){
@@ -718,6 +723,9 @@ function vSettings(){
       ${f('deputyPhone','جوال الوكيل', s.deputyPhone, 'tel')}
       ${f('controlHead','رئيس لجنة الكنترول', s.controlHead)}
       ${f('controlPhone','جوال رئيس الكنترول', s.controlPhone, 'tel')}
+      ${f('counselor','الموجه الطلابي (المرشد)', s.counselor, '', 'تظهر الأسماء تلقائيًا في توقيعات المحاضر')}
+      ${f('health','الموجه الصحي', s.health)}
+      ${f('safety','منسق الأمن والسلامة', s.safety)}
       ${f('periods','عدد الحصص اليومية', s.periods || 7, 'number')}
       ${f('missLimit','حد عدم دخول الحصص لإصدار مساءلة', s.missLimit || 2, 'number')}
       ${f('absLimit','حد غياب الطالب للإنذار المبكر (٪)', s.absLimit || 15, 'number')}
@@ -1064,7 +1072,7 @@ document.addEventListener('click', e => {
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('#modalRoot').innerHTML) closeModal(); });
 document.addEventListener('submit', async e => {
   if (e.target.id !== 'setForm') return; e.preventDefault();
-  const keys = ['school','region','year','principal','phone','deputy','deputyPhone','controlHead','controlPhone','periods','missLimit','absLimit','incLimit'];
+  const keys = ['school','region','year','principal','phone','deputy','deputyPhone','controlHead','controlPhone','counselor','health','safety','periods','missLimit','absLimit','incLimit'];
   const data = {}; keys.forEach(k => data[k] = fval('s_' + k));
   if (await put('settings/school', data)) { UI.setDirty = false; toast('حُفظت الإعدادات'); }
 });
@@ -1112,8 +1120,8 @@ function atRisk(){
 function vStudents(){
   const tab = UI.sTab || 'list';
   const seg = [['list','سجل الطلاب'],['att','الحضور اليومي'],['beh','السلوك']].map(([k,l]) => `<button data-act="sTab" data-id="${k}" aria-pressed="${tab===k}">${l}</button>`).join('');
-  const tools = !isAdmin() ? '' : tab === 'list' ? '<button class="btn pri" data-act="addStudent">إضافة طالب</button><button class="btn" data-act="bulkStudents">إضافة مجموعة</button>'
-    : tab === 'beh' ? '<button class="btn pri" data-act="addIncident">تسجيل مخالفة</button>' : '';
+  const tools = !isAdmin() ? '' : tab === 'list' ? '<button class="btn pri" data-act="importStudents">استيراد من Excel</button><button class="btn" data-act="exportStudents">تصدير Excel</button><button class="btn" data-act="addStudent">إضافة طالب</button><button class="btn" data-act="bulkStudents">إضافة مجموعة</button>'
+    : tab === 'beh' ? '<button class="btn pri" data-act="addIncident">تسجيل مخالفة</button>' : '<button class="btn pri" data-act="todayAbs">إرسال غياب اليوم واتساب</button><button class="btn" data-act="absReports">تقارير الغياب</button>';
   let body;
   if (tab === 'att') body = vAttendance();
   else if (tab === 'beh') body = vBehavior();
@@ -1127,7 +1135,7 @@ function vStudents(){
         <td class="acts"><button class="btn sm" data-act="studentFile" data-id="${s.id}">الملف</button>${isAdmin() ? `<button class="btn sm" data-act="editStudent" data-id="${s.id}">تعديل</button><button class="btn sm danger" data-act="delStudent" data-id="${s.id}">حذف</button>` : ''}</td></tr>`; }).join('');
     body = S.students.length ? `<div class="f" style="max-width:360px"><input id="stuQ" placeholder="ابحث بالاسم أو الصف أو الفصل" aria-label="بحث في الطلاب"></div>
       <div class="tablewrap"><table class="tbl" id="stuTbl"><thead><tr><th>الطالب</th><th>ولي الأمر</th><th>الحضور</th><th>غياب بلا عذر</th><th>مخالفات</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`
-      : '<div class="empty">لا يوجد طلاب بعد. اضغط «إضافة مجموعة» والصق الأسماء من نور أو Excel دفعة واحدة.</div>';
+      : '<div class="empty">لا يوجد طلاب بعد. اضغط «استيراد من Excel» وارفع ملف الطلاب من نور.</div>';
   }
   return head('الطلاب', 'سجل الطلاب وأولياء أمورهم، والحضور اليومي، والمخالفات السلوكية مع الإجراء المقترح.', tools) + loadingNote() +
     `<div class="seg" role="group" aria-label="أقسام الطلاب">${seg}</div>` + body;
@@ -1140,6 +1148,7 @@ function studentForm(id){
   const s = id ? student(id) : {};
   modal(id ? 'تعديل بيانات طالب' : 'إضافة طالب', `<div class="fg">
     <div class="f full"><label for="st_n">الاسم الرباعي</label><input id="st_n" value="${esc(s.name)}"></div>
+    <div class="f"><label for="st_nid">رقم الهوية</label><input id="st_nid" dir="ltr" inputmode="numeric" value="${esc(s.nid)}"></div>
     <div class="f"><label for="st_g">الصف</label><input id="st_g" value="${esc(s.grade)}" placeholder="الخامس"></div>
     <div class="f"><label for="st_c">الفصل</label><input id="st_c" value="${esc(s.cls)}" placeholder="أ"></div>
     <div class="f"><label for="st_pn">ولي الأمر</label><input id="st_pn" value="${esc(s.guard)}"></div>
@@ -1148,7 +1157,7 @@ function studentForm(id){
     `<button class="btn pri" id="ok">حفظ</button><button class="btn" data-act="close">إلغاء</button>`);
   $('#ok').onclick = async () => {
     const name = fval('st_n'); if (!name) return toast('اكتب اسم الطالب', 'bad');
-    const data = {name, grade:fval('st_g'), cls:fval('st_c'), guard:fval('st_pn'), phone:fval('st_pp'), note:fval('st_note'), createdAt:s.createdAt || Date.now()};
+    const data = {name, nid:fval('st_nid'), grade:fval('st_g'), cls:fval('st_c'), guard:fval('st_pn'), phone:fval('st_pp'), note:fval('st_note'), createdAt:s.createdAt || Date.now()};
     if (await put('students/' + (id || newId()), data)) { closeModal(); toast('حُفظ الطالب'); }
   };
 }
@@ -1170,7 +1179,7 @@ function studentFile(id){
     <div class="kpis"><div class="kpi"><span class="v">${st.rate === null ? '—' : st.rate + '٪'}</span><span class="l">نسبة الحضور</span></div><div class="kpi ${st.abs ? 'warn' : ''}"><span class="v">${st.abs}</span><span class="l">غياب بلا عذر</span></div><div class="kpi"><span class="v">${st.late}</span><span class="l">تأخر</span></div><div class="kpi ${st.inc.length ? 'bad' : ''}"><span class="v">${st.inc.length}</span><span class="l">مخالفات</span></div></div>
     <h3 style="font-size:15px">سجل السلوك</h3>
     ${st.inc.length ? `<div class="list">${sortBy(st.inc, 'date', -1).map(i => `<div class="row"><div><div class="t">${esc(DEGREES[i.deg]?.t || '')}</div><div class="m">${esc(hij(i.date))} — ${esc(i.desc || '')}</div></div><span class="chip ${i.status === 'closed' ? 'ok' : 'warn'}">${i.status === 'closed' ? 'عولجت' : 'مفتوحة'}</span></div>`).join('')}</div>` : '<div class="empty">لا توجد مخالفات مسجلة.</div>'}`,
-    isAdmin() ? `<button class="btn pri" data-act="stuParent" data-id="${id}">إشعار لولي الأمر للتوقيع</button><button class="btn" data-act="stuLetter" data-id="${id}">إصدار خطاب</button><button class="btn" data-act="addIncident" data-id="${id}">تسجيل مخالفة</button>` : '', true);
+    isAdmin() ? `<button class="btn pri" data-act="stuParent" data-id="${id}">إشعار لولي الأمر للتوقيع</button><button class="btn" data-act="recPick" data-id="${id}">إصدار محضر</button><button class="btn" data-act="stuLetter" data-id="${id}">إصدار خطاب</button><button class="btn" data-act="addIncident" data-id="${id}">تسجيل مخالفة</button>` : '', true);
 }
 // ينشئ نموذجًا يوقّعه ولي الأمر من رابطه
 async function parentNotice(sid, kind, body, extra){
@@ -1231,7 +1240,7 @@ function vBehavior(){
     return `<article class="card"><div class="top"><div><div class="t">${esc(s ? s.name : i.studentName || '—')}</div><div class="m">${esc(s ? sClass(s) : '')} · ${esc(hij(i.date))}</div></div><span class="chip ${+i.deg >= 4 ? 'bad' : +i.deg >= 3 ? 'warn' : 'info'}">الدرجة ${esc(i.deg)}</span></div>
       <div class="m">${esc(i.desc || '')}</div>
       <div class="acts"><span class="chip ${i.status === 'closed' ? 'ok' : 'warn'}">${i.status === 'closed' ? 'عولجت' : 'مفتوحة'}</span>
-        ${isAdmin() ? `<button class="btn sm" data-act="togIncident" data-id="${i.id}">${i.status === 'closed' ? 'إعادة فتح' : 'إغلاق'}</button>${s ? `<button class="btn sm" data-act="incParent" data-id="${i.id}">إشعار ولي الأمر</button>` : ''}<button class="btn sm danger" data-act="delIncident" data-id="${i.id}">حذف</button>` : ''}</div></article>`; }).join('')}</div>`
+        ${isAdmin() ? `<button class="btn sm" data-act="togIncident" data-id="${i.id}">${i.status === 'closed' ? 'إعادة فتح' : 'إغلاق'}</button>${s ? `<button class="btn sm" data-act="incParent" data-id="${i.id}">إشعار ولي الأمر</button><button class="btn sm" data-act="incRec" data-id="${i.id}">المحضر</button>` : ''}<button class="btn sm danger" data-act="delIncident" data-id="${i.id}">حذف</button>` : ''}</div></article>`; }).join('')}</div>`
     : '<div class="empty">السجل نظيف، لم تُسجَّل مخالفات.</div>';
 }
 function incidentForm(sid){
@@ -1247,7 +1256,8 @@ function incidentForm(sid){
   $('#in_g').onchange = hint; hint();
   $('#ok').onclick = async () => {
     const data = {studentId:fval('in_s'), date:fval('in_d') || today(), deg:fval('in_g'), desc:fval('in_desc'), status:'open', createdAt:Date.now()};
-    if (await put('incidents/' + newId(), data)) { closeModal(); toast('سُجّلت المخالفة'); }
+    const iid = newId(), st = student(data.studentId);
+    if (await put('incidents/' + iid, data)) { const auto = +data.deg >= 2 && st; if (auto) await autoIncidentRec(iid, data, st); closeModal(); toast(auto ? 'سُجّلت المخالفة وأُضيف محضرها إلى السجل' : 'سُجّلت المخالفة'); }
   };
 }
 function incParent(id){
@@ -1277,14 +1287,14 @@ function vSched(){
   const done = rows.filter(e => L[e.id]?.s).length;
   const tStats = sortBy(S.teachers, 'name').map(t => ({t, s:lessonStat(t.id)}));
   return head('متابعة الحصص', 'رصد دخول المعلمين لحصصهم يوميًا من الجدول الأسبوعي، وسجل الالتزام، ونماذج المتابعة للطباعة.',
-      (isAdmin() ? '<button class="btn pri" data-act="addSlot">إضافة حصة للجدول</button>' : '') + '<button class="btn" data-act="fullSched">الجدول الكامل</button>') + loadingNote() +
+      (isAdmin() ? '<button class="btn pri" data-act="quickSched">الجدول السريع</button><button class="btn" data-act="addSlot">إضافة حصة</button>' : '') + '<button class="btn" data-act="fullSched">الجدول الكامل</button>') + loadingNote() +
     `<section class="panel"><div class="fg">
       <div class="f"><label for="schDate">التاريخ</label><input type="date" id="schDate" value="${esc(date)}"><span class="hint">${esc(hij(date))}</span></div>
       <div class="f"><label for="schDay">اليوم الدراسي</label><select id="schDay">${DAYS5.map((n,i) => `<option value="${i}" ${i === day ? 'selected' : ''}>${n}</option>`).join('')}</select></div></div>
       <div class="tools"><span class="chip info">رُصد ${done} من ${rows.length} حصة</span>${isAdmin() && rows.length ? '<button class="btn sm" data-act="allIn">الجميع دخل</button>' : ''}<span class="m" style="font-size:13px;color:var(--muted)">✓ دخل · ⏱ متأخر · ✗ لم يدخل. اضغط الرمز مرة أخرى لإلغائه.</span></div>
       ${rows.length ? `<div class="tablewrap"><table class="tbl" style="min-width:520px"><thead><tr><th>الحصة</th><th>المعلم</th><th>الفصل</th><th>الرصد</th></tr></thead><tbody>${rows.map(e => { const m = L[e.id]?.s;
         return `<tr><td class="num"><b>${esc(e.p)}</b></td><td>${esc(tName(e.tid))}</td><td>${esc(e.cls || '—')}</td><td><div class="seg">${LMARK.map(([s,sym]) => `<button data-act="lmark" data-id="${e.id}" data-v="${s}" aria-pressed="${m === s}" title="${s}">${sym} ${s}</button>`).join('')}</div></td></tr>`; }).join('')}</tbody></table></div>`
-        : `<div class="empty">لا توجد حصص مسجلة يوم ${DAYS5[day]}. ابنِ الجدول الأسبوعي من زر «إضافة حصة للجدول»، ويتكرر تلقائيًا طوال الفصل.</div>`}</section>
+        : `<div class="empty">لا توجد حصص مسجلة يوم ${DAYS5[day]}. ابنِ الجدول من زر «الجدول السريع» بالضغط أو برفع ملف Excel، ويتكرر تلقائيًا طوال الفصل.</div>`}</section>
     <section class="panel"><h3>سجل الالتزام — الفصل الدراسي</h3>
       ${tStats.length ? `<div class="list">${tStats.map(({t,s}) => `<div class="row"><div><div class="t">${esc(t.name)}</div><div class="m num">${s.n} حصة · دخل ${s.inn} · تأخر ${s.late} · لم يدخل ${s.miss}</div></div><div class="tools">${s.pct !== null ? `<span class="chip ${s.pct >= 95 ? 'ok' : s.pct >= 85 ? 'warn' : 'bad'} num">${s.pct}٪</span>` : ''}${isAdmin() && s.miss >= c.missLimit ? `<button class="btn sm danger" data-act="lessonNotice" data-id="${t.id}">إصدار مساءلة</button>` : ''}</div></div>`).join('')}</div>` : '<div class="empty">أضف المعلمين أولًا.</div>'}</section>
     <section class="panel"><h3>نماذج المتابعة للطباعة</h3><p class="sub">تُطبع الخانات فارغة مع اسم الفصل المجدول، والخانات المظللة تعني لا يوجد نصاب.</p>
@@ -1534,17 +1544,19 @@ const REC = [
 ];
 const recTpl = id => REC.find(r => r.id === id);
 const recTitle = (tpl, d) => tpl.title ? tpl.title(d || {}) : tpl.t;
-function recDoc(tpl, d, no){
+function recDoc(tpl, d, no, rec){
   d = d || {};
+  const signs = rec ? recSigsOf(rec.id) : []; const bySig = Object.fromEntries(signs.map(x => [x.name, x])); const pSig = rec ? S.parents.find(p => p.recordId === rec.id)?.parentSig : null;
+  const sigPic = (x, h) => x ? `<img src="${esc(x.img)}" alt="توقيع" style="height:${h}px">` : '';
   const v = x => x ? esc(x) : dots(24);
   const show = (k, type) => type === 'date' ? (d[k] ? esc(dayName(d[k]) + ' ' + hij(d[k])) : dots(24)) : type === 'time' ? v(tm(d[k])) : v(d[k]);
   const pairs = []; for (let i = 0; i < tpl.info.length; i += 2) pairs.push(tpl.info.slice(i, i + 2));
   const lines = (txt, n) => txt ? `<p style="white-space:pre-wrap">${esc(txt)}</p>` : `<div class="lines">${'<div></div>'.repeat(n || 3)}</div>`;
   const grid = (cols, txt, n, sign) => { const rows = String(txt || '').split(/\n+/).map(l => l.trim()).filter(Boolean).map(splitRow);
     const body = rows.length ? rows : Array(n).fill([]);
-    return `<table><tr><th style="width:6%">م</th>${cols.map(c => `<th style="width:auto">${esc(c)}</th>`).join('')}${sign ? '<th style="width:22%">التوقيع</th>' : ''}</tr>${body.map((r,i) => `<tr><td>${i+1}</td>${cols.map((_,j) => `<td>${esc(r[j] || '')}</td>`).join('')}${sign ? '<td></td>' : ''}</tr>`).join('')}</table>`; };
-  const sigName = r => r === 'مدير المدرسة' ? principal() : r === 'رئيس الاجتماع' ? (d.chair || principal()) : '';
-  const sigs = tpl.sigs.map(r => `<div class="s"><b>${esc(r)}</b><span>الاسم: ${sigName(r) ? esc(sigName(r)) : '....................'}</span><span>التوقيع:</span><div></div></div>`).join('');
+    return `<table><tr><th style="width:6%">م</th>${cols.map(c => `<th style="width:auto">${esc(c)}</th>`).join('')}${sign ? '<th style="width:22%">التوقيع</th>' : ''}</tr>${body.map((r,i) => `<tr><td>${i+1}</td>${cols.map((_,j) => `<td>${esc(r[j] || '')}</td>`).join('')}${sign ? `<td>${sigPic(bySig[r[0]], 26)}</td>` : ''}</tr>`).join('')}</table>`; };
+  const sigName = r => d.sigNames?.[r] || roleName(r, d);
+  const sigs = tpl.sigs.map(r => { const n = sigName(r), x = r === 'ولي الأمر' && pSig ? pSig : bySig[n]; return `<div class="s"><b>${esc(r)}</b><span>الاسم: ${n ? esc(n) : '....................'}</span><span>التوقيع: ${sigPic(x, 34)}</span><div></div></div>`; }).join('');
   return `<div class="paper">${docHead(recTitle(tpl, d), tpl.sub || '', no || '', d.date ? hij(d.date) : '')}
     <table>${pairs.map(p => `<tr>${p.map(([k,l,type]) => `<th>${esc(l)}</th><td>${show(k, type)}</td>`).join('')}${p.length < 2 ? '<th></th><td></td>' : ''}</tr>`).join('')}</table>
     ${tpl.text ? `<p style="margin-top:12px">${tpl.text(d, v)}</p>` : ''}
@@ -1552,7 +1564,7 @@ function recDoc(tpl, d, no){
     ${(tpl.blocks || []).map(([k,l,n]) => `<h4>${esc(l)}</h4>${lines(d[k], n)}`).join('')}
     ${tpl.table ? `<h4>${esc(tpl.table[1])}</h4>${grid(tpl.table[2], d[tpl.table[0]], tpl.table[3])}` : ''}
     ${tpl.people && tpl.people[0] === 'att' ? `<h4>${esc(tpl.people[1])}</h4>${grid(tpl.people[2], d.att, tpl.people[3], true)}` : ''}
-    <div class="sigs">${sigs}</div></div>`;
+    <div class="sigs">${sigs}</div>${signs.length || pSig ? `<div class="foot">موقّع إلكترونيًا عبر منصة المدير — ${esc(school())}.</div>` : ''}</div>`;
 }
 function vRecords(){
   const tab = UI.rTab || 'tpl';
@@ -1560,41 +1572,17 @@ function vRecords(){
   let body;
   if (tab === 'letters') body = vLetters();
   else if (tab === 'saved') { const list = sortBy(S.records, 'createdAt', -1);
-    body = list.length ? `<div class="list panel">${list.map(r => `<div class="row"><div><div class="t">${esc(r.title)}</div><div class="m">${r.no ? 'رقم ' + esc(r.no) + ' · ' : ''}${esc(stamp(r.createdAt))}</div></div><div class="tools"><button class="btn sm pri" data-act="viewRec" data-id="${r.id}">عرض وطباعة</button>${r.tpl !== 'letter' ? `<button class="btn sm" data-act="editRec" data-id="${r.id}">تعديل</button>` : ''}${isAdmin() ? `<button class="btn sm danger" data-act="delRec" data-id="${r.id}">حذف</button>` : ''}</div></div>`).join('')}</div>` : '<div class="empty">لم يُحفظ أي محضر أو خطاب بعد.</div>'; }
+    body = list.length ? `<div class="list panel">${list.map(r => `<div class="row"><div><div class="t">${esc(r.title)}</div><div class="m">${r.no ? 'رقم ' + esc(r.no) + ' · ' : ''}${esc(stamp(r.createdAt))}</div></div><div class="tools">${(r.signers || []).length ? `<span class="chip ${recSigsOf(r.id).length >= r.signers.length ? 'ok' : 'warn'} num">وقّع ${recSigsOf(r.id).length}/${r.signers.length}</span>` : ''}<button class="btn sm pri" data-act="viewRec" data-id="${r.id}">عرض وطباعة</button>${r.tpl !== 'letter' && !recSigsOf(r.id).length ? `<button class="btn sm" data-act="editRec" data-id="${r.id}">تعديل</button>` : ''}${isAdmin() ? `<button class="btn sm danger" data-act="delRec" data-id="${r.id}">حذف</button>` : ''}</div></div>`).join('')}</div>` : '<div class="empty">لم يُحفظ أي محضر أو خطاب بعد.</div>'; }
   else { const groups = [...new Set(REC.map(r => r.g))];
-    body = groups.map(g => `<section class="panel"><h3>${esc(g)}</h3><div class="cards">${REC.filter(r => r.g === g).map(r => `<article class="card"><div class="t">${esc(r.t)}</div>${r.sub ? `<div class="m">${esc(r.sub)}</div>` : ''}<div class="acts"><button class="btn sm pri" data-act="fillRec" data-id="${r.id}">تعبئة</button><button class="btn sm" data-act="blankRec" data-id="${r.id}">طباعة فارغ</button></div></article>`).join('')}</div></section>`).join(''); }
-  return head('المحاضر والخطابات', 'محاضر جاهزة للتعبئة والطباعة بشعار الوزارة، وخطابات وتعاميم تتعبأ ببيانات المدرسة والطالب.') + loadingNote() +
+    body = groups.map(g => `<section class="panel"><h3>${esc(g)}</h3><div class="cards">${REC.filter(r => r.g === g).map(r => `<article class="card"><div class="t">${esc(r.t)}</div>${r.sub ? `<div class="m">${esc(r.sub)}</div>` : ''}<div class="acts"><button class="btn sm pri" data-act="fillRec" data-id="${r.id}">إنشاء</button><button class="btn sm" data-act="blankRec" data-id="${r.id}">طباعة فارغ</button></div></article>`).join('')}</div></section>`).join(''); }
+  return head('المحاضر والخطابات', 'محاضر إلكترونية معبأة: اختر الطالب والمعلمين وتُكتب البيانات والنص تلقائيًا، ثم يوقّع الجميع من روابطهم.') + loadingNote() +
     `<div class="seg" role="group" aria-label="أقسام المحاضر">${seg}</div>` + body;
 }
-function recForm(tplId, recId){
-  const rec = recId ? S.records.find(x => x.id === recId) : null;
-  const tpl = recTpl(rec ? rec.tpl : tplId); if (!tpl) return;
-  const d = rec ? rec.data : {date:today(), chair:principal()};
-  const fld = ([k,l,type,opt]) => type === 'select' ? `<div class="f"><label for="rf_${k}">${esc(l)}</label><select id="rf_${k}"><option value="">—</option>${selOpts(opt, d[k])}</select></div>`
-    : `<div class="f"><label for="rf_${k}">${esc(l)}</label><input id="rf_${k}" ${type === 'date' || type === 'time' ? `type="${type}"` : ''} value="${esc(d[k] || (opt === 'principal' ? principal() : ''))}"></div>`;
-  const area = (k, l, hint, n) => `<div class="f full"><label for="rf_${k}">${esc(l)}</label><textarea id="rf_${k}" style="min-height:${Math.max(80, (n || 3) * 26)}px">${esc(d[k] || '')}</textarea>${hint ? `<span class="hint">${hint}</span>` : ''}</div>`;
-  const stuPick = tpl.info.some(f => f[0] === 'student') && S.students.length ? `<div class="f full"><label for="rf_pick">اختيار طالب من السجل (اختياري)</label><select id="rf_pick"><option value="">—</option>${sortBy(S.students,'name').map(s => `<option value="${s.id}">${esc(s.name)} — ${esc(sClass(s))}</option>`).join('')}</select></div>` : '';
-  modal(tpl.t, `<div class="fg">${stuPick}${tpl.info.map(fld).join('')}
-    ${tpl.people && tpl.people[0] !== 'att' ? area(tpl.people[0], tpl.people[1], 'سطر لكل شخص: ' + tpl.people[2].join(' - ')) : ''}
-    ${(tpl.blocks || []).map(([k,l,n]) => area(k, l, '', n)).join('')}
-    ${tpl.table ? area(tpl.table[0], tpl.table[1], 'سطر لكل بند: ' + tpl.table[2].join(' - ')) : ''}
-    ${tpl.people && tpl.people[0] === 'att' ? area('att', tpl.people[1], 'سطر لكل شخص: ' + tpl.people[2].join(' - ') + (S.teachers.length ? ' · <a href="#" id="rf_allT">إدراج كل المعلمين</a>' : '')) : ''}</div>`,
-    `<button class="btn pri" id="ok">حفظ ومعاينة</button><button class="btn" id="pv">طباعة دون حفظ</button><button class="btn" data-act="close">إلغاء</button>`, true);
-  const pick = $('#rf_pick'); if (pick) pick.onchange = () => { const s = student(pick.value); if (!s) return; const set1 = (k, v) => { const el = document.getElementById('rf_' + k); if (el && v) el.value = v; };
-    set1('student', s.name); set1('grade', sClass(s)); set1('parent', s.guard); set1('pphone', s.phone); };
-  const allT = $('#rf_allT'); if (allT) allT.onclick = e => { e.preventDefault(); $('#rf_att').value = sortBy(S.teachers,'name').map(t => `${t.name} - ${t.specialty || 'معلم'}`).join('\n'); };
-  const read = () => { const o = {}; tpl.info.forEach(([k]) => o[k] = fval('rf_' + k)); [tpl.people?.[0], tpl.table?.[0], ...(tpl.blocks || []).map(b => b[0])].filter(Boolean).forEach(k => o[k] = fval('rf_' + k)); return o; };
-  $('#pv').onclick = () => printDoc(recDoc(tpl, read()));
-  $('#ok').onclick = async () => {
-    const data = read(); const id = recId || newId();
-    const doc = {tpl:tpl.id, title:recTitle(tpl, data) + (data.student ? ' — ' + data.student : ''), data, no:rec?.no || nextNo(S.records), createdAt:rec?.createdAt || Date.now()};
-    if (await put('records/' + id, doc)) { toast('حُفظ المحضر'); viewRec(id); }
-  };
-}
-function recPaper(r){ if (r.tpl === 'letter') return letterDoc(r.title, r.text); const tpl = recTpl(r.tpl); return tpl ? recDoc(tpl, r.data, r.no) : ''; }
+function recPaper(r){ if (r.tpl === 'letter') return letterDoc(r.title, r.text); const tpl = recTpl(r.tpl); return tpl ? recDoc(tpl, r.data, r.no, r) : ''; }
 function viewRec(id){
   const r = S.records.find(x => x.id === id); if (!r) return;
-  modal(r.title, recPaper(r), `<button class="btn pri" data-act="printRec" data-id="${id}">طباعة / PDF</button><button class="btn" data-act="dlRec" data-id="${id}">تنزيل</button>${r.tpl !== 'letter' ? `<button class="btn" data-act="editRec" data-id="${id}">تعديل</button>` : ''}`, true);
+  const tp = recTpl(r.tpl), stuSign = r.studentId && tp?.sigs.includes('ولي الأمر');
+  modal(r.title, recPaper(r), `${(r.signers || []).length ? `<button class="btn pri" data-act="recSendSign" data-id="${id}">إرسال للمعلمين للتوقيع</button>` : ''}${stuSign ? `<button class="btn" data-act="recSendParent" data-id="${id}">إرسال لولي الأمر للتوقيع</button>` : ''}<button class="btn" data-act="printRec" data-id="${id}">طباعة / PDF</button><button class="btn" data-act="dlRec" data-id="${id}">تنزيل</button>${r.tpl !== 'letter' && !recSigsOf(id).length ? `<button class="btn" data-act="editRec" data-id="${id}">تعديل</button>` : ''}`, true);
 }
 
 /* ---------- الخطابات والتعاميم ---------- */
@@ -1995,7 +1983,7 @@ function teacherCtrlPanel(){
   return `<section class="panel"><h3>مهامي في الكنترول</h3>
     ${k.rows.length ? `<div class="tablewrap"><table class="tbl" style="min-width:480px"><thead><tr><th>المادة</th><th>الصف</th><th>مهمتي</th><th>تاريخ الاختبار</th><th>التسليم</th></tr></thead><tbody>${k.rows.map(r => `<tr><td>${esc(r.subject || '')}</td><td>${esc(r.grade || '')}</td><td><span class="chip info">${esc(r.role)}</span></td><td>${esc(r.examDate || '—')}</td><td>${esc(r.hand || '—')}</td></tr>`).join('')}</tbody></table></div>` : ''}
     ${k.obs.length ? `<p class="sub">الملاحظة في ${k.obs.length} اختبار، تجدها في «مظاريف الاختبارات» أدناه.</p>` : ''}
-    ${c ? `<div class="done">اعتمدت مهامك بتوقيعك في ${esc(stamp(c.at))}.</div>` : '<div><button class="btn pri" data-act="ctrlSign">أعتمد مهامي وأوقّع</button></div>'}</section>`;
+    ${c ? `<div class="done">اعتمدت مهامك بتوقيعك في ${esc(stamp(c.at))}.</div><div class="tools" style="margin-top:10px"><button class="btn pri" data-act="ctrlCopy" data-id="${t.id}">نسختي الموقعة</button></div>` : '<div><button class="btn pri" data-act="ctrlSign">أعتمد مهامي وأوقّع</button></div>'}</section>`;
 }
 function ctrlSignForm(){
   const t = S.teachers[0];
@@ -2003,7 +1991,7 @@ function ctrlSignForm(){
     `<button class="btn pri" id="ok">اعتماد وتوقيع</button><button class="btn" data-act="close">إلغاء</button>`);
   requestAnimationFrame(() => mountSig('sig_c'));
   $('#ok').onclick = async () => { const img = pads.sig_c?.data(); if (!img) return toast('وقّع في المربع', 'bad');
-    try { await api(`/t/${KEY}/ctrlsign`, {method:'POST', json:{sig:{img, name:t.name}}}); S.ctrlsigns = [{id:t.id, img, name:t.name, at:Date.now()}]; closeModal(); render(); toast('اعتُمدت مهامك'); } catch(e){ toast(errMsg(e), 'bad'); } };
+    try { const r = await api(`/t/${KEY}/ctrlsign`, {method:'POST', json:{sig:{img, name:t.name}}}); S.ctrlsigns = [{id:t.id, ...r.sign}]; closeModal(); render(); toast('اعتُمدت مهامك'); viewCopy(t.id); } catch(e){ toast(errMsg(e), 'bad'); } };
 }
 
 Object.assign(ACT, {
@@ -2031,7 +2019,7 @@ Object.assign(ACT, {
   fillRec: id => recForm(id), editRec: id => recForm(null, id), blankRec: id => printDoc(recDoc(recTpl(id), {})), viewRec,
   printRec: id => { const r = S.records.find(x => x.id === id); if (r) printDoc(recPaper(r)); },
   dlRec: id => { const r = S.records.find(x => x.id === id); if (r) saveHtml(r.title, recPaper(r)); },
-  delRec: id => confirmBox('حذف من السجل', 'سيُحذف المحضر المحفوظ نهائيًا.', 'حذف', () => del('records/' + id)),
+  delRec: id => confirmBox('حذف من السجل', 'سيُحذف المحضر المحفوظ نهائيًا.', 'حذف', async () => { const sg = recSigsOf(id).map(x => x.id); await del('records/' + id); if (sg.length) await bulkPut('recsigns', [], sg).catch(() => {}); }),
   printLetter: () => printDoc(letterDoc(UI.lKey || Object.keys(LETTERS)[0], fval('lTxt'))),
   copyLetter: async () => { try { await navigator.clipboard.writeText(fval('lTxt')); toast('نُسخ النص'); } catch { toast('حدّد النص وانسخه يدويًا', 'bad'); } },
   saveLetter: async () => { const title = UI.lKey || Object.keys(LETTERS)[0]; const sid = UI.lSid; const id = newId();
@@ -2121,11 +2109,12 @@ function renderTeacher(){
   const t = S.teachers[0]; if (!t) return;
   const ns = sortBy(S.notices, 'createdAt', -1), ex = [...S.exams].sort((a,b) => (a.date+a.period).localeCompare(b.date+b.period));
   const ck = ctrlTasks(t.id);
-  const pend = ns.filter(n => n.status === 'issued').length + ex.filter(e => !e.recv || !e.ret).length + ((ck.rows.length || ck.obs.length) && !S.ctrlsigns.length ? 1 : 0);
+  const pend = ns.filter(n => n.status === 'issued').length + ex.filter(e => !e.recv || !e.ret).length + ((ck.rows.length || ck.obs.length) && !S.ctrlsigns.length ? 1 : 0) + S.records.filter(r => !S.recsigns.some(x => x.recordId === r.id && x.teacherId === t.id)).length;
   $('#gateRoot').innerHTML = `<div class="portal">${portalHead('الأستاذ/ ' + t.name, esc(t.specialty || ''))}
     ${pend ? `<div class="notice-bar">لديك ${pend} ${pend === 1 ? 'إجراء ينتظر' : 'إجراءات تنتظر'} توقيعك.</div>` : '<div class="done">لا يوجد ما ينتظر توقيعك. شكرًا لك.</div>'}
     <section class="panel"><h3>المساءلات</h3>${ns.length ? `<div class="list">${ns.map(n => { const [c,l] = nStatus(n); return `<div class="row"><div><div class="t">مساءلة رقم <span class="num">${esc(n.no)}</span> · ${esc(n.kind)}</div><div class="m">${esc(dayName(n.date))} ${esc(hij(n.date))}${n.decision ? ' · القرار: ' + esc(DECISIONS[n.decision]) : ''}</div></div><div class="tools"><span class="chip ${c}">${l}</span>${n.status === 'issued' ? `<button class="btn sm pri" data-act="reply" data-id="${n.id}">كتابة الإفادة والتوقيع</button>` : ''}<button class="btn sm" data-act="viewNotice" data-id="${n.id}">عرض</button></div></div>`; }).join('')}</div>` : '<div class="empty">لا توجد مساءلات عليك.</div>'}</section>
     ${teacherCtrlPanel()}
+    ${teacherRecPanel()}
     <section class="panel"><h3>مظاريف الاختبارات</h3><p class="sub">وقّع عند استلام مظروف الأسئلة من الكنترول، ثم عند تسليم أوراق الإجابة.</p>${ex.length ? `<div class="list">${ex.map(e => `<div class="row"><div><div class="t">${esc(e.subject)} · ${esc(e.grade||'')}</div><div class="m">${esc(dayName(e.date))} ${esc(hij(e.date))} · الفترة ${esc(e.period||'')} · ${esc(committee(e.committeeId)?.name||'')}</div></div><div class="tools">
       ${e.recv ? '<span class="chip ok">استُلمت الأسئلة</span>' : `<button class="btn sm pri" data-act="envRecv" data-id="${e.id}">توقيع الاستلام</button>`}
       ${e.ret ? '<span class="chip ok">سُلّمت الإجابات</span>' : e.recv ? `<button class="btn sm pri" data-act="envRet" data-id="${e.id}">توقيع التسليم</button>` : ''}</div></div>`).join('')}</div>` : '<div class="empty">لم تُسند إليك ملاحظة اختبارات.</div>'}</section>
@@ -2141,9 +2130,10 @@ function renderParent(){
 async function startPortal(){
   gate('<p>جارٍ فتح النموذج…</p>');
   try {
-    if (MODE === 'teacher') { const d = await api('/t/' + KEY); S.teachers = [d.teacher]; S.notices = d.notices; S.exams = d.exams; S.committees = d.committees; S.grading = d.grading || []; S.ctrlsigns = d.ctrlsign ? [{id:d.teacher.id, ...d.ctrlsign}] : []; S.settings = d.settings; }
+    if (MODE === 'teacher') { const d = await api('/t/' + KEY); S.teachers = [d.teacher]; S.notices = d.notices; S.exams = d.exams; S.committees = d.committees; S.grading = d.grading || []; S.ctrlsigns = d.ctrlsign ? [{id:d.teacher.id, ...d.ctrlsign}] : []; S.records = d.records || []; S.recsigns = d.recsigns || []; S.settings = d.settings; }
     else { const d = await api('/p/' + KEY); S.parents = [d.form]; S.settings = d.settings; }
     S.loaded = true; $('#gateRoot').innerHTML = ''; render();
+    if (MODE === 'teacher' && /[#&]copy=1/.test(location.hash) && S.ctrlsigns.length) viewCopy(S.teachers[0].id);
   } catch(e){ gate(`<h1>تعذّر فتح الرابط</h1><p>${esc(errMsg(e))}</p><p>تواصل مع إدارة المدرسة للحصول على رابط صحيح.</p>`); }
 }
 
@@ -2577,8 +2567,411 @@ Object.assign(ACT, {
   gTab: id => { UI.gTab = id; render(true); }, gRole: id => { UI.gRole = id; render(true); },
   gdComm: gdCommForm, gdRole: gdRoleForm,
   gdMeet: id => { const c = GD_COMM.find(x => x.id === id); if (!c) return; recForm('meeting'); const el = document.getElementById('rf_mtype');
-    if (el) { const v = 'اجتماع ' + c.t; if (![...el.options].some(o => o.value === v)) el.add(new Option(v, v)); el.value = v; } }
+    if (el) { const v = 'اجتماع ' + c.t; if (![...el.options].some(o => o.value === v)) el.add(new Option(v, v)); el.value = v; el.dispatchEvent(new Event('change', {bubbles:true})); } }
 });
+
+/* ===================== Excel: الاستيراد والتصدير ===================== */
+let xlsxReady = null;
+function loadXlsx(){ return xlsxReady ||= new Promise((ok, no) => { if (window.XLSX) return ok(window.XLSX);
+  const s = document.createElement('script'); s.src = 'vendor/xlsx.full.min.js'; s.onload = () => ok(window.XLSX);
+  s.onerror = () => { xlsxReady = null; no({message:'تعذّر تحميل أداة Excel. تحقق من الإنترنت ثم أعد المحاولة.'}); }; document.head.appendChild(s); }); }
+async function saveXlsx(name, sheets){
+  try { const X = await loadXlsx(); const wb = X.utils.book_new(); wb.Workbook = {Views:[{RTL:true}]};
+    sheets.forEach(({name:n, rows}) => { const ws = X.utils.aoa_to_sheet(rows);
+      ws['!cols'] = rows[0].map((_,c) => ({wch:Math.min(38, Math.max(7, ...rows.slice(0,200).map(r => String(r[c] ?? '').length + 2)))}));
+      X.utils.book_append_sheet(wb, ws, n.slice(0,31)); });
+    saveBlob(name + '.xlsx', X.write(wb, {type:'array', bookType:'xlsx'}), 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+  } catch(e){ toast(errMsg(e), 'bad'); }
+}
+async function readBook(file){
+  const X = await loadXlsx();
+  const wb = X.read(await file.arrayBuffer(), {type:'array', ...(/\.csv$/i.test(file.name) ? {codepage:65001} : {})});
+  return wb.SheetNames.map(n => ({name:n, rows:X.utils.sheet_to_json(wb.Sheets[n], {header:1, raw:true, defval:'', blankrows:false})}));
+}
+const digits = s => String(s ?? '').replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
+const normAr = s => String(s ?? '').replace(/[\u064B-\u0652\u0640]/g,'').replace(/[أإآ]/g,'ا').replace(/ى/g,'ي').replace(/ة/g,'ه').replace(/\s+/g,' ').trim();
+const cellStr = v => String(v ?? '').replace(/\s+/g,' ').trim();
+function cleanPhone(v){ let d = digits(v).replace(/\D/g,''); if (d.startsWith('00')) d = d.slice(2); if (d.startsWith('966')) d = d.slice(3); if (d.length === 9 && d[0] === '5') d = '0' + d; return d; }
+
+// تحديد معنى كل عمود من عنوانه، فيقبل ملف نور أو ملف المنصة أو أي ملف بعناوين مقاربة
+function stuColOf(h){ const c = normAr(h); if (!c || c.length > 40) return '';
+  if (/جوال|هاتف|موبايل|تواصل|mobile|phone/i.test(c)) return 'phone';
+  if (/ولي/.test(c)) return /هويه|سجل/.test(c) ? '' : 'guard';
+  if (/هويه|سجل مدني|السجل المدني|اقامه|رقم الطالب/.test(c)) return 'nid';
+  if (/اسم الطالب|^الاسم|^اسم$|^الطالب$/.test(c)) return 'name';
+  if (/^الصف|^المرحله|^المستوي/.test(c)) return 'grade';
+  if (/^الفصل|^الشعبه/.test(c)) return 'cls';
+  if (/^ملاحظ/.test(c)) return 'note'; return ''; }
+function stuHeader(row){ const map = {}; row.forEach((v,i) => { const k = stuColOf(v); if (!k) return; if (!(k in map) || (k === 'phone' && /ولي/.test(normAr(v)))) map[k] = i; }); return map; }
+// ملف بلا عناوين: يُستدل على الأعمدة من محتواها
+function guessCols(rows){ const n = Math.max(...rows.slice(0,60).map(r => r.length)); const map = {};
+  for (let c = 0; c < n; c++) { const vals = rows.slice(0,60).map(r => cellStr(r[c])).filter(Boolean); if (!vals.length) continue;
+    const share = re => vals.filter(v => re.test(digits(v))).length / vals.length;
+    if (!('name' in map) && share(/^[\u0621-\u064A]+( [\u0621-\u064A]+){2,}$/) > .6) map.name = c;
+    else if (!('phone' in map) && share(/^(00966|966|0)?5\d{8}$/) > .6) map.phone = c;
+    else if (!('nid' in map) && share(/^[12]\d{9}$/) > .6) map.nid = c; }
+  return map; }
+function parseStudents(sheets, defaults){
+  const out = [], found = new Set(); const after = (s, k) => (s.match(new RegExp(k + '\\s*[:：/-]?\\s*([^\\s:：]+)')) || [])[1] || '';
+  sheets.forEach(({name:sheet, rows}) => {
+    let hi = -1, map = {}, best = 0;
+    rows.slice(0,40).forEach((r,i) => { const m = stuHeader(r); const n = Object.keys(m).length; if (m.name !== undefined && n > best) { best = n; hi = i; map = m; } });
+    if (hi < 0) { map = guessCols(rows); if (map.name === undefined) return; }
+    Object.keys(map).forEach(k => found.add(k));
+    let grade = '', cls = '';
+    const scan = r => { const t = r.map(cellStr).filter(Boolean).join(' '); const g = after(t, 'الصف'), c = after(t, 'الفصل'); if (g) grade = g; if (c) cls = c; };
+    rows.slice(0, Math.max(hi, 0)).forEach(scan); if (!grade && /الصف/.test(sheet)) scan([sheet]);
+    rows.slice(hi + 1).forEach(r => {
+      const name = cellStr(r[map.name]); const rh = stuHeader(r);
+      if (rh.name !== undefined && Object.keys(rh).length >= 2) return;
+      if (r.some(v => /^(الصف|الفصل)\s*[:：]/.test(cellStr(v)))) return scan(r);
+      if (!name || !/[ء-ي]{2}/.test(name) || /مجموع|الاجمالي|الإجمالي|عدد الطلاب/.test(name)) return;
+      const g = k => map[k] === undefined ? '' : cellStr(r[map[k]]);
+      out.push({name, nid:digits(g('nid')).replace(/\D/g,''), grade:g('grade') || grade || defaults.grade || '', cls:g('cls') || cls || defaults.cls || '', guard:g('guard'), phone:cleanPhone(g('phone')), note:g('note')});
+    });
+  });
+  return {rows:out, found};
+}
+// يضيف الجديد ويحدّث الموجود بالخانات غير الفارغة فقط؛ لا يحذف طالبًا ولا يغيّر معرّفه فيبقى سجله
+function planStudents(rows){
+  const nameKey = r => normAr(r.name) + '|' + normAr(r.grade) + '|' + normAr(r.cls);
+  const byNid = new Map(), byKey = new Map(), byName = new Map();
+  S.students.forEach(s => { if (s.nid) byNid.set(s.nid, s); byKey.set(nameKey(s), s); const k = normAr(s.name); byName.set(k, byName.has(k) ? null : s); });
+  const seen = new Set(), add = [], upd = []; let same = 0, dup = 0;
+  rows.forEach(r => { const k = r.nid || nameKey(r); if (seen.has(k)) { dup++; return; } seen.add(k);
+    const hit = (r.nid && byNid.get(r.nid)) || byKey.get(nameKey(r)) || byName.get(normAr(r.name));
+    if (!hit) return add.push({id:newId(), ...r, createdAt:Date.now()});
+    const ch = {}; ['nid','grade','cls','guard','phone','note'].forEach(f => { if (r[f] && r[f] !== hit[f]) ch[f] = r[f]; });
+    if (Object.keys(ch).length) upd.push({...hit, ...ch}); else same++; });
+  return {add, upd, same, dup};
+}
+async function bulkPut(col, docs, dels){
+  for (let i = 0; i < docs.length; i += 100) await api('/bulk/' + col, {method:'POST', json:{docs:docs.slice(i, i + 100)}});
+  for (let i = 0; i < (dels || []).length; i += 100) await api('/bulk/' + col, {method:'POST', json:{del:dels.slice(i, i + 100)}});
+  docs.forEach(({id, ...d}) => upsert(col, id, d)); if (dels?.length) S[col] = S[col].filter(x => !dels.includes(x.id)); render();
+}
+const STU_HEAD = ['رقم الهوية','اسم الطالب','الصف','الفصل','ولي الأمر','جوال ولي الأمر','ملاحظات'];
+function importStudentsForm(){
+  modal('استيراد الطلاب من Excel', `<div class="f full"><label for="is_f">ملف الطلاب من نور أو من المنصة</label><input id="is_f" type="file" accept=".xlsx,.xls,.csv"><span class="hint">تُقرأ الأعمدة تلقائيًا: الاسم والهوية والصف والفصل وولي الأمر والجوال. الموجود يُحدَّث، والجديد يُضاف، ولا يُحذف أحد.</span></div><div id="is_pv"></div>`,
+    `<button class="btn" id="is_tpl">تنزيل نموذج فارغ</button><button class="btn" data-act="close">إغلاق</button>`, true);
+  $('#is_tpl').onclick = () => saveXlsx('نموذج استيراد الطلاب', [{name:'الطلاب', rows:[STU_HEAD]}]);
+  $('#is_f').onchange = async e => { const f = e.target.files[0]; if (!f) return; const box = $('#is_pv'); box.innerHTML = '<div class="notice-bar info">جارٍ قراءة الملف…</div>';
+    let sheets; try { sheets = await readBook(f); } catch { box.innerHTML = '<div class="notice-bar">تعذّرت قراءة الملف. احفظه بصيغة xlsx ثم أعد المحاولة.</div>'; return; }
+    const show = () => { const {rows, found} = parseStudents(sheets, {grade:fval('is_g'), cls:fval('is_c')});
+      if (!rows.length) { box.innerHTML = '<div class="notice-bar">لم أجد عمود أسماء الطلاب في الملف. تأكد أن فيه عمودًا عنوانه «اسم الطالب» أو نزّل النموذج الفارغ واملأه.</div>'; return; }
+      const p = planStudents(rows); const miss = rows.filter(r => !r.grade || !r.cls).length;
+      const g0 = fval('is_g'), c0 = fval('is_c');
+      box.innerHTML = `<div class="kpis"><div class="kpi"><span class="v">${p.add.length}</span><span class="l">طالب جديد</span></div><div class="kpi"><span class="v">${p.upd.length}</span><span class="l">تُحدَّث بياناته</span></div><div class="kpi"><span class="v">${p.same}</span><span class="l">بلا تغيير</span></div>${p.dup ? `<div class="kpi warn"><span class="v">${p.dup}</span><span class="l">مكرر في الملف</span></div>` : ''}</div>
+        <p class="sub">الأعمدة المقروءة: ${['name','nid','grade','cls','guard','phone','note'].filter(k => found.has(k)).map(k => ({name:'الاسم',nid:'الهوية',grade:'الصف',cls:'الفصل',guard:'ولي الأمر',phone:'الجوال',note:'الملاحظات'})[k]).join('، ')}</p>
+        ${miss || g0 || c0 ? `<div class="fg"><div class="f"><label for="is_g">الصف لمن لم يُذكر صفه</label><input id="is_g" value="${esc(g0)}" placeholder="الخامس"></div><div class="f"><label for="is_c">الفصل لمن لم يُذكر فصله</label><input id="is_c" value="${esc(c0)}" placeholder="أ"></div></div>` : ''}
+        <div class="tablewrap"><table class="tbl"><thead><tr><th>الاسم</th><th>الهوية</th><th>الصف</th><th>الفصل</th><th>ولي الأمر</th><th>الجوال</th></tr></thead><tbody>${rows.slice(0,6).map(r => `<tr><td>${esc(r.name)}</td><td class="num">${esc(r.nid)}</td><td>${esc(r.grade)}</td><td>${esc(r.cls)}</td><td>${esc(r.guard)}</td><td class="num">${esc(r.phone)}</td></tr>`).join('')}</tbody></table></div>
+        <div class="tools" style="margin-top:10px"><button class="btn pri" id="is_ok" ${p.add.length + p.upd.length ? '' : 'disabled'}>استيراد ${p.add.length + p.upd.length} طالبًا</button></div>`;
+      ['is_g','is_c'].forEach(i => { const el = document.getElementById(i); if (el) el.onchange = show; });
+      $('#is_ok').onclick = async () => { $('#is_ok').disabled = true;
+        try { await bulkPut('students', [...p.add, ...p.upd]); closeModal(); toast(`أُضيف ${p.add.length} وحُدّث ${p.upd.length}`); }
+        catch(err){ toast(errMsg(err), 'bad'); loadAll(); closeModal(); } }; };
+    show(); };
+}
+function exportStudents(){
+  const risk = new Set(atRisk().map(x => x.s.id));
+  const stat = s => { const st = stuStat(s.id); return [s.nid, s.name, s.grade, s.cls, s.guard, s.phone, s.note, st.days, st.rate === null ? '' : st.rate + '٪', st.abs, st.exc, st.late, st.inc.length, st.maxDeg || '', risk.has(s.id) ? 'نعم' : '']; };
+  const list = [...S.students].sort((a,b) => String(a.grade).localeCompare(String(b.grade),'ar') || String(a.cls).localeCompare(String(b.cls),'ar') || String(a.name).localeCompare(String(b.name),'ar'));
+  if (!list.length) return toast('لا يوجد طلاب للتصدير', 'bad');
+  const abs = [['اسم الطالب','الصف','الفصل','اليوم','التاريخ الهجري','التاريخ الميلادي','الحالة']];
+  sortBy(S.attendance, 'id').forEach(d => list.forEach(s => { const v = d[s.id]; if (v && v !== 'حاضر') abs.push([s.name, s.grade, s.cls, dayName(d.id), hij(d.id), d.id, v]); }));
+  const beh = [['اسم الطالب','الصف','الفصل','التاريخ الهجري','الدرجة','الوصف','الحالة']];
+  sortBy(S.incidents, 'date').forEach(i => { const s = student(i.studentId) || {name:i.studentName}; beh.push([s.name, s.grade, s.cls, hij(i.date), i.deg, i.desc, i.status === 'closed' ? 'عولجت' : 'مفتوحة']); });
+  saveXlsx('بيانات الطلاب - ' + school(), [{name:'الطلاب', rows:[[...STU_HEAD,'أيام مرصودة','نسبة الحضور','غياب بلا عذر','غياب بعذر','تأخر','مخالفات','أعلى درجة مخالفة','إنذار مبكر'], ...list.map(stat)]}, {name:'الغياب والتأخر', rows:abs}, {name:'السلوك', rows:beh}]);
+}
+
+/* ===================== الإرسال المتتابع بالواتساب ===================== */
+// الواتساب لا يتيح الإرسال الآلي إلا بخدمة أعمال مدفوعة، فيفتح الطابور كل محادثة برسالتها الجاهزة ويتتبع ما أُرسل
+function sendQueue(title, items, logId, note){
+  const sent = id => (S.sendlog.find(x => x.id === logId) || {})[id];
+  const draw = () => { const ok = items.filter(i => waLink(i.phone, '.')); const done = ok.filter(i => sent(i.id)); const next = ok.find(i => !sent(i.id)); const noPh = items.length - ok.length;
+    $('#sqBody').innerHTML = `<div class="tools"><span class="chip ok num">أُرسل ${done.length} من ${ok.length}</span>${noPh ? `<span class="chip warn num">بلا جوال: ${noPh}</span>` : ''}${next ? `<a class="btn pri" href="${esc(waLink(next.phone, next.msg))}" target="_blank" rel="noopener" data-qid="${esc(next.id)}">إرسال التالي: ${esc(next.name)}</a>` : (ok.length ? '<span class="chip ok">اكتمل الإرسال</span>' : '')}</div>
+      <div class="list">${items.map(i => { const w = waLink(i.phone, i.msg); return `<div class="row"><div><div class="t">${esc(i.name)}</div><div class="m">${esc(i.sub || '')}</div></div><div class="tools">${sent(i.id) ? '<span class="chip ok">أُرسل</span>' : ''}${w ? `<a class="btn sm wa" href="${esc(w)}" target="_blank" rel="noopener" data-qid="${esc(i.id)}">${sent(i.id) ? 'إعادة' : 'إرسال'}</a>` : '<span class="chip mute">لا يوجد جوال</span>'}</div></div>`; }).join('')}</div>`; };
+  const dlg = modal(title, `${note ? `<p class="sub" style="margin:0 0 8px">${esc(note)}</p>` : ''}<p class="sub" style="margin:0 0 10px">تُفتح كل محادثة في واتساب برسالتها الجاهزة، فاضغط إرسال فيه ثم عد هنا للتالي.</p><div id="sqBody"></div>`, '', true);
+  dlg.addEventListener('click', e => { const a = e.target.closest('[data-qid]'); if (!a) return;
+    save2('sendlog', logId, {[a.dataset.qid]:Date.now()}).then(draw); });
+  draw();
+}
+
+/* ---------- تقارير الغياب ---------- */
+const absSchoolLine = () => `${school()}${set().phone ? ' — جوال المدير: ' + set().phone : ''}`;
+function todayAbsQueue(){
+  const date = UI.attDate || today(), g = UI.attGrade || ''; const D = S.attendance.find(x => x.id === date) || {};
+  const items = sortBy(S.students.filter(s => (!g || s.grade === g) && D[s.id] === 'غياب بدون عذر'), 'name').map(s => ({id:s.id, name:s.name, sub:sClass(s), phone:s.phone,
+    msg:`ولي أمر الطالب/ ${s.name}\nالسلام عليكم ورحمة الله وبركاته\nنحيطكم علمًا بغياب ابنكم يوم ${dayName(date)} ${hij(date)} دون عذر. نأمل متابعته وتزويد المدرسة بالعذر إن وجد.\n${absSchoolLine()}`}));
+  if (!items.length) return toast('لا يوجد غياب بدون عذر في هذا اليوم', 'bad');
+  sendQueue(`غياب ${dayName(date)} ${hij(date)}`, items, 'abs_' + date);
+}
+function absRange(from, to, g, minD){
+  const days = S.attendance.filter(d => d.id >= from && d.id <= to).sort((a,b) => a.id < b.id ? -1 : 1);
+  return S.students.filter(s => !g || s.grade === g).map(s => { const r = {s, abs:[], exc:[], late:[], days:0};
+    days.forEach(d => { const v = d[s.id]; if (!v) return; r.days++; if (v === 'غياب بدون عذر') r.abs.push(d.id); else if (v === 'غياب بعذر') r.exc.push(d.id); else if (v === 'متأخر') r.late.push(d.id); });
+    return r; }).filter(r => r.abs.length + r.exc.length >= minD && r.abs.length + r.exc.length + r.late.length > 0).sort((a,b) => b.abs.length - a.abs.length || String(a.s.name).localeCompare(String(b.s.name),'ar'));
+}
+function absMsg(r, from, to){ const s = r.s; const list = r.abs.slice(0,15).map(d => `${dayName(d)} ${hij(d)}`).join('\n- ');
+  const rate = r.days ? Math.round((r.days - r.abs.length - r.exc.length) / r.days * 100) : null;
+  return `ولي أمر الطالب/ ${s.name}\nالسلام عليكم ورحمة الله وبركاته\nتقرير غياب ابنكم بالصف ${sClass(s)} من ${hij(from)} إلى ${hij(to)}:\n• غياب بدون عذر: ${r.abs.length} يوم\n• غياب بعذر: ${r.exc.length} يوم\n• تأخر: ${r.late.length} مرة${rate !== null ? `\n• نسبة الحضور: ${rate}٪` : ''}${r.abs.length ? `\nأيام الغياب بدون عذر:\n- ${list}${r.abs.length > 15 ? '\n- وغيرها' : ''}` : ''}\nنأمل متابعة انتظامه وتزويد المدرسة بالأعذار إن وجدت.\n${absSchoolLine()}`; }
+function absReportForm(){
+  const m = today().slice(0,8) + '01'; const grades = [...new Set(S.students.map(s => s.grade).filter(Boolean))];
+  modal('تقارير الغياب لأولياء الأمور', `<div class="fg"><div class="f"><label for="ar_f">من</label><input id="ar_f" type="date" value="${m}"></div><div class="f"><label for="ar_t">إلى</label><input id="ar_t" type="date" value="${today()}"></div>
+    <div class="f"><label for="ar_g">الصف</label><select id="ar_g"><option value="">كل الصفوف</option>${selOpts(grades)}</select></div><div class="f"><label for="ar_m">أقل عدد أيام غياب</label><input id="ar_m" type="number" min="0" value="1"></div></div><div id="ar_pv"></div>`,
+    `<button class="btn pri" id="ar_send">إرسال واتساب</button><button class="btn" id="ar_xl">تصدير Excel</button><button class="btn" id="ar_pr">طباعة الكشف</button><button class="btn" data-act="close">إغلاق</button>`, true);
+  const cur = () => absRange(fval('ar_f'), fval('ar_t'), fval('ar_g'), Math.max(0, +fval('ar_m') || 0));
+  const draw = () => { const l = cur(); $('#ar_pv').innerHTML = l.length ? `<p class="sub">${l.length} طالبًا في هذه الفترة.</p><div class="tablewrap"><table class="tbl"><thead><tr><th>الطالب</th><th>الصف</th><th>بدون عذر</th><th>بعذر</th><th>تأخر</th></tr></thead><tbody>${l.slice(0,40).map(r => `<tr><td>${esc(r.s.name)}</td><td>${esc(sClass(r.s))}</td><td class="num">${r.abs.length}</td><td class="num">${r.exc.length}</td><td class="num">${r.late.length}</td></tr>`).join('')}</tbody></table></div>` : '<div class="empty">لا يوجد غياب مطابق في هذه الفترة.</div>'; };
+  ['ar_f','ar_t','ar_g','ar_m'].forEach(i => document.getElementById(i).onchange = draw); draw();
+  $('#ar_send').onclick = () => { const l = cur(), f = fval('ar_f'), t = fval('ar_t'); if (!l.length) return toast('لا يوجد ما يُرسل', 'bad');
+    sendQueue('تقارير الغياب', l.map(r => ({id:r.s.id, name:r.s.name, sub:`بدون عذر ${r.abs.length} · بعذر ${r.exc.length} · تأخر ${r.late.length}`, phone:r.s.phone, msg:absMsg(r, f, t)})), `absr_${f}_${t}`); };
+  $('#ar_xl').onclick = () => { const l = cur(); if (!l.length) return toast('لا يوجد ما يُصدَّر', 'bad');
+    saveXlsx('تقرير الغياب', [{name:'تقرير الغياب', rows:[['اسم الطالب','الصف','الفصل','ولي الأمر','الجوال','غياب بدون عذر','غياب بعذر','تأخر','أيام الغياب'], ...l.map(r => [r.s.name, r.s.grade, r.s.cls, r.s.guard, r.s.phone, r.abs.length, r.exc.length, r.late.length, r.abs.map(hij).join('، ')])]}]); };
+  $('#ar_pr').onclick = () => { const l = cur(); printDoc(`<div class="paper">${docHead('كشف غياب الطلاب', `من ${hij(fval('ar_f'))} إلى ${hij(fval('ar_t'))}`, '', hij(today()))}<table><tr><th style="width:6%">م</th><th style="width:auto">الطالب</th><th style="width:auto">الصف</th><th style="width:12%">بدون عذر</th><th style="width:12%">بعذر</th><th style="width:12%">تأخر</th></tr>${l.map((r,i) => `<tr><td>${i+1}</td><td>${esc(r.s.name)}</td><td>${esc(sClass(r.s))}</td><td>${r.abs.length}</td><td>${r.exc.length}</td><td>${r.late.length}</td></tr>`).join('')}</table><div class="sigs"><div class="s"><b>وكيل شؤون الطلاب</b><span>${esc(set().deputy || '')}</span><div></div></div><div class="s"><b>مدير المدرسة</b><span>${esc(principal())}</span><div></div></div></div></div>`); };
+}
+
+/* ===================== الجدول السريع بالضغط ===================== */
+const GRADES = ['الأول','الثاني','الثالث','الرابع','الخامس','السادس'], SECTS = ['أ','ب','ج','د','هـ'];
+const clsLabel = (g, c) => [g, c].filter(Boolean).join(' / ');
+function quickSched(){
+  if (!S.teachers.length) return toast('أضف المعلمين أولًا', 'bad');
+  const gr = [...new Set(S.students.map(s => s.grade).filter(Boolean))], se = [...new Set(S.students.map(s => s.cls).filter(Boolean))];
+  const grades = gr.length ? gr : GRADES, sects = se.length ? se : SECTS, P = +cfg().periods || 7;
+  const q = {tid:UI.slT || sortBy(S.teachers,'name')[0].id, g:grades[0], c:sects[0], base:new Map(), cells:new Map()};
+  S.schedule.forEach(e => { const k = `${e.tid}|${e.day}|${e.p}`; q.base.set(k, e); q.cells.set(k, e.cls || ''); });
+  const changes = () => { const docs = [], dels = [];
+    q.cells.forEach((cls, k) => { const b = q.base.get(k); if (b && (b.cls || '') === cls) return; const [tid, day, p] = k.split('|'); docs.push(b ? {...b, cls} : {id:newId(), tid, day:+day, p:+p, cls}); });
+    q.base.forEach((b, k) => { if (!q.cells.has(k)) dels.push(b.id); }); return {docs, dels}; };
+  const clash = (tid, d, p, cls) => { if (!cls) return ''; for (const [k, v] of q.cells) { const [t, dd, pp] = k.split('|'); if (t !== tid && +dd === d && +pp === p && v === cls) return t; } return ''; };
+  const draw = () => { const n = [...q.cells.keys()].filter(k => k.startsWith(q.tid + '|')).length; const ch = changes();
+    $('#qsBody').innerHTML = `<div class="fg"><div class="f full"><label for="qs_t">المعلم</label><select id="qs_t">${teacherOpts(q.tid)}</select><span class="hint">نصابه: ${n} حصة</span></div></div>
+      <div class="tools"><span class="lb">الصف</span><div class="seg">${grades.map(g => `<button type="button" data-qg="${esc(g)}" aria-pressed="${g === q.g}">${esc(g)}</button>`).join('')}</div></div>
+      <div class="tools"><span class="lb">الفصل</span><div class="seg">${sects.map(c => `<button type="button" data-qc="${esc(c)}" aria-pressed="${c === q.c}">${esc(c)}</button>`).join('')}</div></div>
+      <p class="sub" style="margin:8px 0">اختر الصف والفصل ثم اضغط خانة الحصة. الضغط مرة أخرى يلغيها.</p>
+      <div class="tablewrap"><table class="tbl qgrid"><thead><tr><th>اليوم</th>${Array.from({length:P}, (_,i) => `<th class="num">${i+1}</th>`).join('')}</tr></thead><tbody>
+      ${DAYS5.map((dn,d) => `<tr><th>${dn}</th>${Array.from({length:P}, (_,i) => { const v = q.cells.get(`${q.tid}|${d}|${i+1}`) || ''; const cl = clash(q.tid, d, i+1, v); return `<td><button type="button" class="qc ${v ? 'on' : ''} ${cl ? 'clash' : ''}" data-qd="${d}" data-qp="${i+1}" title="${cl ? 'الفصل نفسه عند ' + esc(tName(cl)) : ''}">${esc(v) || '+'}</button></td>`; }).join('')}</tr>`).join('')}</tbody></table></div>
+      <div class="tools"><button type="button" class="btn sm" id="qs_rep">تكرار الأحد على بقية الأيام</button><button type="button" class="btn sm danger" id="qs_clr">مسح جدول هذا المعلم</button><span class="chip ${ch.docs.length + ch.dels.length ? 'warn' : 'ok'} num">تعديلات غير محفوظة: ${ch.docs.length + ch.dels.length}</span></div><div id="qs_msg"></div>`;
+    $('#qs_t').onchange = e => { q.tid = e.target.value; UI.slT = q.tid; draw(); };
+    $('#qs_rep').onclick = () => { for (let d = 1; d < 5; d++) for (let p = 1; p <= P; p++) { const k = `${q.tid}|${d}|${p}`, v = q.cells.get(`${q.tid}|0|${p}`); if (v !== undefined) q.cells.set(k, v); else q.cells.delete(k); } draw(); };
+    $('#qs_clr').onclick = () => { [...q.cells.keys()].filter(k => k.startsWith(q.tid + '|')).forEach(k => q.cells.delete(k)); draw(); }; };
+  const dlg = modal('الجدول السريع', '<div id="qsBody"></div>', `<button class="btn pri" id="qs_save">حفظ الجدول</button><button class="btn" id="qs_xl">تنزيل قالب Excel</button><label class="btn" for="qs_up">رفع جدول Excel</label><input id="qs_up" type="file" accept=".xlsx,.xls,.csv" hidden><button class="btn" data-act="close">إغلاق</button>`, true);
+  dlg.addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.qg) { q.g = b.dataset.qg; draw(); }
+    else if (b.dataset.qc) { q.c = b.dataset.qc; draw(); }
+    else if (b.dataset.qd !== undefined) { const k = `${q.tid}|${b.dataset.qd}|${b.dataset.qp}`, cur = clsLabel(q.g, q.c); if (q.cells.get(k) === cur) q.cells.delete(k); else q.cells.set(k, cur); draw(); } });
+  $('#qs_save').onclick = async () => { const {docs, dels} = changes(); if (!docs.length && !dels.length) return closeModal(); $('#qs_save').disabled = true;
+    try { await bulkPut('schedule', docs, dels); closeModal(); toast(`حُفظ الجدول: ${docs.length} حصة`); } catch(e){ toast(errMsg(e), 'bad'); $('#qs_save').disabled = false; } };
+  $('#qs_xl').onclick = () => { const hd = ['المعلم']; DAYS5.forEach(d => { for (let p = 1; p <= P; p++) hd.push(`${d} ${p}`); });
+    saveXlsx('قالب الجدول المدرسي', [{name:'الجدول', rows:[hd, ...sortBy(S.teachers,'name').map(t => { const r = [t.name]; DAYS5.forEach((_,d) => { for (let p = 1; p <= P; p++) r.push(q.cells.get(`${t.id}|${d}|${p}`) || ''); }); return r; })]}]); };
+  $('#qs_up').onchange = async e => { const f = e.target.files[0]; if (!f) return;
+    try { const r = applySchedule(await readBook(f), q, P); draw();
+      $('#qs_msg').innerHTML = `<div class="notice-bar info">قُرئ جدول ${r.ok} معلمًا (${r.cells} حصة). راجع الجدول ثم اضغط «حفظ الجدول».${r.miss.length ? `<br>أسماء لم تطابق أي معلم في المنصة: ${esc(r.miss.join('، '))}` : ''}${r.over ? `<br>تُركت ${r.over} خانة تتجاوز عدد الحصص في الإعدادات.` : ''}</div>`;
+    } catch(err){ toast(err.message || 'تعذّرت قراءة الملف', 'bad'); } e.target.value = ''; };
+  draw();
+}
+const DAY_RE = {الاحد:0, الاثنين:1, الثلاثاء:2, الاربعاء:3, الخميس:4};
+const dayOf = v => { const c = normAr(v); for (const k in DAY_RE) if (c.includes(k)) return DAY_RE[k]; return -1; };
+const numOf = v => { const m = digits(v).match(/\d+/); return m ? +m[0] : 0; };
+function findTeacher(name){ const n = normAr(name); if (n.length < 3) return null;
+  const eq = S.teachers.find(t => normAr(t.name) === n); if (eq) return eq;
+  // الجداول تكتب الاسم مختصرًا غالبًا: كل كلمات الأقصر موجودة في الأطول، بشرط ألا يطابق غير معلم واحد
+  const words = x => x.split(' '), within = (a, b) => words(a).every(w => words(b).includes(w));
+  const near = S.teachers.filter(t => { const m = normAr(t.name); return n.includes(' ') ? within(n, m) || within(m, n) : words(m).includes(n); }); return near.length === 1 ? near[0] : null; }
+// يقبل صيغتين: صف لكل معلم وأعمدة «اليوم الحصة»، أو ورقة لكل معلم وأسطرها أيام الأسبوع
+function readSlots(sheets){ const out = [];
+  sheets.forEach(({name, rows}) => {
+    const hi = rows.findIndex(r => r.filter(v => dayOf(v) >= 0).length >= 3);
+    if (hi >= 0) { const slots = {}; let day = -1, seq = 0; const nx = rows[hi + 1] || []; const two = nx.filter(v => numOf(v)).length >= 3 && !nx.some(v => /[\u0621-\u064A]{3}/.test(cellStr(v)));
+      const len = Math.max(rows[hi].length, nx.length);
+      for (let c = 0; c < len; c++) { const v = rows[hi][c], d = dayOf(v); if (d >= 0) { if (d !== day) seq = 0; day = d; } else if (cellStr(v)) { day = -1; continue; }
+        if (day < 0) continue; const n = two ? numOf(nx[c]) : numOf(v) || (d >= 0 ? ++seq : 0); if (n) slots[c] = {day, p:n}; }
+      rows.slice(hi + (two ? 2 : 1)).forEach(r => { const nameCell = r.find((v,c) => !slots[c] && /[\u0621-\u064A]{2}/.test(cellStr(v))); if (!nameCell) return;
+        const cells = []; Object.entries(slots).forEach(([c,s]) => { const v = cellStr(r[c]); if (v && !/^[-–—×x.]+$/i.test(v)) cells.push({...s, cls:v}); }); out.push({name:cellStr(nameCell), cells}); });
+      return; }
+    const dr = rows.map((r,i) => ({i, d:r.findIndex(v => dayOf(v) >= 0 && cellStr(v).length < 12)})).filter(x => x.d >= 0);
+    if (dr.length < 3) return; const first = dr[0], hd = rows[first.i - 1] || [];
+    const who = rows.slice(0, first.i).flat().map(cellStr).find(v => findTeacher(v)) || name; const cells = [];
+    dr.forEach(({i, d:c0}) => { const day = dayOf(rows[i][c0]); rows[i].forEach((v,c) => { if (c === c0) return; const s = cellStr(v), p = numOf(hd[c]); if (s && p && !/^[-–—×x.]+$/i.test(s)) cells.push({day, p, cls:s}); }); });
+    out.push({name:who, cells}); });
+  return out; }
+function applySchedule(sheets, q, P){ const list = readSlots(sheets); if (!list.length) throw {message:'لم أتعرف على شكل الجدول. نزّل القالب واملأه ثم ارفعه.'};
+  let ok = 0, cells = 0, over = 0; const miss = [];
+  list.forEach(({name, cells:cs}) => { const t = findTeacher(name); if (!t) { if (cs.length) miss.push(name); return; } if (!cs.length) return; ok++;
+    [...q.cells.keys()].filter(k => k.startsWith(t.id + '|')).forEach(k => q.cells.delete(k));
+    cs.forEach(c => { if (c.p > P || c.p < 1) { over++; return; } q.cells.set(`${t.id}|${c.day}|${c.p}`, c.cls); cells++; }); });
+  return {ok, cells, over, miss}; }
+
+/* ===================== إصدار المراقبة ونسخة المعلم الموقعة ===================== */
+const issue = () => S.ctrlissue.find(x => x.id === 'current');
+function curTasks(tid){ const k = ctrlTasks(tid);
+  return {obs:k.obs.map(e => { const c = committee(e.committeeId); return {subject:e.subject || '', grade:e.grade || '', date:e.date || '', period:e.period || '', committee:c?.name || '', place:c?.place || ''}; }),
+    rows:k.rows.map(r => ({subject:r.subject || '', grade:r.grade || '', role:r.role, examDate:r.examDate || '', hand:r.hand || ''}))}; }
+const taskKey = k => JSON.stringify([k.obs.map(o => [o.subject, o.grade, o.date, o.period, o.committee].join('|')).sort(), (k.rows || []).map(r => [r.subject, r.grade, r.role].join('|')).sort()]);
+const taskStale = (tid, c) => !!c?.tasks && taskKey(c.tasks) !== taskKey(curTasks(tid));
+function taskLines(k){ const l = []; if (k.obs.length) { const d = [...k.obs].sort((a,b) => a.date < b.date ? -1 : 1)[0]; l.push(`• المراقبة: ${k.obs.length} اختبار، أولها ${dayName(d.date)} ${hij(d.date)}`); }
+  Object.values(GR_ROLE).forEach(role => { const r = k.rows.filter(x => x.role === role); if (r.length) l.push(`• ${role}: ${r.map(x => `${x.subject} ${x.grade}`).join('، ')}`); }); return l.join('\n'); }
+function ctrlCopyDoc(t, c){ const k = c?.tasks || curTasks(t.id); const obs = [...k.obs].sort((a,b) => (a.date + a.period).localeCompare(b.date + b.period));
+  return `<div class="paper">${docHead('مهام الكنترول المسندة إلى المعلم', c ? 'نسخة موقّعة' : 'نسخة للاطلاع', '', hij(c ? isoDay(new Date(c.at)) : today()))}
+    <table><tr><th>المعلم</th><td>${esc(t.name)}</td><th>التخصص</th><td>${esc(t.specialty || '—')}</td></tr></table>
+    <h4>أولًا: المراقبة</h4>${obs.length ? `<table><tr><th style="width:6%">م</th><th style="width:auto">اليوم والتاريخ</th><th style="width:auto">المادة</th><th style="width:auto">الصف</th><th style="width:auto">الفترة</th><th style="width:auto">اللجنة والمقر</th></tr>${obs.map((o,i) => `<tr><td>${i+1}</td><td>${esc(dayName(o.date))} ${esc(hij(o.date))}</td><td>${esc(o.subject)}</td><td>${esc(o.grade)}</td><td>${esc(o.period)}</td><td>${esc([o.committee, o.place].filter(Boolean).join(' — '))}</td></tr>`).join('')}</table>` : '<p>لا توجد مراقبة مسندة.</p>'}
+    <h4>ثانيًا: التصحيح والمراجعة والتدقيق</h4>${k.rows.length ? `<table><tr><th style="width:6%">م</th><th style="width:auto">المهمة</th><th style="width:auto">المادة</th><th style="width:auto">الصف</th><th style="width:auto">تاريخ الاختبار</th><th style="width:auto">التسليم</th></tr>${k.rows.map((r,i) => `<tr><td>${i+1}</td><td>${esc(r.role)}</td><td>${esc(r.subject)}</td><td>${esc(r.grade)}</td><td>${esc(r.examDate || '—')}</td><td>${esc(r.hand || '—')}</td></tr>`).join('')}</table>` : '<p>لا توجد مهام تصحيح أو مراجعة أو تدقيق مسندة.</p>'}
+    <h4>ثالثًا: الإقرار</h4><p>أقر أنا الموقع أدناه بالاطلاع على المهام المسندة إليّ أعلاه والالتزام بتنفيذها في مواعيدها.</p>
+    ${sigRow('المعلم', t.name, c)}
+    <div class="sigs"><div class="s"><b>رئيس لجنة الكنترول</b><span>${esc(set().controlHead || '')}</span><div></div></div><div class="s"><b>مدير المدرسة</b><span>${esc(principal())}</span><div></div></div></div>
+    <div class="foot">موقّع إلكترونيًا عبر منصة المدير — ${esc(school())}.</div></div>`; }
+function viewCopy(tid){ const t = teacher(tid); if (!t) return; const c = S.ctrlsigns.find(x => x.id === tid);
+  const self = !isAdmin() && waLink(t.phone, `نسختي الموقعة من مهام الكنترول:\n${BASE}#t=${KEY}&copy=1`);
+  modal('نسخة مهام الكنترول — ' + t.name, ctrlCopyDoc(t, c), `<button class="btn pri" data-act="printCopy" data-id="${tid}">طباعة / PDF</button><button class="btn" data-act="dlCopy" data-id="${tid}">تنزيل النسخة</button>${self ? `<a class="btn wa" href="${esc(self)}" target="_blank" rel="noopener">إرسالها إلى جوالي</a>` : ''}`, true); }
+function vIssue(){
+  const tasked = sortBy(S.teachers.filter(t => { const k = ctrlTasks(t.id); return k.rows.length || k.obs.length; }), 'name');
+  const noObs = S.exams.filter(e => !e.observerId).length; const iss = issue();
+  const log = iss ? S.sendlog.find(x => x.id === 'ctrl_' + iss.no) || {} : {};
+  const signed = tasked.filter(t => { const c = S.ctrlsigns.find(x => x.id === t.id); return c && !taskStale(t.id, c); }).length;
+  return `<div class="kpis"><div class="kpi"><span class="v">${tasked.length}</span><span class="l">معلمًا لديه مهام</span></div><div class="kpi ${signed < tasked.length ? 'warn' : ''}"><span class="v">${signed}/${tasked.length}</span><span class="l">وقّعوا</span></div><div class="kpi ${noObs ? 'bad' : ''}"><span class="v">${noObs}</span><span class="l">اختبارًا بلا ملاحظ</span></div></div>
+    <section class="panel"><h3>إصدار المراقبة</h3><p class="sub">${iss ? `الإصدار رقم ${esc(iss.no)} في ${esc(stamp(iss.at))}.` : 'لم تُصدر المراقبة بعد.'} عند الإصدار تصل كل معلم مراقبته ومهامه مع رابط التوقيع، وبعد توقيعه تُحفظ نسخة ثابتة بتوقيعه.</p>
+      ${noObs ? `<div class="notice-bar">يوجد ${noObs} اختبار بلا ملاحظ. يمكن توزيعهم من «التصحيح والرصد» بزر التوزيع التلقائي.</div>` : ''}
+      <div class="tools">${isAdmin() ? `<button class="btn pri" data-act="ctrlIssue">${iss ? 'إعادة الإصدار والإرسال' : 'إصدار وإرسال للمعلمين'}</button><button class="btn" data-act="ctrlCopies">إرسال النسخ الموقعة</button>` : ''}<button class="btn" data-act="obsPrint">طباعة جدول المراقبة</button></div></section>
+    <section class="panel"><h3>حالة المعلمين</h3>${tasked.length ? `<div class="list">${tasked.map(t => { const k = ctrlTasks(t.id), c = S.ctrlsigns.find(x => x.id === t.id), st = taskStale(t.id, c);
+      return `<div class="row"><div><div class="t">${esc(t.name)}</div><div class="m num">مراقبة ${k.obs.length} · تصحيح ومراجعة وتدقيق ${k.rows.length}</div></div><div class="tools">${c ? (st ? '<span class="chip bad">تغيّرت مهامه بعد توقيعه</span>' : `${sigImg(c,28)}<span class="chip ok">وقّع ${esc(stamp(c.at))}</span>`) : log[t.id] ? '<span class="chip info">أُرسل، بانتظار التوقيع</span>' : '<span class="chip warn">لم يُرسل</span>'}<button class="btn sm" data-act="ctrlCopy" data-id="${t.id}">النسخة</button></div></div>`; }).join('')}</div>` : '<div class="empty">لا توجد مهام مسندة. حدّد الملاحظ في جدول الاختبارات ووزّع التصحيح أولًا.</div>'}</section>`;
+}
+function obsDoc(){ const ex = [...S.exams].sort((a,b) => (a.date + a.period).localeCompare(b.date + b.period));
+  return `<div class="paper land">${docHead('جدول المراقبة', 'لجنة الكنترول', '', hij(today()))}<table class="sheet"><thead><tr><th class="n">م</th><th>اليوم والتاريخ</th><th>المادة</th><th>الصف</th><th>الفترة</th><th>اللجنة</th><th>الملاحظ</th></tr></thead><tbody>${ex.map((e,i) => `<tr><td class="n">${i+1}</td><td>${esc(dayName(e.date))} ${esc(hij(e.date))}</td><td>${esc(e.subject)}</td><td>${esc(e.grade || '')}</td><td>${esc(e.period || '')}</td><td>${esc(committee(e.committeeId)?.name || '')}</td><td>${esc(e.observerId ? tName(e.observerId) : '')}</td></tr>`).join('')}</tbody></table>
+    <div class="sigs"><div class="s">رئيس لجنة الكنترول: ${esc(set().controlHead || '')}<div></div></div><div class="s">مدير المدرسة: ${esc(principal())}<div></div></div></div></div>`; }
+function ctrlIssueNow(){
+  const tasked = sortBy(S.teachers.filter(t => { const k = ctrlTasks(t.id); return k.rows.length || k.obs.length; }), 'name');
+  if (!tasked.length) return toast('لا توجد مهام مسندة بعد', 'bad');
+  const stale = tasked.filter(t => taskStale(t.id, S.ctrlsigns.find(x => x.id === t.id)));
+  const go_ = async () => { const no = (+(issue()?.no) || 0) + 1;
+    try { if (stale.length) await bulkPut('ctrlsigns', [], stale.map(t => t.id)); } catch(e){ return toast(errMsg(e), 'bad'); }
+    if (!await put('ctrlissue/current', {no, at:Date.now()})) return;
+    const need = tasked.filter(t => !S.ctrlsigns.find(x => x.id === t.id));
+    if (!need.length) return toast('كل المعلمين وقّعوا، لا يوجد ما يُرسل');
+    sendQueue('إرسال المراقبة للمعلمين', need.map(t => { const k = curTasks(t.id); return {id:t.id, name:t.name, sub:`مراقبة ${k.obs.length} · مهام ${k.rows.length}`, phone:t.phone,
+      msg:`المكرم الأستاذ/ ${t.name}\nالسلام عليكم ورحمة الله وبركاته\nصدرت مهامك في الكنترول:\n${taskLines(k)}\nنأمل الاطلاع والتوقيع من رابطك الخاص:\n${teacherLink(t)}\n${principal()} — ${school()}`}; }), 'ctrl_' + no); };
+  if (stale.length) confirmBox('إعادة الإصدار', `تغيّرت مهام ${stale.length} معلم بعد توقيعهم، فسيُلغى توقيعهم ليوقّعوا على المهام الجديدة: ${stale.map(t => t.name).join('، ')}.`, 'متابعة', () => { setTimeout(go_, 0); });
+  else go_();
+}
+function ctrlCopiesQueue(){ const list = sortBy(S.teachers.filter(t => S.ctrlsigns.find(x => x.id === t.id)), 'name');
+  if (!list.length) return toast('لم يوقّع أحد بعد', 'bad');
+  sendQueue('إرسال النسخ الموقعة', list.map(t => { const c = S.ctrlsigns.find(x => x.id === t.id); return {id:t.id, name:t.name, sub:'وقّع ' + stamp(c.at), phone:t.phone,
+    msg:`المكرم الأستاذ/ ${t.name}\nشكرًا لتوقيعك. نسختك من مهام الكنترول متضمنة توقيعك والمراقبة والتصحيح والمراجعة والتدقيق على الرابط:\n${teacherLink(t)}&copy=1\n${school()}`}; }), 'copy_' + (issue()?.no || 0)); }
+
+/* ===================== المحاضر: التعبئة التلقائية والتوقيع الإلكتروني ===================== */
+const REC_STAFF = ['by','observer','from','to'];
+function staffNames(){ const s = set(); return [...new Set([principal(), s.deputy, s.controlHead, s.counselor, s.health, s.safety, ...sortBy(S.teachers,'name').map(t => t.name)].filter(Boolean))]; }
+const staffOpts = cur => { const n = staffNames(); return `<option value="">—</option>${(cur && !n.includes(cur) ? [cur, ...n] : n).map(x => `<option ${x === cur ? 'selected' : ''}>${esc(x)}</option>`).join('')}`; };
+const roleName = (r, d) => ({'مدير المدرسة':principal(), 'رئيس الاجتماع':d.chair || principal(), 'وكيل شؤون الطلاب':set().deputy, 'وكيل المدرسة':set().deputy, 'رئيس لجنة الكنترول':set().controlHead, 'المرشد الطلابي':set().counselor, 'الموجه الصحي':set().health, 'منسق الأمن والسلامة':set().safety, 'ولي الأمر':d.parent, 'الطالب':d.student, 'المستلم':d.receiver || d.to, 'المسلِّم':d.from, 'الملاحظ':d.observer, 'من قام بالضبط':d.by}[r] || '');
+const ROLE_FIXED = ['مدير المدرسة','رئيس الاجتماع','ولي الأمر','الطالب','المستلم','المسلِّم','الملاحظ','من قام بالضبط'];
+const MEET = {
+  'اجتماع المعلمين':{a:['متابعة سير العملية التعليمية وخطة الدروس','نتائج الزيارات الصفية ومستوى التحصيل','الانضباط المدرسي والمناوبة والانتظار','ما يستجد من أعمال'], r:['الالتزام بخطة توزيع المنهج - جميع المعلمين - طوال الفصل','تفعيل الخطط العلاجية للطلاب المتأخرين دراسيًا - معلمو المواد - خلال أسبوعين','الالتزام بجدول المناوبة والانتظار - جميع المعلمين - فورًا']},
+  'اجتماع مجلس المدرسة':{a:['مراجعة الخطة التشغيلية للمدرسة','دراسة مؤشرات الأداء والتحصيل','الاحتياجات والموارد','ما يستجد من أعمال'], r:['متابعة تنفيذ الخطة التشغيلية - مدير المدرسة - شهريًا','معالجة مؤشرات الأداء المنخفضة - وكيل المدرسة - خلال الفصل']},
+  'اجتماع لجنة التوجيه الطلابي':{a:['دراسة الحالات السلوكية والدراسية','متابعة الغياب والتأخر','البرامج الوقائية والإرشادية'], r:['متابعة الحالات المحالة - المرشد الطلابي - أسبوعيًا','إشعار أولياء أمور الحالات المتكررة - وكيل شؤون الطلاب - خلال ثلاثة أيام']},
+  'اجتماع لجنة التميز والجودة':{a:['مراجعة مؤشرات التميز','تقييم تنفيذ خطط التحسين','الشواهد والتوثيق'], r:['استكمال شواهد مؤشرات الأداء - أعضاء اللجنة - نهاية الشهر']},
+  'اجتماع مجلس الآباء والمعلمين':{a:['الترحيب بأولياء الأمور','مستوى الطلاب والانضباط','مقترحات أولياء الأمور'], r:['تعزيز التواصل مع أولياء الأمور - إدارة المدرسة - طوال الفصل']},
+  'اجتماع لجنة الاختبارات':{a:['جدول الاختبارات واللجان','توزيع المراقبة والتصحيح والمراجعة','تعليمات سرية الأسئلة وأوراق الإجابة'], r:['اعتماد جدول الاختبارات واللجان - رئيس لجنة الكنترول - قبل بداية الاختبارات','توقيع المعلمين على مهامهم - رئيس لجنة الكنترول - قبل بداية الاختبارات']},
+  'اجتماع لجنة الأمن والسلامة':{a:['سلامة المبنى ووسائل الإطفاء','خطة الإخلاء والتجارب الفرضية','التوعية بالسلامة'], r:['فحص طفايات الحريق ومخارج الطوارئ - منسق الأمن والسلامة - شهريًا','تنفيذ تجربة إخلاء - منسق الأمن والسلامة - خلال الفصل']},
+  'اجتماع طارئ':{a:['بحث الموضوع الطارئ وتحديد الإجراءات'], r:['تنفيذ الإجراءات المتفق عليها - المعنيون - فورًا']}
+};
+const REC_AUTO = {
+  exit:d => ({notes:'تم التواصل مع ولي الأمر، والتحقق من هوية المستلم، وتدوين الخروج في سجل الاستئذان.'}),
+  injury:d => ({desc:`${d.kind || 'حالة صحية'}${d.place ? ' في ' + d.place : ''} للطالب ${d.student || ''}.`, aid:`قُدمت الإسعافات الأولية اللازمة${d.informed === 'نعم' ? '، وأُبلغ ولي الأمر' : ''}${d.transfer ? '، و' + d.transfer : ''}، وتُوبعت الحالة.`}),
+  incident:d => ({desc:`${d.kind ? 'وقعت حالة ' + d.kind : 'وقعت الواقعة'}${d.place ? ' في ' + d.place : ''}.`, said:'أفاد الطرف الأول بما يلي:\nأفاد الطرف الثاني بما يلي:\nأفاد الشهود بما يلي:', action:'فُصل بين الأطراف، وسُمعت أقوالهم والشهود، وأُبلغ أولياء الأمور، واتُخذ الإجراء وفق قواعد السلوك والمواظبة.'}),
+  seize:d => ({circ:`ضُبط مع الطالب ${d.student || ''} ${d.item || 'المضبوطات'}${d.place ? ' في ' + d.place : ''}.`, action:'حُفظت المضبوطات لدى إدارة المدرسة، وأُبلغ ولي الأمر لاستلامها، وطُبق الإجراء وفق قواعد السلوك والمواظبة.'}),
+  latepick:d => ({action:'تم الاتصال بولي الأمر، وبقي الطالب تحت إشراف المعلم المناوب داخل المدرسة حتى استلامه.'}),
+  parentmeet:d => ({talk:`تمت مقابلة ولي الأمر بخصوص: ${d.reason || 'متابعة الطالب'}، واستُعرضت حالة الطالب.`, agreed:'التعاون بين المدرسة وولي الأمر في المتابعة، ومراجعة المدرسة عند الحاجة.'}),
+  meeting:d => { const m = MEET[d.mtype] || {a:['ما يستجد من أعمال'], r:[]}; return {agenda:m.a.map((x,i) => `${i+1}. ${x}`).join('\n'), disc:'نوقشت بنود جدول الأعمال، وتبادل الحاضرون الآراء، وتم الاتفاق على التوصيات أدناه.', recs:m.r.join('\n')}; },
+  custody:d => ({items:`${d.kind || 'العهدة'} - 1 - سليمة`}),
+  evac:d => ({obs:'نُفذت التجربة وفق خطة الإخلاء، والتزم الطلاب والمنسوبون بالمسارات المحددة إلى نقطة التجمع.', recs:'مراجعة مسارات الإخلاء وتوزيع المهام، وتكرار التجربة خلال العام.'}),
+  general:d => ({body:d.title ? `بشأن ${d.title}:\n` : ''}),
+  cheat:d => ({desc:`أثناء اختبار مادة ${d.subject || ''} لوحظ على الطالب ${d.student || ''} ما يلي:`, said:'أفاد الطالب بما يلي:', action:'أُثبتت الحالة، ورُفعت لرئيس لجنة الكنترول، وأُبلغ ولي الأمر، وطُبق الإجراء وفق لائحة تقويم الطالب.'}),
+  envelope:d => ({notes:`فُتحت المظاريف بحضور اللجنة، وكانت ${d.state || 'سليمة ومختومة'}.`})
+};
+const recSigsOf = id => S.recsigns.filter(x => x.recordId === id);
+function recPlain(r){ const tpl = recTpl(r.tpl), d = r.data || {}; if (!tpl) return r.title;
+  if (tpl.text) return tpl.text(d, x => x || '…');
+  return [...tpl.info.filter(f => d[f[0]] && f[2] !== 'date' && f[2] !== 'time').map(f => `${f[1]}: ${d[f[0]]}`), ...(tpl.blocks || []).filter(b => d[b[0]]).map(b => `${b[1]}: ${d[b[0]]}`)].join('\n'); }
+function recForm(tplId, recId, preset){
+  const rec = recId ? S.records.find(x => x.id === recId) : null;
+  const tpl = recTpl(rec ? rec.tpl : tplId); if (!tpl) return;
+  if (rec && recSigsOf(rec.id).length) return toast('وُقّع هذا المحضر، فلا يمكن تعديله', 'bad');
+  const d = rec ? {...rec.data} : {date:today(), chair:principal(), ...(preset?.data || {})};
+  let pickedId = rec?.studentId || preset?.sid || '';
+  const hasStu = tpl.info.some(f => f[0] === 'student'), hasEx = ['cheat','envelope'].includes(tpl.id) && S.exams.length;
+  const fld = ([k,l,type,opt]) => type === 'select' ? `<div class="f"><label for="rf_${k}">${esc(l)}</label><select id="rf_${k}"><option value="">—</option>${selOpts(opt, d[k])}</select></div>`
+    : REC_STAFF.includes(k) || k === 'chair' ? `<div class="f"><label for="rf_${k}">${esc(l)}</label><select id="rf_${k}">${staffOpts(d[k])}</select></div>`
+    : `<div class="f"><label for="rf_${k}">${esc(l)}</label><input id="rf_${k}" ${type === 'date' || type === 'time' ? `type="${type}"` : ''} value="${esc(d[k] || (opt === 'principal' ? principal() : ''))}"></div>`;
+  const area = (k, l, hint, n) => `<div class="f full"><label for="rf_${k}">${esc(l)}</label><textarea id="rf_${k}" data-auto="${d[k] ? 0 : 1}" style="min-height:${Math.max(80, (n || 3) * 26)}px">${esc(d[k] || '')}</textarea>${hint ? `<span class="hint">${hint}</span>` : ''}</div>`;
+  const stuPick = hasStu && S.students.length ? `<div class="f full"><label for="rf_pick">اختر الطالب، وتتعبأ بياناته وولي أمره تلقائيًا</label><input id="rf_pick" list="rf_stl" placeholder="اكتب أول الاسم ثم اختر" autocomplete="off"><datalist id="rf_stl">${sortBy(S.students,'name').map(s => `<option value="${esc(s.name)} — ${esc(sClass(s))}"></option>`).join('')}</datalist></div>` : '';
+  const exPick = hasEx ? `<div class="f full"><label for="rf_ex">اختر الاختبار، وتتعبأ بياناته تلقائيًا</label><select id="rf_ex"><option value="">—</option>${[...S.exams].sort((a,b) => a.date < b.date ? -1 : 1).map(e => `<option value="${e.id}">${esc(e.subject)} · ${esc(e.grade || '')} · ${esc(hij(e.date))}</option>`).join('')}</select></div>` : '';
+  const partyPick = tpl.people && tpl.people[0] !== 'att' ? `<div class="f full"><label for="rf_ppl">إضافة طرف من السجل</label><select id="rf_ppl"><option value="">—</option>${S.students.length ? `<optgroup label="الطلاب">${sortBy(S.students,'name').map(s => `<option value="${esc(s.name)} - ${esc(sClass(s))}">${esc(s.name)}</option>`).join('')}</optgroup>` : ''}<optgroup label="المعلمون">${sortBy(S.teachers,'name').map(t => `<option value="${esc(t.name)} - معلم">${esc(t.name)}</option>`).join('')}</optgroup></select></div>` : '';
+  const attIds = new Set(d.attIds || []);
+  const attPick = tpl.people && tpl.people[0] === 'att' && S.teachers.length ? `<div class="f full"><span class="lb">الحاضرون: اختر المعلمين</span><div class="tools"><button type="button" class="btn sm" id="rf_allT">تحديد الكل</button><button type="button" class="btn sm" id="rf_noT">إلغاء التحديد</button></div><div class="pick">${sortBy(S.teachers,'name').map(t => `<label class="check"><input type="checkbox" data-tid="${t.id}" ${attIds.has(t.id) ? 'checked' : ''}> ${esc(t.name)}</label>`).join('')}</div></div>` : '';
+  const roles = tpl.sigs.filter(r => !ROLE_FIXED.includes(r));
+  const rolePick = roles.length ? `<div class="f full"><span class="lb">الموقعون</span><div class="fg">${roles.map((r,i) => `<div class="f"><label for="rs_${i}">${esc(r)}</label><select id="rs_${i}">${staffOpts(d.sigNames?.[r] || roleName(r, d))}</select></div>`).join('')}</div></div>` : '';
+  modal(tpl.t, `<div class="fg">${exPick}${stuPick}${tpl.info.map(fld).join('')}
+    ${partyPick}${tpl.people && tpl.people[0] !== 'att' ? area(tpl.people[0], tpl.people[1], 'سطر لكل شخص: ' + tpl.people[2].join(' - ')) : ''}
+    ${(tpl.blocks || []).map(([k,l,n]) => area(k, l, '', n)).join('')}
+    ${tpl.table ? area(tpl.table[0], tpl.table[1], 'سطر لكل بند: ' + tpl.table[2].join(' - ')) : ''}
+    ${attPick}${tpl.people && tpl.people[0] === 'att' ? area('att', tpl.people[1], 'يتعبأ من الاختيار أعلاه، ويمكن إضافة غير المعلمين: ' + tpl.people[2].join(' - ')) : ''}
+    ${rolePick}</div>`,
+    `<button class="btn pri" id="ok">حفظ ومعاينة</button><button class="btn" id="pv">طباعة دون حفظ</button><button class="btn" data-act="close">إلغاء</button>`, true);
+  const dlg = $('#modalRoot .dlg');
+  const read = () => { const o = {...(rec?.data || {}), ...(preset?.data || {})}; tpl.info.forEach(([k]) => o[k] = fval('rf_' + k)); [tpl.people?.[0], tpl.table?.[0], ...(tpl.blocks || []).map(b => b[0])].filter(Boolean).forEach(k => o[k] = fval('rf_' + k));
+    const s = student(pickedId); if (s && !o.parent) o.parent = s.guard || ''; o.sigNames = {}; roles.forEach((r,i) => { const v = fval('rs_' + i); if (v) o.sigNames[r] = v; });
+    o.attIds = [...dlg.querySelectorAll('[data-tid]:checked')].map(x => x.dataset.tid); return o; };
+  const refill = () => { const f = REC_AUTO[tpl.id]; if (!f) return; Object.entries(f(read())).forEach(([k,v]) => { const el = document.getElementById('rf_' + k); if (el && el.dataset.auto === '1') el.value = v; }); };
+  const set1 = (k, v) => { const el = document.getElementById('rf_' + k); if (el && v) el.value = v; };
+  const useStudent = s => { pickedId = s.id; set1('student', s.name); set1('grade', sClass(s)); set1('parent', s.guard); set1('pphone', s.phone); set1('receiver', s.guard); set1('rphone', s.phone); refill(); };
+  const pick = $('#rf_pick'); if (pick) pick.oninput = () => { const s = S.students.find(x => `${x.name} — ${sClass(x)}` === pick.value); if (s) useStudent(s); };
+  if (pickedId && student(pickedId)) { useStudent(student(pickedId)); if (pick) pick.value = `${student(pickedId).name} — ${sClass(student(pickedId))}`; }
+  const ex = $('#rf_ex'); if (ex) ex.onchange = () => { const e = S.exams.find(x => x.id === ex.value); if (!e) return; const c = committee(e.committeeId);
+    set1('subject', e.subject); set1('grade', tpl.id === 'envelope' ? e.grade : ''); set1('date', e.date); set1('period', e.period); set1('committee', c?.name); set1('observer', e.observerId ? tName(e.observerId) : ''); refill(); };
+  const ppl = $('#rf_ppl'); if (ppl) ppl.onchange = () => { const k = 'rf_' + tpl.people[0], el = document.getElementById(k); if (ppl.value) { el.value = (el.value.trim() ? el.value.trim() + '\n' : '') + ppl.value; el.dataset.auto = '0'; ppl.value = ''; } };
+  const syncAtt = () => { const el = $('#rf_att'); if (!el) return; const names = new Set(S.teachers.map(t => t.name)); const other = el.value.split('\n').map(l => l.trim()).filter(l => l && !names.has(splitRow(l)[0]));
+    const picked = [...dlg.querySelectorAll('[data-tid]:checked')].map(x => teacher(x.dataset.tid)).filter(Boolean).map(t => `${t.name} - ${t.specialty || 'معلم'}`); el.value = [...picked, ...other].join('\n'); };
+  dlg.querySelectorAll('[data-tid]').forEach(c => c.onchange = syncAtt);
+  const all = v => () => { dlg.querySelectorAll('[data-tid]').forEach(c => c.checked = v); syncAtt(); };
+  const a1 = $('#rf_allT'), a0 = $('#rf_noT'); if (a1) a1.onclick = all(true); if (a0) a0.onclick = all(false);
+  dlg.addEventListener('input', e => { if (e.target.tagName === 'TEXTAREA') e.target.dataset.auto = '0'; });
+  dlg.addEventListener('change', e => { if (e.target.tagName !== 'TEXTAREA' && !e.target.dataset.tid) refill(); });
+  refill();
+  $('#pv').onclick = () => printDoc(recDoc(tpl, read()));
+  $('#ok').onclick = async () => {
+    const data = read(); const id = recId || newId();
+    const names = [...tpl.sigs.map(r => data.sigNames[r] || roleName(r, data)), ...S.teachers.filter(t => data.attIds.includes(t.id)).map(t => t.name)];
+    const signers = [...new Set(S.teachers.filter(t => names.includes(t.name)).map(t => t.id))];
+    const doc = {...(rec || {}), tpl:tpl.id, title:recTitle(tpl, data) + (data.student ? ' — ' + data.student : ''), data, no:rec?.no || nextNo(S.records), createdAt:rec?.createdAt || Date.now(), signers, studentId:pickedId || '', ...(preset?.extra || {})}; delete doc.id;
+    if (await put('records/' + id, doc)) { toast('حُفظ المحضر'); viewRec(id); }
+  };
+}
+function recPick(sid){ const s = student(sid); if (!s) return; const list = REC.filter(r => r.info.some(f => f[0] === 'student'));
+  modal('إصدار محضر — ' + s.name, `<div class="list">${list.map(r => `<div class="row"><div class="t">${esc(r.t)}</div><button class="btn sm pri" data-act="recFor" data-id="${r.id}" data-sid="${s.id}">إنشاء</button></div>`).join('')}</div>`, '', true); }
+// كل مخالفة من الدرجة الثانية فأعلى يُضاف محضرها إلى السجل تلقائيًا
+async function autoIncidentRec(iid, i, s){ const tpl = recTpl('incident');
+  const data = {date:i.date, time:'', place:'', kind:'أخرى', parties:`${s.name} - ${sClass(s)}`, desc:i.desc || '', said:'', action:(DEGREES[i.deg]?.steps || []).join('، ') + '.', sigNames:{'المرشد الطلابي':set().counselor || '', 'وكيل شؤون الطلاب':set().deputy || ''}, attIds:[], parent:s.guard || ''};
+  return put('records/' + newId(), {tpl:tpl.id, title:`${tpl.t} — ${s.name}`, data, no:nextNo(S.records), createdAt:Date.now(), signers:[], studentId:s.id, incidentId:iid}); }
+function recSendSign(id){ const r = S.records.find(x => x.id === id); if (!r) return; const tpl = recTpl(r.tpl); const ids = r.signers || []; const done = recSigsOf(id).map(x => x.teacherId);
+  const list = ids.filter(t => !done.includes(t)).map(teacher).filter(Boolean);
+  if (!list.length) return toast(ids.length ? 'وقّع جميع المعلمين المحددين' : 'لا يوجد معلمون محددون للتوقيع في هذا المحضر', 'bad');
+  sendQueue('توقيع: ' + r.title, list.map(t => ({id:t.id, name:t.name, sub:t.specialty || '', phone:t.phone, msg:`المكرم الأستاذ/ ${t.name}\nالسلام عليكم ورحمة الله وبركاته\nنأمل الاطلاع على «${r.title}» والتوقيع عليه من رابطك الخاص:\n${teacherLink(t)}\n${principal()} — ${school()}`})), 'rec_' + id); }
+function recSendParent(id){ const r = S.records.find(x => x.id === id); if (!r) return; const had = S.parents.find(p => p.recordId === id); if (had) return viewParent(had.id);
+  parentNotice(r.studentId, r.title.split(' — ')[0], recPlain(r), {recordId:id}); }
+function teacherRecPanel(){ if (!S.records.length) return ''; const t = S.teachers[0]; const mine = id => S.recsigns.find(x => x.recordId === id && x.teacherId === t.id);
+  return `<section class="panel"><h3>المحاضر</h3><div class="list">${sortBy(S.records,'createdAt',-1).map(r => `<div class="row"><div><div class="t">${esc(r.title)}</div><div class="m">${esc(stamp(r.createdAt))}</div></div><div class="tools">${mine(r.id) ? '<span class="chip ok">وقّعت</span>' : ''}<button class="btn sm ${mine(r.id) ? '' : 'pri'}" data-act="recSign" data-id="${r.id}">${mine(r.id) ? 'عرض' : 'الاطلاع والتوقيع'}</button></div></div>`).join('')}</div></section>`; }
+function recSignForm(id){ const r = S.records.find(x => x.id === id), t = S.teachers[0]; if (!r) return; const had = S.recsigns.find(x => x.recordId === id && x.teacherId === t.id);
+  modal(r.title, recPaper(r) + (had ? '' : sigField('sig_r', 'توقيعك', t.name)), had ? `<button class="btn" data-act="printRec" data-id="${id}">طباعة / PDF</button>` : `<button class="btn pri" id="ok">أقر وأوقّع</button><button class="btn" data-act="close">إلغاء</button>`, true);
+  if (had) return; requestAnimationFrame(() => mountSig('sig_r'));
+  $('#ok').onclick = async () => { const img = pads.sig_r?.data(); if (!img) return toast('وقّع في المربع', 'bad'); $('#ok').disabled = true;
+    try { const a = await api(`/t/${KEY}/records/${id}`, {method:'POST', json:{sig:{img, name:t.name}}}); S.recsigns.push(a.sign); closeModal(); render(); toast('تم التوقيع'); } catch(e){ toast(errMsg(e), 'bad'); $('#ok').disabled = false; } }; }
+Object.assign(ACT, {
+  importStudents: importStudentsForm, exportStudents, todayAbs: todayAbsQueue, absReports: absReportForm, quickSched,
+  ctrlIssue: ctrlIssueNow, ctrlCopies: ctrlCopiesQueue, ctrlCopy: viewCopy, obsPrint: () => printDoc(obsDoc()),
+  printCopy: id => { const t = teacher(id); if (t) printDoc(ctrlCopyDoc(t, S.ctrlsigns.find(x => x.id === id))); },
+  dlCopy: id => { const t = teacher(id); if (t) saveHtml('مهام الكنترول - ' + t.name, ctrlCopyDoc(t, S.ctrlsigns.find(x => x.id === id))); },
+  recPick, recFor: (id, b) => recForm(id, null, {sid:b.dataset.sid}), recSendSign, recSendParent, recSign: recSignForm,
+  incRec: id => { const r = S.records.find(x => x.incidentId === id); if (r) viewRec(r.id); else { const i = S.incidents.find(x => x.id === id), s = i && student(i.studentId); if (s) autoIncidentRec(id, i, s).then(ok => ok && toast('أُنشئ المحضر')); } }
+});
+
 
 boot();
 })();
