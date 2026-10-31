@@ -327,7 +327,7 @@ const hashArg = (k) => { const m = location.hash.match(new RegExp('[#&]' + k + '
 const MODE = hashArg('t') ? 'teacher' : hashArg('p') ? 'parent' : 'admin';
 const KEY = hashArg('t') || hashArg('p');
 let token = store.get('mdr.token');
-const APP_VER = '3.1'; // ارفعه مع site/version.json في كل نشر
+const APP_VER = '3.2'; // ارفعه مع site/version.json في كل نشر
 const DEV = store.get('mdr.dev') || [...crypto.getRandomValues(new Uint8Array(16))].map(b => b.toString(16).padStart(2, '0')).join(''); store.set('mdr.dev', DEV);
 const devInfo = () => { const u = navigator.userAgent; return {device:DEV, deviceName:`${/iPhone|iPad/.test(u) ? 'آيفون' : /Android/.test(u) ? 'أندرويد' : 'كمبيوتر'} · ${/Edg/.test(u) ? 'Edge' : /Chrome/.test(u) ? 'Chrome' : /Safari/.test(u) ? 'Safari' : /Firefox/.test(u) ? 'Firefox' : 'متصفح'}`}; };
 const ERR = {
@@ -478,6 +478,10 @@ const sigRow = (role, name, s) => `<div class="sigrow"><div>${esc(role)}: <b>${e
 
 /* ---------- notices (مساءلات) ---------- */
 const EXIT_KIND = 'الخروج من المدرسة دون إذن';
+const BY = {'مدير المدرسة':() => [principal(), set().phone], 'وكيل المدرسة':() => [set().deputy, set().deputyPhone]};
+const byName = r => BY[r || 'مدير المدرسة']()[0] || '';
+const byField = (id, label) => `<div class="f"><label for="${id}">${label}</label><select id="${id}">${Object.keys(BY).map(r => `<option value="${r}">${r}: ${esc(byName(r) || '—')}</option>`).join('')}</select></div>`;
+const byPick = id => { const r = fval(id); if (byName(r)) return {role:r, name:byName(r)}; toast('أضف اسم الوكيل من الإعدادات أولًا', 'bad'); return null; };
 const KINDS = ['غياب','تأخر صباحي','خروج قبل نهاية الدوام',EXIT_KIND,'عدم دخول حصة','التأخر عن الحصة','ترك الطلاب دون إشراف','عدم تسليم الخطط أو الرصد','مخالفة إدارية أخرى'];
 const byPeriod = k => /حصة/.test(k);
 const DECISIONS = {
@@ -495,13 +499,13 @@ function exitDoc(n){ const t = teacher(n.teacherId) || {name:n.teacherName}; con
   <p>بناء على ما لوحظ من خروجكم من مقر العمل بعد إثبات حضوركم، دون استئذان مسبق من إدارة المدرسة، وذلك على النحو الموضح أدناه:</p>
   <table><tr><th>اليوم</th><th>التاريخ</th><th>وقت إثبات الحضور</th><th>وقت الخروج</th><th>الحصص التي لم تُنفَّذ</th></tr>${rows.map(r => `<tr><td>${esc(dayName(r.date))}</td><td>${esc(hij(r.date))}</td><td>${esc(tm(r.in) || '')}</td><td>${esc(tm(r.out) || '')}</td><td>${esc(r.per || '')}</td></tr>`).join('')}</table>
   <p>نأمل منكم إيضاح أسباب الخروج دون إذن، وإرفاق ما يؤيد عذركم إن وُجد. وتقبلوا تحياتنا،</p>${n.note ? `<p>ملاحظة: ${esc(n.note)}</p>` : ''}
-  ${sigRow('مدير المدرسة', principal(), n.principalSig)}
-  <h4>ثالثًا: إفادة المعلم</h4><p>سعادة مدير المدرسة &nbsp; المحترم<br>السلام عليكم ورحمة الله وبركاته، وبعد: أفيدكم بأن خروجي كان للأسباب الآتية:</p>
+  ${sigRow(n.byRole || 'مدير المدرسة', n.byName || principal(), n.principalSig)}
+  <h4>ثالثًا: إفادة المعلم</h4><p>سعادة ${esc(n.byRole || 'مدير المدرسة')} &nbsp; المحترم<br>السلام عليكم ورحمة الله وبركاته، وبعد: أفيدكم بأن خروجي كان للأسباب الآتية:</p>
   ${n.reply ? `<p style="white-space:pre-wrap">${esc(n.reply)}</p>` : '<p class="pend">لم يرد المعلم بعد.</p>'}
   <div style="display:flex;gap:18px;flex-wrap:wrap"><b>المرفقات:</b>${optBox(has, 'يوجد (مشهد مراجعة / تقرير طبي / غير ذلك)')}${optBox(n.reply && !has, 'لا يوجد')}</div>${has ? `<p>${attLinks(n.attachments)}</p>` : ''}
   ${sigRow('المعلم', n.teacherSig?.name || t.name, n.teacherSig)}
-  <h4>رابعًا: رأي مدير المدرسة</h4>${Object.entries(EXIT_DEC).map(([k,v]) => optBox(n.decision === k, v)).join('')}${n.decisionNote ? `<p>ملاحظة: ${esc(n.decisionNote)}</p>` : ''}
-  ${sigRow('مدير المدرسة', principal(), n.decisionSig)}
+  <h4>رابعًا: رأي ${esc(n.decRole || 'مدير المدرسة')}</h4>${Object.entries(EXIT_DEC).map(([k,v]) => optBox(n.decision === k, v)).join('')}${n.decisionNote ? `<p>ملاحظة: ${esc(n.decisionNote)}</p>` : ''}
+  ${sigRow(n.decRole || 'مدير المدرسة', n.decName || principal(), n.decisionSig)}
   <div class="foot">يُحفظ أصل المساءلة في ملف المعلم، ويُسلَّم له صورة منها.</div></div>`; }
 // مساءلة ولي الأمر عن غياب طالب
 const PAR_ACT = {accept:'يُقبل العذر، ويُسجَّل الغياب بعذر.', reject:'لا يُقبل العذر، ويُسجَّل الغياب بدون عذر، ويُطبَّق ما ورد في قواعد السلوك والمواظبة.', refer:'يُحال الطالب إلى الموجه الطلابي لمتابعة حالته ووضع خطة لانتظامه.'};
@@ -512,12 +516,12 @@ function absAskDoc(p){ const days = p.absDays || [];
   <h4>ثانيًا: إشعار ولي الأمر</h4><p>المكرم ولي أمر الطالب/ <b>${esc(p.student)}</b> &nbsp; حفظه الله<br>السلام عليكم ورحمة الله وبركاته، وبعد:</p><p>نفيدكم بأن ابنكم تغيّب عن المدرسة دون عذر في الأيام الموضحة أدناه:</p>
   <table><tr><th style="width:8%">م</th><th>اليوم</th><th>التاريخ</th><th>عدد الأيام</th></tr>${days.map((d,i) => `<tr><td>${i+1}</td><td>${esc(dayName(d))}</td><td>${esc(hij(d))}</td><td>1</td></tr>`).join('')}</table>
   <p>وقد بلغ مجموع أيام غيابه دون عذر حتى تاريخه (${esc(p.absTotal ?? days.length)}) يومًا. ونظرًا لما للغياب من أثر على تحصيله الدراسي وانضباطه، نأمل منكم إيضاح أسباب غيابه، وإرفاق ما يؤيد ذلك إن وُجد، والحرص على انتظامه في الدراسة. شاكرين تعاونكم،</p>
-  <div class="sigrow"><div>الموجه الطلابي: <b>${esc(set().counselor || '—')}</b></div></div><div class="sigrow"><div>مدير المدرسة: <b>${esc(principal())}</b></div></div>
-  <h4>ثالثًا: إفادة ولي الأمر</h4><p>سعادة مدير المدرسة &nbsp; المحترم<br>السلام عليكم ورحمة الله وبركاته، وبعد: أفيدكم بأن غياب ابني كان للأسباب الآتية:</p>
+  <div class="sigrow"><div>الموجه الطلابي: <b>${esc(set().counselor || '—')}</b></div></div><div class="sigrow"><div>${esc(p.byRole || 'مدير المدرسة')}: <b>${esc(p.byName || principal())}</b></div></div>
+  <h4>ثالثًا: إفادة ولي الأمر</h4><p>سعادة ${esc(p.byRole || 'مدير المدرسة')} &nbsp; المحترم<br>السلام عليكم ورحمة الله وبركاته، وبعد: أفيدكم بأن غياب ابني كان للأسباب الآتية:</p>
   ${p.parentNote ? `<p style="white-space:pre-wrap">${esc(p.parentNote)}</p>` : '<p class="pend">لم يرد ولي الأمر بعد.</p>'}
   <div style="display:flex;gap:18px;flex-wrap:wrap"><b>المرفقات:</b>${PAR_ATT.map(a => optBox(p.parentAttach === a, a)).join('')}</div>${(p.attachments||[]).length ? `<p>${attLinks(p.attachments)}</p>` : ''}
   <p>وأتعهد بمتابعة انتظام ابني في الدراسة، والتواصل مع المدرسة عند غيابه.</p>${sigRow('ولي الأمر', p.parentSig?.name || p.parentName, p.parentSig)}
-  <h4>رابعًا: إجراء المدرسة</h4>${Object.entries(PAR_ACT).map(([k,v]) => optBox(p.action === k, v)).join('')}${sigRow('مدير المدرسة', principal(), p.actionSig)}
+  <h4>رابعًا: إجراء المدرسة</h4>${Object.entries(PAR_ACT).map(([k,v]) => optBox(p.action === k, v)).join('')}${sigRow(p.actRole || 'مدير المدرسة', p.actName || principal(), p.actionSig)}
   <div class="foot">يُحفظ أصل النموذج في ملف الطالب، ويُسلَّم صورة منه لولي الأمر.</div></div>`; }
 function kindSentence(n){
   if (n.kind === 'غياب') return 'تبيّن تغيّبكم عن العمل';
@@ -538,24 +542,24 @@ function noticeDoc(n){
   <h4>أولًا: بيانات المعلم</h4>
   <table><tr><th>الاسم</th><td>${esc(t.name)}</td><th>التخصص</th><td>${esc(t.specialty||'—')}</td></tr>
   <tr><th>السجل المدني</th><td class="num">${esc(t.nid||'—')}</td><th>الجوال</th><td class="ltr">${esc(t.phone||'—')}</td></tr></table>
-  <h4>ثانيًا: إشعار مدير المدرسة</h4>
+  <h4>ثانيًا: إشعار ${esc(n.byRole || 'مدير المدرسة')}</h4>
   <p>المكرم الأستاذ/ <b>${esc(t.name)}</b> &nbsp; وفقه الله<br>السلام عليكم ورحمة الله وبركاته، وبعد:</p>
   <p>إنه في يوم ${esc(dayName(n.date))} الموافق ${esc(hij(n.date))} ${esc(kindSentence(n))}، وعليه نأمل إيضاح أسباب ذلك وتقديم ما يؤيد عذركم خلال ثلاثة أيام عمل من تاريخه.</p>
   ${n.note ? `<p>ملاحظة: ${esc(n.note)}</p>` : ''}
-  ${sigRow('مدير المدرسة', principal(), n.principalSig)}
+  ${sigRow(n.byRole || 'مدير المدرسة', n.byName || principal(), n.principalSig)}
   <h4>ثالثًا: إفادة المعلم</h4>
-  ${n.reply ? `<p>سعادة مدير المدرسة، أفيدكم بأن ${esc(n.kind)} المشار إليه كان للأسباب التالية:</p><p style="white-space:pre-wrap">${esc(n.reply)}</p>` : '<p class="pend">لم يرد المعلم بعد.</p>'}
+  ${n.reply ? `<p>سعادة ${esc(n.byRole || 'مدير المدرسة')}، أفيدكم بأن ${esc(n.kind)} المشار إليه كان للأسباب التالية:</p><p style="white-space:pre-wrap">${esc(n.reply)}</p>` : '<p class="pend">لم يرد المعلم بعد.</p>'}
   ${sigRow('المعلم', n.teacherSig?.name || t.name, n.teacherSig)}
-  <h4>رابعًا: قرار مدير المدرسة</h4>
+  <h4>رابعًا: قرار ${esc(n.decRole || 'مدير المدرسة')}</h4>
   ${Object.entries(DECISIONS).map(([k,v]) => `<div class="opt"><span class="box">${n.decision === k ? '✓' : ''}</span><span>${esc(v)}</span></div>`).join('')}
   ${n.decisionNote ? `<p>ملاحظة: ${esc(n.decisionNote)}</p>` : ''}
-  ${sigRow('مدير المدرسة', principal(), n.decisionSig)}
+  ${sigRow(n.decRole || 'مدير المدرسة', n.decName || principal(), n.decisionSig)}
   ${(n.attachments||[]).length ? `<h4>المرفقات</h4><p>${attLinks(n.attachments)}</p>` : ''}
   <div class="foot">نموذج موقّع إلكترونيًا عبر منصة المدير — ${esc(school())}. أُصدر في ${esc(stamp(n.createdAt))}${n.teacherSig ? '، ورد المعلم في ' + esc(stamp(n.teacherSig.at)) : ''}${n.decisionSig ? '، وصدر القرار في ' + esc(stamp(n.decisionSig.at)) : ''}.</div></div>`;
 }
 function noticeMsg(n){
   const t = teacher(n.teacherId) || {};
-  return `المكرم الأستاذ/ ${t.name||''}\nالسلام عليكم ورحمة الله وبركاته\nصدرت لكم مساءلة رقم ${n.no} عن ${n.kind} يوم ${dayName(n.date)} ${hij(n.date)}.\nنأمل فتح الرابط التالي للاطلاع وكتابة الإفادة والتوقيع إلكترونيًا خلال ثلاثة أيام عمل:\n${teacherLink(t)}\nمدير المدرسة: ${principal()}${set().phone ? ' — ' + set().phone : ''}`;
+  return `المكرم الأستاذ/ ${t.name||''}\nالسلام عليكم ورحمة الله وبركاته\nصدرت لكم مساءلة رقم ${n.no} عن ${n.kind} يوم ${dayName(n.date)} ${hij(n.date)}.\nنأمل فتح الرابط التالي للاطلاع وكتابة الإفادة والتوقيع إلكترونيًا خلال ثلاثة أيام عمل:\n${teacherLink(t)}\n${n.byRole || 'مدير المدرسة'}: ${n.byName || principal()}${BY[n.byRole || 'مدير المدرسة']()[1] ? ' — ' + BY[n.byRole || 'مدير المدرسة']()[1] : ''}`;
 }
 
 /* ---------- parents ---------- */
@@ -820,21 +824,22 @@ function issueForm(tid, pre){
   pre = pre || {};
   modal('إصدار مساءلة', `<div class="fg">
     <div class="f"><label for="n_t">المعلم</label><select id="n_t">${teacherOpts(tid)}</select></div>
+    ${byField('n_by', 'المُصدر')}
     <div class="f"><label for="n_k">نوع المخالفة</label><select id="n_k">${KINDS.map(k => `<option ${k===pre.type?'selected':''}>${k}</option>`).join('')}</select></div>
     <div class="f"><label for="n_d">تاريخ الغياب أو التأخر</label><input id="n_d" type="date" value="${esc(pre.date || today())}"></div>
     <div class="f"><label for="n_m">المدة بالدقائق أو رقم الحصة</label><input id="n_m" value="${esc(pre.minutes||'')}" inputmode="numeric"></div>
     <div class="f full" id="n_x" hidden><span class="lb">تفاصيل الخروج</span>${[1,2].map(i => `<div class="fg"><div class="f"><label for="x${i}_d">التاريخ</label><input id="x${i}_d" type="date" ${i === 1 ? `value="${esc(pre.date || today())}"` : ''}></div><div class="f"><label for="x${i}_i">وقت إثبات الحضور</label><input id="x${i}_i" type="time"></div><div class="f"><label for="x${i}_o">وقت الخروج</label><input id="x${i}_o" type="time"></div><div class="f"><label for="x${i}_p">الحصص التي لم تُنفَّذ</label><input id="x${i}_p" placeholder="الرابعة والخامسة"></div></div>`).join('')}</div>
     <div class="f full"><label for="n_note">ملاحظة تظهر في النموذج</label><input id="n_note" value="${esc(pre.note||'')}" placeholder="اختياري"></div>
-    ${sigField('sig_p', 'توقيع مدير المدرسة', principal())}</div>`,
+    ${sigField('sig_p', 'توقيع المُصدر', '')}</div>`,
     `<button class="btn pri" id="ok">إصدار المساءلة</button><button class="btn" data-act="close">${pre.absenceId ? 'لاحقًا' : 'إلغاء'}</button>`);
   requestAnimationFrame(() => mountSig('sig_p'));
   const syncK = () => { const ex = fval('n_k') === EXIT_KIND; $('#n_x').hidden = !ex; ['n_d','n_m'].forEach(i => document.getElementById(i).closest('.f').hidden = ex); }; $('#n_k').onchange = syncK; syncK();
   $('#ok').onclick = async () => {
-    const sig = pads.sig_p?.data(); if (!sig) return toast('وقّع في المربع قبل الإصدار', 'bad');
+    const who = byPick('n_by'); if (!who) return; const sig = pads.sig_p?.data(); if (!sig) return toast('وقّع في المربع قبل الإصدار', 'bad');
     const kind = fval('n_k'), m = fval('n_m'); const rows = kind !== EXIT_KIND ? [] : [1,2].map(i => ({date:fval(`x${i}_d`), in:fval(`x${i}_i`), out:fval(`x${i}_o`), per:fval(`x${i}_p`)})).filter(r => r.date);
     if (kind === EXIT_KIND && !rows.length) return toast('حدد تاريخ الخروج', 'bad');
     const n = {no:nextNo(S.notices), teacherId:fval('n_t'), kind, rows, date:rows[0]?.date || fval('n_d') || today(), issued:today(), minutes: byPeriod(kind) ? '' : m, period: byPeriod(kind) ? m : '', note:fval('n_note'),
-      status:'issued', principalSig:{img:sig, name:principal(), at:Date.now(), by:me.id}, attachments:[], createdAt:Date.now(), by:me.id, absenceId:pre.absenceId || null};
+      status:'issued', byRole:who.role, byName:who.name, principalSig:{img:sig, name:who.name, at:Date.now(), by:me.id}, attachments:[], createdAt:Date.now(), by:me.id, absenceId:pre.absenceId || null};
     const nid = newId('notices');
     if (!await put('notices/' + nid, n)) return;
     if (pre.absenceId) await put('absences/' + pre.absenceId, {noticeId:nid}, true);
@@ -876,13 +881,13 @@ function decideForm(id){
     ${(n.attachments||[]).length ? `<p style="margin:0">المرفقات: ${attLinks(n.attachments)}</p>` : ''}
     <div class="f full"><span class="lb">القرار</span><div class="radios">${Object.entries(decOf(n)).map(([k,v],i) => `<label><input type="radio" name="dec" value="${k}" ${i===0?'checked':''}> ${esc(v)}</label>`).join('')}</div></div>
     <div class="f full"><label for="d_note">ملاحظة</label><input id="d_note" placeholder="اختياري"></div>
-    ${sigField('sig_d', 'توقيع مدير المدرسة', principal())}`,
+    ${byField('d_by', 'صاحب القرار')}${sigField('sig_d', 'التوقيع', '')}`,
     `<button class="btn pri" id="ok">اعتماد القرار</button><button class="btn" data-act="close">إلغاء</button>`);
   requestAnimationFrame(() => mountSig('sig_d'));
   $('#ok').onclick = async () => {
-    const sig = pads.sig_d?.data(); if (!sig) return toast('وقّع في المربع', 'bad');
+    const who = byPick('d_by'); if (!who) return; const sig = pads.sig_d?.data(); if (!sig) return toast('وقّع في المربع', 'bad');
     const decision = document.querySelector('input[name=dec]:checked').value;
-    if (await put('notices/' + id, {decision, decisionNote:fval('d_note'), status:'closed', decisionSig:{img:sig, name:principal(), at:Date.now(), by:me.id}}, true)) { toast('اعتُمد القرار وأُغلقت المساءلة'); viewNotice(id); }
+    if (await put('notices/' + id, {decision, decisionNote:fval('d_note'), status:'closed', decRole:who.role, decName:who.name, decisionSig:{img:sig, name:who.name, at:Date.now(), by:me.id}}, true)) { toast('اعتُمد القرار وأُغلقت المساءلة'); viewNotice(id); }
   };
 }
 function attachForm(col, id){
@@ -1002,11 +1007,11 @@ function viewParent(id, fallback){
      ${isAdmin() ? `<button class="btn danger" data-act="delParent" data-id="${id}">حذف</button>` : ''}`, true);
 }
 function parActForm(id){ const p = S.parents.find(x => x.id === id); if (!p) return;
-  modal('إجراء المدرسة — ' + p.student, `<div class="notice-bar info" style="white-space:pre-wrap">إفادة ولي الأمر: ${esc(p.parentNote || '')}</div><div class="f full"><span class="lb">الإجراء</span><div class="radios">${Object.entries(PAR_ACT).map(([k,v],i) => `<label><input type="radio" name="pact" value="${k}" ${i === 0 ? 'checked' : ''}> ${esc(v)}</label>`).join('')}</div></div>${sigField('sig_a', 'توقيع مدير المدرسة', principal())}`,
+  modal('إجراء المدرسة — ' + p.student, `<div class="notice-bar info" style="white-space:pre-wrap">إفادة ولي الأمر: ${esc(p.parentNote || '')}</div><div class="f full"><span class="lb">الإجراء</span><div class="radios">${Object.entries(PAR_ACT).map(([k,v],i) => `<label><input type="radio" name="pact" value="${k}" ${i === 0 ? 'checked' : ''}> ${esc(v)}</label>`).join('')}</div></div>${byField('a_by', 'صاحب الإجراء')}${sigField('sig_a', 'التوقيع', '')}`,
     `<button class="btn pri" id="ok">اعتماد الإجراء</button><button class="btn" data-act="close">إلغاء</button>`);
   requestAnimationFrame(() => mountSig('sig_a'));
-  $('#ok').onclick = async () => { const sig = pads.sig_a?.data(); if (!sig) return toast('وقّع في المربع', 'bad'); const action = document.querySelector('input[name=pact]:checked').value; $('#ok').disabled = true;
-    if (!await put('parents/' + id, {action, actionSig:{img:sig, name:principal(), at:Date.now()}}, true)) { $('#ok').disabled = false; return; }
+  $('#ok').onclick = async () => { const who = byPick('a_by'); if (!who) return; const sig = pads.sig_a?.data(); if (!sig) return toast('وقّع في المربع', 'bad'); const action = document.querySelector('input[name=pact]:checked').value; $('#ok').disabled = true;
+    if (!await put('parents/' + id, {action, actRole:who.role, actName:who.name, actionSig:{img:sig, name:who.name, at:Date.now()}}, true)) { $('#ok').disabled = false; return; }
     if (action === 'accept' && p.studentId) for (const d of p.absDays || []) await save2('attendance', d, {[p.studentId]:'غياب بعذر'});
     toast('اعتُمد الإجراء'); viewParent(id); }; }
 function signParentForm(id){
@@ -2910,7 +2915,7 @@ function noticeForm(sid){
     reason:() => `<div class="f"><label for="nf_reason">السبب</label><select id="nf_reason">${selOpts(CALL_WHY, q.d.reason)}</select></div>`};
   const draw = () => { const list = sortBy(S.students.filter(s => clsOf(s) === q.cls), 'name'), ch = chosen(), n = NOTICES.find(x => x.id === q.type), skip = S.students.filter(s => q.sel.has(s.id) && !ok_(s)).length, one = ch.length === 1;
     $('#nfBody').innerHTML = `<div class="fg"><div class="f"><label for="nf_type">نوع الإشعار</label><select id="nf_type">${[...new Set(NOTICES.map(x => x.g))].map(g => `<optgroup label="${esc(g)}">${NOTICES.filter(x => x.g === g).map(x => `<option value="${x.id}" ${x.id === q.type ? 'selected' : ''}>${esc(x.t)}</option>`).join('')}</optgroup>`).join('')}</select></div>
-        <div class="f"><label for="nf_cls">الفصل</label><select id="nf_cls">${selOpts(classList(), q.cls)}</select></div>${(n.f || []).map(k => FLD[k]()).join('')}</div>
+        <div class="f"><label for="nf_cls">الفصل</label><select id="nf_cls">${selOpts(classList(), q.cls)}</select></div>${n.form ? byField('nf_by', 'المُصدر') : ''}${(n.f || []).map(k => FLD[k]()).join('')}</div>
       <div class="tools"><span class="lb">الطلاب</span><button type="button" class="btn sm" id="nf_all">تحديد الفصل كله</button><button type="button" class="btn sm" id="nf_none">إلغاء التحديد</button><span class="chip info num">المحدد: ${ch.length}</span>${skip ? `<span class="chip mute num">لا ينطبق على ${skip}</span>` : ''}</div>
       <div class="pick" style="margin:8px 0 12px">${list.map(s => `<label class="check"><input type="checkbox" data-nf="${s.id}" ${q.sel.has(s.id) ? 'checked' : ''} ${ok_(s) ? '' : 'disabled'}> ${esc(s.name)}</label>`).join('')}</div>
       ${ch.length ? `<span class="lb">نص الإشعار${one ? '' : ' (يتكيف مع كل طالب)'}</span>${one ? `<textarea id="nf_text" style="min-height:90px">${esc(q.text ?? body(ch[0]))}</textarea>` : `<div class="notice-bar info">${esc(body(ch[0]) || 'أكمل الحقول أعلاه')}</div>`}` : '<div class="empty">حدد طالبًا واحدًا على الأقل.</div>'}`;
@@ -2922,9 +2927,9 @@ function noticeForm(sid){
     const tx = $('#nf_text'); if (tx) tx.oninput = () => { q.text = tx.value; }; };
   modal('إشعار لولي الأمر', '<div id="nfBody"></div>', `<button class="btn pri" id="ok">إنشاء وإرسال</button><button class="btn" data-act="close">إلغاء</button>`, true);
   draw();
-  $('#ok').onclick = async () => { const ch = chosen(), n = tp(); if (!ch.length || missing()) return; $('#ok').disabled = true; const made = [];
+  $('#ok').onclick = async () => { const ch = chosen(), n = tp(); if (!ch.length || missing()) return; const who = n.form ? byPick('nf_by') : null; if (n.form && !who) return; $('#ok').disabled = true; const made = [];
     const days = sid_ => sortBy(S.attendance, 'id').filter(d => d[sid_] === 'غياب بدون عذر').map(d => d.id);
-    ch.forEach(s => made.push({id:newId(), ...(n.form ? {form:n.form, nid:s.nid || '', absDays:days(s.id).slice(-10), absTotal:days(s.id).length, relation:''} : {}), kind:n.t, student:s.name, studentId:s.id, grade:sClass(s), date:q.d.date || today(), parentName:s.guard || '', parentPhone:stuWa(s), body:ch.length === 1 && q.text ? q.text.trim() : body(s), attachments:[], createdAt:Date.now(), no:nextNo([...S.parents, ...made]), key:rnd(16), noSign:!!n.noSign}));
+    ch.forEach(s => made.push({id:newId(), ...(n.form ? {form:n.form, byRole:who.role, byName:who.name, nid:s.nid || '', absDays:days(s.id).slice(-10), absTotal:days(s.id).length, relation:''} : {}), kind:n.t, student:s.name, studentId:s.id, grade:sClass(s), date:q.d.date || today(), parentName:s.guard || '', parentPhone:stuWa(s), body:ch.length === 1 && q.text ? q.text.trim() : body(s), attachments:[], createdAt:Date.now(), no:nextNo([...S.parents, ...made]), key:rnd(16), noSign:!!n.noSign}));
     try { await bulkPut('parents', made); } catch(e){ toast(errMsg(e), 'bad'); $('#ok').disabled = false; return; }
     sendQueue(n.t, made.map(p => ({id:p.id, sid:p.studentId, pid:p.id, name:p.student, sub:p.grade, phone:p.parentPhone, msg:parentMsg(p)})), 'par_' + made[0].id); };
 }
