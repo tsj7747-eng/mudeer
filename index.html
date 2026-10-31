@@ -68,7 +68,7 @@ a{color:var(--accent)}
 .nav button[aria-current="page"]{background:var(--accent-soft);color:var(--accent);font-weight:600}
 .nav button:focus-visible{outline:2px solid var(--accent)}
 .badge{min-width:22px;height:22px;border-radius:11px;padding:0 6px;display:inline-grid;place-items:center;font-size:12px;font-weight:700;background:var(--warn-soft);color:var(--warn)}
-.who{margin-top:auto;font-size:13px;color:var(--muted);display:flex;flex-direction:column;gap:6px;border-top:1px solid var(--line);padding-top:14px}
+.who{margin-top:auto;font-size:13px;color:var(--muted);display:flex;flex-direction:column;gap:6px;border-top:1px solid var(--line);padding-block:14px 8px;flex-shrink:0;position:sticky;bottom:-24px;background:var(--surface);z-index:2}
 .who b{color:var(--ink);font-weight:600}
 
 .main{padding-block:28px 60px;padding-left:max(28px,env(safe-area-inset-left,0px));padding-right:28px;min-width:0;display:flex;flex-direction:column;gap:22px}
@@ -192,7 +192,7 @@ table.tbl{border-collapse:collapse;width:100%;min-width:640px;font-size:14px}
   .side{position:static;height:auto;border-inline-start:0;border-bottom:1px solid var(--line);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:16px;gap:14px}
   .nav{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr))}
   .nav button{padding:8px 10px;font-size:14px}
-  .who{display:none}
+  .who{position:static;margin-top:0;flex-direction:row;flex-wrap:wrap;align-items:center;justify-content:space-between;padding-block:10px 0}.who .phone,.who .m{display:none}
   .main{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
   .grid2{grid-template-columns:minmax(0,1fr)}
   .fg{grid-template-columns:minmax(0,1fr)}
@@ -327,7 +327,7 @@ const hashArg = (k) => { const m = location.hash.match(new RegExp('[#&]' + k + '
 const MODE = hashArg('t') ? 'teacher' : hashArg('p') ? 'parent' : 'admin';
 const KEY = hashArg('t') || hashArg('p');
 let token = store.get('mdr.token');
-const APP_VER = '3.2'; // ارفعه مع site/version.json في كل نشر
+const APP_VER = '3.3'; // ارفعه مع site/version.json في كل نشر
 const DEV = store.get('mdr.dev') || [...crypto.getRandomValues(new Uint8Array(16))].map(b => b.toString(16).padStart(2, '0')).join(''); store.set('mdr.dev', DEV);
 const devInfo = () => { const u = navigator.userAgent; return {device:DEV, deviceName:`${/iPhone|iPad/.test(u) ? 'آيفون' : /Android/.test(u) ? 'أندرويد' : 'كمبيوتر'} · ${/Edg/.test(u) ? 'Edge' : /Chrome/.test(u) ? 'Chrome' : /Safari/.test(u) ? 'Safari' : /Firefox/.test(u) ? 'Firefox' : 'متصفح'}`}; };
 const ERR = {
