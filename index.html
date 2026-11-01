@@ -220,6 +220,7 @@ table.tbl{border-collapse:collapse;width:100%;min-width:640px;font-size:14px}
 .paper .box{display:inline-block;width:15px;height:15px;border:1.5px solid #333;border-radius:2px;flex:none;margin-top:6px;text-align:center;line-height:12px;font-size:12px;font-weight:700;color:#0B6B55}
 .paper .foot{margin-top:18px;border-top:1px solid #ddd;padding-top:8px;font-size:11.5px;color:#555}
 .paper .pend{color:#9A5700}
+.batch>.paper+.paper{break-before:page;margin-top:18px}
 .paper .ltr{direction:ltr;unicode-bidi:isolate}
 .paper .dots{color:#9aa3a0;letter-spacing:1px}
 .paper .lines div{border-bottom:1px dotted #9aa3a0;height:28px}
@@ -329,7 +330,7 @@ const MODE = hashArg('t') ? 'teacher' : hashArg('p') ? 'parent' : 'admin';
 document.documentElement.classList.toggle('portal', MODE !== 'admin');
 const KEY = hashArg('t') || hashArg('p');
 let token = store.get('mdr.token');
-const APP_VER = '3.4'; // ارفعه مع site/version.json في كل نشر
+const APP_VER = '3.5'; // ارفعه مع site/version.json في كل نشر
 const DEV = store.get('mdr.dev') || [...crypto.getRandomValues(new Uint8Array(16))].map(b => b.toString(16).padStart(2, '0')).join(''); store.set('mdr.dev', DEV);
 const devInfo = () => { const u = navigator.userAgent; return {device:DEV, deviceName:`${/iPhone|iPad/.test(u) ? 'آيفون' : /Android/.test(u) ? 'أندرويد' : 'كمبيوتر'} · ${/Edg/.test(u) ? 'Edge' : /Chrome/.test(u) ? 'Chrome' : /Safari/.test(u) ? 'Safari' : /Firefox/.test(u) ? 'Firefox' : 'متصفح'}`}; };
 const ERR = {
@@ -674,11 +675,12 @@ function vDash(){
   </div>`;
 }
 
+const linkMsg = t => `المكرم الأستاذ/ ${t.name}\nالسلام عليكم ورحمة الله وبركاته\nهذا رابطك الخاص في منصة ${school()}، تجد فيه تعاميمك ومساءلاتك ومظاريف الاختبارات المطلوب توقيعها:\n${teacherLink(t)}\nاحتفظ به ولا تشاركه.`;
 function vTeachers(){
   const rows = sortBy(S.teachers, 'name').map(t => {
     const ab = S.absences.filter(a => a.teacherId === t.id);
     const g = ab.filter(a => a.type === 'غياب').length, l = ab.length - g, nn = S.notices.filter(n => n.teacherId === t.id).length;
-    const wa = waLink(t.phone, `المكرم الأستاذ/ ${t.name}\nالسلام عليكم ورحمة الله وبركاته\nهذا رابطك الخاص في منصة ${school()}، تجد فيه مساءلاتك ومظاريف الاختبارات المطلوب توقيعها:\n${teacherLink(t)}\nاحتفظ به ولا تشاركه.`);
+    const wa = waLink(t.phone, linkMsg(t));
     return `<tr><td><b>${esc(t.name)}</b><div class="m" style="font-size:12px;color:var(--muted)">${esc(t.specialty||'')}</div></td>
       <td>${phoneCell(t.phone)} ${wa ? `<a class="btn sm wa" href="${esc(wa)}" target="_blank" rel="noopener">واتساب</a>` : ''}</td>
       <td class="num">${g}</td><td class="num">${l}</td><td class="num">${nn}</td>
@@ -686,17 +688,18 @@ function vTeachers(){
         <button class="btn sm" data-act="recAbs" data-id="${t.id}">تسجيل غياب</button><button class="btn sm" data-act="visit" data-id="${t.id}">زيارة صفية</button><button class="btn sm" data-act="editTeacher" data-id="${t.id}">تعديل</button><button class="btn sm danger" data-act="delTeacher" data-id="${t.id}">حذف</button></td></tr>`;
   }).join('');
   return head('المعلمون والغياب', 'أسماء المعلمين وأرقام جوالاتهم وسجل الغياب والتأخر لكل معلم.',
-    (isAdmin() ? `<button class="btn pri" data-act="recAbs">تسجيل غياب أو تأخر</button><button class="btn" data-act="addTeacher">إضافة معلم</button><button class="btn" data-act="bulkTeachers">إضافة مجموعة</button>` : '') + `<button class="btn" data-act="exportAbs">تنزيل سجل الغياب</button>`) + loadingNote() +
-    (S.teachers.length ? '<div class="notice-bar info">لكل معلم رابط خاص يوقّع منه دون كلمة مرور. زر «واتساب» يرسل له رابطه، ورسالة كل مساءلة تحمل الرابط نفسه.</div>' : '') +
+    (isAdmin() ? `<button class="btn pri" data-act="recAbs">تسجيل غياب أو تأخر</button><button class="btn" data-act="addTeacher">إضافة معلم</button><button class="btn" data-act="bulkTeachers">إضافة مجموعة</button><button class="btn" data-act="sendLinks">إرسال الروابط للجميع</button>` : '') + `<button class="btn" data-act="exportAbs">تنزيل سجل الغياب</button>`) + loadingNote() +
+    (S.teachers.length ? '<div class="notice-bar info">لكل معلم رابط خاص ثابت، تظهر فيه كل تعاميمه ومساءلاته. يكفي إرساله مرة واحدة، ثم تُبلَّغ المجموعة برسالة واحدة.</div>' : '') +
     (S.teachers.length ? `<div class="tablewrap"><table class="tbl"><thead><tr><th>المعلم</th><th>الجوال</th><th>غياب</th><th>تأخر وخروج</th><th>مساءلات</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`
       : `<div class="empty">لا يوجد معلمون بعد. ${isAdmin() ? 'اضغط «إضافة مجموعة» والصق الأسماء والأرقام دفعة واحدة.' : ''}</div>`);
 }
 
+const nList = () => sortBy(S.notices, 'createdAt', -1).filter(n => UI.nFilter === 'all' || n.status === UI.nFilter);
 function vNotices(){
   const f = UI.nFilter;
-  const list = sortBy(S.notices, 'createdAt', -1).filter(n => f === 'all' || n.status === f);
+  const list = nList();
   const seg = [['all','الكل'],['issued','بانتظار المعلم'],['replied','بانتظار القرار'],['closed','مغلقة']].map(([k,l]) => `<button data-act="nFilter" data-id="${k}" aria-pressed="${f===k}">${l}</button>`).join('');
-  return head('المساءلات', 'تصدر المساءلة، فيكتب المعلم إفادته ويوقّع، ثم يصدر قرار المدير بتوقيعه.', (isAdmin() ? '<button class="btn pri" data-act="issue">إصدار مساءلة</button>' : '')) + loadingNote() +
+  return head('المساءلات', 'تصدر المساءلة، فيكتب المعلم إفادته ويوقّع، ثم يصدر قرار المدير بتوقيعه.', (isAdmin() ? `<button class="btn pri" data-act="issue">إصدار مساءلة</button><button class="btn" data-act="issueMany">إصدار لعدة معلمين</button>${S.notices.some(n => n.status === 'issued') ? '<button class="btn" data-act="sendNotices">إرسال المعلقة للجميع</button>' : ''}<button class="btn" data-act="dlNotices">تنزيل الكل</button>` : '')) + loadingNote() +
     `<div class="seg" role="group" aria-label="تصفية">${seg}</div>` +
     (list.length ? `<div class="cards">${list.map(n => { const [c,l] = nStatus(n); const t = teacher(n.teacherId);
       const wa = t && waLink(t.phone, noticeMsg(n));
@@ -2781,12 +2784,13 @@ function importStudentsForm(){
 }
 /* ===================== الإرسال المتتابع بالواتساب ===================== */
 // الواتساب لا يتيح الإرسال الآلي إلا بخدمة أعمال مدفوعة، فيفتح الطابور كل محادثة برسالتها الجاهزة ويتتبع ما أُرسل
-function sendQueue(title, items, logId, note){
+function sendQueue(title, items, logId, note, group){
   const sent = id => (S.sendlog.find(x => x.id === logId) || {})[id];
   const draw = () => { const ok = items.filter(i => waLink(i.phone, '.')); const done = ok.filter(i => sent(i.id)); const next = ok.find(i => !sent(i.id)); const noPh = items.length - ok.length;
     $('#sqBody').innerHTML = `<div class="tools"><span class="chip ok num">أُرسل ${done.length} من ${ok.length}</span>${noPh ? `<span class="chip warn num">بلا جوال: ${noPh}</span>` : ''}${next ? `<a class="btn pri" href="${esc(waLink(next.phone, next.msg))}" target="_blank" rel="noopener" data-qid="${esc(next.id)}">إرسال التالي: ${esc(next.name)}</a>` : (ok.length ? '<span class="chip ok">اكتمل الإرسال</span>' : '')}</div>
       <div class="list">${items.map(i => { const w = waLink(i.phone, i.msg); return `<div class="row"><div><div class="t">${esc(i.name)}</div><div class="m">${esc(i.sub || '')}${i.phone ? ' · <span class="phone">' + esc(i.phone) + '</span>' : ''}</div></div><div class="tools">${sent(i.id) ? '<span class="chip ok">أُرسل</span>' : ''}${w ? `<a class="btn sm wa" href="${esc(w)}" target="_blank" rel="noopener" data-qid="${esc(i.id)}">${sent(i.id) ? 'إعادة' : 'إرسال'}</a>` : '<span class="chip mute">لا يوجد واتساب</span>'}${i.sid ? `<input data-qph="${esc(i.id)}" dir="ltr" inputmode="tel" placeholder="رقم واتساب" aria-label="رقم واتساب ${esc(i.name)}" style="width:125px"><button type="button" class="btn sm" data-qsave="${esc(i.id)}">حفظ الرقم</button>` : ''}</div></div>`; }).join('')}</div>`; };
-  const dlg = modal(title, `${note ? `<p class="sub" style="margin:0 0 8px">${esc(note)}</p>` : ''}<p class="sub" style="margin:0 0 10px">تُفتح كل محادثة في واتساب برسالتها الجاهزة، فاضغط إرسال فيه ثم عد هنا للتالي.</p><div id="sqBody"></div>`, '', true);
+  const dlg = modal(title, `${note ? `<p class="sub" style="margin:0 0 8px">${esc(note)}</p>` : ''}<p class="sub" style="margin:0 0 10px">تُفتح كل محادثة في واتساب برسالتها الجاهزة، فاضغط إرسال فيه ثم عد هنا للتالي.</p>${group ? `<div class="notice-bar info"><b>رسالة واحدة تكفي الجميع:</b> أرسلها في مجموعة المعلمين أو قائمة البث، ويفتح كل معلم رابطه الخاص الذي وصله من قبل. الرسالة عامة ولا تحمل اسمًا ولا رابطًا خاصًا.<div class="tools" style="margin-top:8px"><a class="btn sm wa" href="https://wa.me/?text=${encodeURIComponent(group)}" target="_blank" rel="noopener">إرسال للمجموعة</a><button type="button" class="btn sm" id="sqCopy">نسخ الرسالة</button></div></div><p class="sub" style="margin:0 0 8px">أو أرسل لكل معلم على حدة:</p>` : ''}<div id="sqBody"></div>`, '', true);
+  if (group) $('#sqCopy').onclick = async () => { try { await navigator.clipboard.writeText(group); toast('نُسخت الرسالة'); } catch { toast('تعذّر النسخ', 'bad'); } };
   dlg.addEventListener('click', e => { const a = e.target.closest('[data-qid]'); if (!a) return;
     save2('sendlog', logId, {[a.dataset.qid]:Date.now()}).then(draw); });
   dlg.addEventListener('click', async e => { const b = e.target.closest('[data-qsave]'); if (!b) return; const i = items.find(x => x.id === b.dataset.qsave), ph = cleanPhone(dlg.querySelector(`[data-qph="${CSS.escape(i.id)}"]`).value);
@@ -2794,6 +2798,59 @@ function sendQueue(title, items, logId, note){
     i.phone = ph; if (i.remsg) i.msg = i.remsg(); toast('حُفظ رقم الواتساب'); draw(); });
   draw();
 }
+
+/* ---------- الإجراءات الجماعية ---------- */
+const groupNote = what => `السلام عليكم ورحمة الله وبركاته\nالزملاء الكرام، ${what}\nنأمل فتح رابطكم الخاص في منصة ${school()} والاطلاع والتوقيع.\n${principal()} — ${school()}`;
+function noticeQueue(list){
+  const items = list.filter(n => teacher(n.teacherId)).map(n => { const t = teacher(n.teacherId); return {id:n.id, name:t.name, sub:`مساءلة ${n.no} · ${n.kind}`, phone:t.phone, msg:noticeMsg(n)}; });
+  sendQueue('إرسال المساءلات', items, 'notices', '', groupNote('وردت في المنصة إجراءات تخص بعض الزملاء.'));
+}
+function issueManyForm(){
+  if (!S.teachers.length) return toast('أضف المعلمين أولًا', 'bad');
+  const pers = Array.from({length:cfg().periods}, (_,i) => String(i + 1));
+  modal('إصدار مساءلة لعدة معلمين', `<div class="tools"><button type="button" class="btn sm" id="nm_all">تحديد الكل</button><button type="button" class="btn sm" id="nm_none">إلغاء التحديد</button><span class="chip info num" id="nm_c">0 معلم</span></div>
+    <div class="pick" style="margin-top:8px">${sortBy(S.teachers,'name').map(t => `<label class="check"><input type="checkbox" data-nt="${t.id}"> ${esc(t.name)}</label>`).join('')}</div>
+    <p class="sub">توقّع مرة واحدة، ويصدر لكل معلم نموذج مستقل برقم خاص، ولا يرى المعلم مساءلة غيره.</p>
+    <div class="fg">${byField('n_by', 'المُصدر')}
+    <div class="f"><label for="n_k">نوع المخالفة</label><select id="n_k">${KINDS.filter(k => k !== EXIT_KIND).map(k => `<option>${k}</option>`).join('')}</select></div>
+    <div class="f"><label for="n_d">التاريخ</label><input id="n_d" type="date" value="${esc(today())}"></div>
+    <div class="f"><label for="n_m">المدة بالدقائق</label><input id="n_m" inputmode="numeric" placeholder="مثل: 15"></div>
+    <div class="f"><label for="n_p">الحصة</label><select id="n_p"><option value="">— غير محددة —</option>${pers.map(p => `<option value="${p}">الحصة ${p}</option>`).join('')}</select></div>
+    <div class="f full"><label for="n_note">ملاحظة تظهر في النموذج</label><input id="n_note" placeholder="اختياري"></div>
+    ${sigField('sig_p', 'توقيع المُصدر', '')}</div>`,
+    `<button class="btn pri" id="ok">إصدار المساءلات</button><button class="btn" data-act="close">إلغاء</button>`, true);
+  requestAnimationFrame(() => mountSig('sig_p'));
+  const boxes = () => [...document.querySelectorAll('[data-nt]')], ok = $('#ok');
+  const sync = () => { const c = boxes().filter(b => b.checked).length; $('#nm_c').textContent = c + ' معلم'; delete ok.dataset.sure; ok.textContent = c ? `إصدار ${c} مساءلة` : 'إصدار المساءلات'; };
+  $('#nm_all').onclick = () => { boxes().forEach(b => b.checked = true); sync(); }; $('#nm_none').onclick = () => { boxes().forEach(b => b.checked = false); sync(); };
+  boxes().forEach(b => b.onchange = sync);
+  ok.onclick = async () => {
+    const ids = boxes().filter(b => b.checked).map(b => b.dataset.nt); if (!ids.length) return toast('اختر معلمًا واحدًا على الأقل', 'bad');
+    const who = byPick('n_by'); if (!who) return; const sig = pads.sig_p?.data(); if (!sig) return toast('وقّع في المربع قبل الإصدار', 'bad');
+    if (!ok.dataset.sure) { ok.dataset.sure = '1'; ok.textContent = `تأكيد إصدار ${ids.length} مساءلة`; return; }
+    ok.disabled = true; const made = [], at = Date.now();
+    try { for (const tid of ids) { const nid = newId();
+      const n = {no:nextNo(S.notices), teacherId:tid, kind:fval('n_k'), rows:[], date:fval('n_d') || today(), issued:today(), minutes:fval('n_m'), period:fval('n_p'), lessonKey:null, note:fval('n_note'),
+        status:'issued', byRole:who.role, byName:who.name, principalSig:{img:sig, name:who.name, at, by:me.id}, attachments:[], createdAt:Date.now(), by:me.id, absenceId:null};
+      await api('/doc/notices/' + nid, {method:'PUT', json:n}); upsert('notices', nid, n); made.push({...n, id:nid}); ok.textContent = `جارٍ الإصدار ${made.length} من ${ids.length}…`; } }
+    catch(e){ toast(`صدرت ${made.length} من ${ids.length}: ${errMsg(e)}`, 'bad'); }
+    render(true); if (!made.length) { ok.disabled = false; return sync(); }
+    if (made.length === ids.length) toast(`صدرت ${made.length} مساءلة`); noticeQueue(made);
+  };
+}
+function dlNoticesForm(){
+  const list = [...nList()].reverse(); if (!list.length) return toast('لا توجد مساءلات للتنزيل', 'bad');
+  const doc = () => `<div class="batch">${list.map(noticeDoc).join('')}</div>`, name = 'مساءلات ' + school();
+  modal('تنزيل المساءلات', `<p style="margin:0">سيشمل التنزيل <b class="num">${list.length}</b> مساءلة حسب التصنيف المعروض، كل مساءلة في صفحة مستقلة.</p>`,
+    `<button class="btn pri" id="dn_p">طباعة / PDF</button><button class="btn" id="dn_h">ملف واحد</button><button class="btn" id="dn_x">كشف Excel</button><button class="btn" data-act="close">إغلاق</button>`);
+  $('#dn_p').onclick = () => { closeModal(); printDoc(doc()); };
+  $('#dn_h').onclick = () => saveHtml(name, doc());
+  $('#dn_x').onclick = () => saveXlsx('سجل المساءلات', [{name:'المساءلات', rows:[['الرقم','المعلم','المخالفة','اليوم','التاريخ','المدة بالدقائق','الحصة','المُصدر','الحالة','القرار'],
+    ...list.map(n => [n.no, tName(n.teacherId), n.kind, dayName(n.date), hij(n.date), n.minutes || '', n.period || '', n.byName || principal(), nStatus(n)[1], n.decision ? decOf(n)[n.decision] || '' : ''])]}]);
+}
+Object.assign(ACT, { issueMany: issueManyForm, dlNotices: dlNoticesForm,
+  sendNotices: () => noticeQueue(sortBy(S.notices.filter(n => n.status === 'issued'), 'createdAt')),
+  sendLinks: () => { if (!S.teachers.length) return toast('أضف المعلمين أولًا', 'bad'); sendQueue('إرسال روابط المعلمين', sortBy(S.teachers,'name').map(t => ({id:t.id, name:t.name, sub:t.specialty || '', phone:t.phone, msg:linkMsg(t)})), 'tlinks', 'يكفي إرسال الرابط لكل معلم مرة واحدة، فهو ثابت وتظهر فيه كل التعاميم والمساءلات القادمة.'); } });
 
 /* ---------- تقارير الغياب ---------- */
 const absSchoolLine = () => `${school()}${set().schoolWa ? ' — جوال المدرسة: ' + set().schoolWa : set().phone ? ' — جوال المدير: ' + set().phone : ''}`;
@@ -3161,11 +3218,11 @@ async function autoIncidentRec(iid, i, s){ const tpl = recTpl('incident');
 function recSendSign(id){ const r = S.records.find(x => x.id === id); if (!r) return; const tpl = recTpl(r.tpl); const ids = r.signers || []; const done = recSigsOf(id).map(x => x.teacherId);
   const list = ids.filter(t => !done.includes(t)).map(teacher).filter(Boolean);
   if (!list.length) return toast(ids.length ? 'وقّع جميع المعلمين المحددين' : 'لا يوجد معلمون محددون للتوقيع في هذا المحضر', 'bad');
-  sendQueue('توقيع: ' + r.title, list.map(t => ({id:t.id, name:t.name, sub:t.specialty || '', phone:t.phone, msg:`المكرم الأستاذ/ ${t.name}\nالسلام عليكم ورحمة الله وبركاته\nنأمل الاطلاع على «${r.title}» والتوقيع عليه من رابطك الخاص:\n${teacherLink(t)}\n${principal()} — ${school()}`})), 'rec_' + id); }
+  sendQueue('توقيع: ' + r.title, list.map(t => ({id:t.id, name:t.name, sub:t.specialty || '', phone:t.phone, msg:`المكرم الأستاذ/ ${t.name}\nالسلام عليكم ورحمة الله وبركاته\nنأمل الاطلاع على «${r.title}» والتوقيع عليه من رابطك الخاص:\n${teacherLink(t)}\n${principal()} — ${school()}`})), 'rec_' + id, '', r.tpl === 'letter' ? groupNote(`صدر خطاب جديد: «${r.title.replace(/^(نموذج|تعميم): /, '')}».`) : ''); }
 function recSendParent(id){ const r = S.records.find(x => x.id === id); if (!r) return; const had = S.parents.find(p => p.recordId === id); if (had) return viewParent(had.id);
   parentNotice(r.studentId, r.title.split(' — ')[0], recPlain(r), {recordId:id}); }
 function teacherRecPanel(){ if (!S.records.length) return ''; const t = S.teachers[0]; const mine = id => S.recsigns.find(x => x.recordId === id && x.teacherId === t.id);
-  return `<section class="panel"><h3>المحاضر</h3><div class="list">${sortBy(S.records,'createdAt',-1).map(r => `<div class="row"><div><div class="t">${esc(r.title)}</div><div class="m">${esc(stamp(r.createdAt))}</div></div><div class="tools">${mine(r.id) ? '<span class="chip ok">وقّعت</span>' : ''}<button class="btn sm ${mine(r.id) ? '' : 'pri'}" data-act="recSign" data-id="${r.id}">${mine(r.id) ? 'عرض' : 'الاطلاع والتوقيع'}</button></div></div>`).join('')}</div></section>`; }
+  return `<section class="panel"><h3>التعاميم والمحاضر</h3><div class="list">${sortBy(S.records,'createdAt',-1).map(r => `<div class="row"><div><div class="t">${esc(r.title)}</div><div class="m">${esc(stamp(r.createdAt))}</div></div><div class="tools">${mine(r.id) ? '<span class="chip ok">وقّعت</span>' : ''}<button class="btn sm ${mine(r.id) ? '' : 'pri'}" data-act="recSign" data-id="${r.id}">${mine(r.id) ? 'عرض' : 'الاطلاع والتوقيع'}</button></div></div>`).join('')}</div></section>`; }
 function recSignForm(id){ const r = S.records.find(x => x.id === id), t = S.teachers[0]; if (!r) return; const had = S.recsigns.find(x => x.recordId === id && x.teacherId === t.id);
   modal(r.title, recPaper(r) + (had ? '' : sigField('sig_r', 'توقيعك', t.name)), had ? `<button class="btn" data-act="printRec" data-id="${id}">طباعة / PDF</button>` : `<button class="btn pri" id="ok">أقر وأوقّع</button><button class="btn" data-act="close">إلغاء</button>`, true);
   if (had) return; requestAnimationFrame(() => mountSig('sig_r'));
