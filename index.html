@@ -335,7 +335,7 @@ const MODE = hashArg('t') ? 'teacher' : hashArg('p') ? 'parent' : 'admin';
 document.documentElement.classList.toggle('portal', MODE !== 'admin');
 const KEY = hashArg('t') || hashArg('p');
 let token = store.get('mdr.token');
-const APP_VER = '3.7'; // ارفعه مع site/version.json في كل نشر
+const APP_VER = '3.8'; // ارفعه مع site/version.json في كل نشر
 const DEV = store.get('mdr.dev') || [...crypto.getRandomValues(new Uint8Array(16))].map(b => b.toString(16).padStart(2, '0')).join(''); store.set('mdr.dev', DEV);
 const devInfo = () => { const u = navigator.userAgent; return {device:DEV, deviceName:`${/iPhone|iPad/.test(u) ? 'آيفون' : /Android/.test(u) ? 'أندرويد' : 'كمبيوتر'} · ${/Edg/.test(u) ? 'Edge' : /Chrome/.test(u) ? 'Chrome' : /Safari/.test(u) ? 'Safari' : /Firefox/.test(u) ? 'Firefox' : 'متصفح'}`}; };
 const ERR = {
@@ -603,9 +603,9 @@ function navBadge(k){
   if (k === 'notices') return S.notices.filter(n => n.status !== 'closed').length;
   if (k === 'parents') return S.parents.filter(p => !p.parentSig && !p.noSign).length;
   if (k === 'control') return S.exams.filter(e => e.date === isoDay() && !e.ret).length;
-  if (k === 'tasks') return S.tasks.filter(t => !t.done && t.due && t.due <= isoDay()).length;
+  if (k === 'tasks') return S.tasks.filter(t => !t.done && t.due && t.due <= isoDay()).length + planLate(S.plan.filter(p => !isInit(p) && myPart(p))).length;
   if (k === 'students') return atRisk().length;
-  if (k === 'inits') return planLate(S.plan.filter(myPart)).length + S.plan.filter(p => p.src === 'teacher' && p.status === 'proposed').length;
+  if (k === 'inits') return planLate(S.plan.filter(p => isInit(p) && myPart(p))).length + S.plan.filter(p => p.src === 'teacher' && p.status === 'proposed').length;
   return 0;
 }
 function renderNav(){
@@ -642,7 +642,7 @@ function vDash(){
   const actions = [
     ...waitP.map(n => ({t:`مساءلة ${n.no} — ${tName(n.teacherId)}`, m:'ردّ المعلم، وتنتظر قرارك وتوقيعك', c:['info','قرار المدير'], act:'viewNotice', id:n.id})),
     ...waitT.map(n => ({t:`مساءلة ${n.no} — ${tName(n.teacherId)}`, m:`${n.kind} · ${hij(n.date)}`, c:['warn','رد المعلم'], act:'viewNotice', id:n.id})),
-    ...(() => { const m = S.plan.filter(myPart), n = planNow(m); return [...n.map(p => ({t:p.name, m:`الخطة التشغيلية · ${myPart(p)}: ${p.owner || ''}`, c:['info','هذا الأسبوع'], act:'planFollow', id:p.id})), ...planLate(m).filter(p => !n.includes(p)).slice(0,4).map(p => ({t:p.name, m:`الخطة التشغيلية · ${pWhen(p)}`, c:['bad','متأخر'], act:'planFollow', id:p.id}))]; })(),
+    ...(() => { const m = S.plan.filter(myPart), n = planNow(m); return [...n.map(p => ({t:p.name, m:`${kindN(p)} · ${myPart(p)}: ${p.owner || ''}`, c:['info','هذا الأسبوع'], act:'planFollow', id:p.id})), ...planLate(m).filter(p => !n.includes(p)).slice(0,4).map(p => ({t:p.name, m:`${kindN(p)} · ${pWhen(p)}`, c:['bad','متأخر'], act:'planFollow', id:p.id}))]; })(),
     ...S.plan.filter(p => p.src === 'teacher' && p.status === 'proposed').map(p => ({t:'مبادرة: ' + p.name, m:'من المعلم: ' + (p.owner || ''), c:['warn','اعتماد المدير'], act:'tInitDecide', id:p.id})),
     ...parPend.slice(0,6).map(p => ({t:`${p.kind} — ${p.student}`, m:`ولي الأمر: ${p.parentName||'—'}`, c:['warn','توقيع ولي الأمر'], act:'viewParent', id:p.id}))
   ].slice(0,10);
@@ -1484,7 +1484,7 @@ function viewVisit(id){
 /* ---------- المهام ---------- */
 function vTasks(){
   const list = [...S.tasks].sort((a,b) => (!!a.done - !!b.done) || String(a.due || '').localeCompare(String(b.due || '')));
-  return head('المهام', 'اجتماعاتك وزياراتك ومتابعاتك اليومية في مكان واحد.', isAdmin() ? `<button class="btn pri" data-act="addTask">إضافة مهمة</button>${S.plan.length ? '<button class="btn" data-act="planImport">رفع الخطة التشغيلية</button>' : ''}` : '') + loadingNote() + planAgenda() +
+  return head('المهام', 'اجتماعاتك وزياراتك ومتابعاتك اليومية في مكان واحد.', isAdmin() ? `<button class="btn pri" data-act="addTask">إضافة مهمة</button>${S.plan.length ? '<button class="btn" data-act="planImport">رفع الخطة التشغيلية</button>' : ''}` : '') + loadingNote() + planAgenda() + planBoard('program') +
     (list.length ? `<section class="panel"><div class="list">${list.map(x => `<div class="row"><label class="check" style="flex:1;min-width:200px"><input type="checkbox" data-act="doneTask" data-id="${x.id}" ${x.done ? 'checked' : ''}><span><span class="t" style="${x.done ? 'text-decoration:line-through;color:var(--muted)' : ''}">${esc(x.title)}</span><br><span class="m" style="font-size:13px;color:var(--muted)">${x.due ? esc(dayName(x.due) + ' ' + hij(x.due)) : ''}</span></span></label>
       <div class="tools"><span class="chip ${x.pri === 'عاجل' ? 'bad' : x.pri === 'متوسط' ? 'warn' : 'mute'}">${esc(x.pri || 'عادي')}</span>${isAdmin() ? `<button class="btn sm danger" data-act="delTask" data-id="${x.id}">حذف</button>` : ''}</div></div>`).join('')}</div></section>`
       : '<div class="empty">لا مهام. سجّل هنا اجتماعاتك وزياراتك ومتابعاتك.</div>');
@@ -2819,7 +2819,7 @@ let pdfReady;
 const loadPdf = () => pdfReady ||= import(new URL('vendor/pdf.min.mjs', location.href).href).then(m => { m.GlobalWorkerOptions.workerSrc = new URL('vendor/pdf.worker.min.mjs', location.href).href; return m; });
 const latinDig = s => String(s || '').replace(/[٠-٩]/g, d => d.charCodeAt(0) - 1632).replace(/[۰-۹]/g, d => d.charCodeAt(0) - 1776);
 const pnorm = s => String(s || '').replace(/[أإآ]/g, 'ا').replace(/ى/g, 'ي').replace(/ة/g, 'ه').replace(/[\sـ:]/g, '');
-const PCOLS = {no:['م','رقم'], name:['اسمالبرنامج','البرنامج','اسمالمبادره','المبادره','البرامج','الاجراء','الاجراءات','النشاط'], sem:['الفصل','الفصلالدراسي'], week:['الاسبوع'],
+const PCOLS = {kind:['النوع','نوعالبرنامج','التصنيف'], no:['م','رقم'], name:['اسمالبرنامج','البرنامج','اسمالمبادره','المبادره','البرامج','الاجراء','الاجراءات','النشاط'], sem:['الفصل','الفصلالدراسي'], week:['الاسبوع'],
   when:['زمنالتنفيذ','موعدالتنفيذ','التوقيت','وقتالتنفيذ','مدهالتنفيذ','الفترهالزمنيه'], targets:['المستهدفون','المستهدفين','الفئهالمستهدفه'], req:['ماليه','غير','غيرماليه','المتطلبات'],
   method:['اسلوب','اسلوبالتنفيذ','التنفيذ','اليهالتنفيذ','اساليبالتنفيذ'], owner:['رئيس','مسؤولالتنفيذ','المسؤول','المسؤولعنالتنفيذ','المنفذ','جههالتنفيذ'], helper:['مساند','المساند'], kpi:['مؤشرالانجاز','مؤشرالاداء','مؤشراتالانجاز','مؤشراتالاداء','مؤشرالتحقق']};
 const pfield = s => { const n = pnorm(s); for (const [f, l] of Object.entries(PCOLS)) if (l.includes(n)) return f; return ''; };
@@ -2878,7 +2878,8 @@ function planTables(items){
       const sem = [/الأول|الاول/.test(semT) ? 1 : 0, /الثاني/.test(semT) ? 2 : 0].filter(Boolean);
       const weeks = (weekT.match(/\d+/g) || []).map(Number).filter(n => n >= 1 && n <= 22);
       const kpiT = T('kpi'), ev = kpiT.split(/الشواهد\s*:?/);
-      progs.push({name, goal, sub, sem, weeks:[...new Set(weeks)], cont:/مستمر|كل\s*(أسبوع|اسبوع|شهر)|دوري|طوال/.test(semT + ' ' + weekT) || (!weeks.length), when:(T('when') || [T('sem'), T('week')].filter(Boolean).join(' / ')),
+      const kindT = T('kind'), type = /مبادر/.test(kindT) || /^مبادرة/.test(name) ? 'initiative' : /برنامج/.test(kindT) ? 'program' : /مبادر/.test(h.s) ? 'initiative' : 'program';
+      progs.push({type, name, goal, sub, sem, weeks:[...new Set(weeks)], cont:/مستمر|كل\s*(أسبوع|اسبوع|شهر)|دوري|طوال/.test(semT + ' ' + weekT) || (!weeks.length), when:(T('when') || [T('sem'), T('week')].filter(Boolean).join(' / ')),
         targets:T('targets'), method:T('method'), owner:T('owner'), helper:T('helper'), kpi:ev[0].trim(), evidence:(ev[1] || '').trim()});
     });
   });
@@ -2930,8 +2931,8 @@ function planRow(p, k){
     <div class="tools">${part ? `<span class="chip info">أنت ${part}</span>` : ''}<span class="chip ${c}">${l}</span>${isAdmin() && o ? `<button class="btn sm ${occDone(p, o) ? '' : 'pri'}" data-act="planDone" data-id="${p.id}" data-k="${o.key}">${occDone(p, o) ? 'إلغاء التنفيذ' : 'تم التنفيذ'}</button>` : ''}<button class="btn sm" data-act="planFollow" data-id="${p.id}">متابعة</button></div></div>`;
 }
 function planAgenda(){
-  if (!S.plan.length) return `<section class="panel"><h3>الخطة التشغيلية</h3><p class="sub">ارفع ملف الخطة التشغيلية PDF، فتقرأ المنصة برامجها وتوزعها على أسابيع الفصلين، وتعرض لك ما هو مطلوب منك كل أسبوع.</p>${isAdmin() ? '<div><button class="btn pri" data-act="planImport">رفع الخطة التشغيلية</button></div>' : ''}</section>`;
-  const cw = curWeek(), all = planSorted(), list = UI.planAll ? all : all.filter(myPart);
+  if (!S.plan.some(p => !isInit(p))) return `<section class="panel"><h3>الخطة التشغيلية</h3><p class="sub">ارفع ملف الخطة التشغيلية PDF، فتقرأ المنصة برامجها وتوزعها على أسابيع الفصلين، وتعرض لك ما هو مطلوب منك كل أسبوع.</p>${isAdmin() ? '<div><button class="btn pri" data-act="planImport">رفع الخطة التشغيلية</button></div>' : ''}</section>`;
+  const cw = curWeek(), all = planSorted().filter(p => !isInit(p)), list = UI.planAll ? all : all.filter(myPart);
   const now = planNow(list), late = planLate(list).filter(p => !now.includes(p)), next = [1, 2, 3].map(d => cw.week + d).map(w => [w, list.filter(p => occs(p).some(o => o.sem === cw.sem && o.week === w && !occDone(p, o)))]).filter(x => x[1].length);
   const cont = list.filter(p => !occs(p).length);
   const seg = [['','المطلوب مني'],['1','كل البرامج']].map(([k, l]) => `<button data-act="planAll" data-id="${k}" aria-pressed="${(UI.planAll ? '1' : '') === k}">${l}</button>`).join('');
@@ -2958,13 +2959,13 @@ function planImportForm(){
     if (r.scanned) { box.innerHTML = '<div class="notice-bar">الملف صور ممسوحة لا تحوي نصًا. احفظ الخطة من Word بصيغة PDF ثم ارفعها.</div>'; return; }
     if (!r.progs.length) { box.innerHTML = '<div class="notice-bar">لم أجد جدول برامج بالعناوين المعتادة (اسم البرنامج، الفصل، الأسبوع، المسؤول). أرسل الملف للدعم لإضافة صيغته.</div>'; return; }
     const P = r.progs, noW = P.filter(p => !p.weeks.length).length, goals = new Set(P.map(p => p.sub || p.goal)).size;
-    box.innerHTML = `<div class="kpis" style="margin-top:10px"><div class="kpi"><span class="v">${P.length}</span><span class="l">برنامجًا</span></div><div class="kpi"><span class="v">${goals}</span><span class="l">هدفًا تفصيليًا</span></div><div class="kpi ${noW ? 'warn' : ''}"><span class="v">${noW}</span><span class="l">مستمر أو بلا أسبوع محدد</span></div></div>
-      <div class="tablewrap" style="max-height:320px;overflow:auto;margin-top:10px"><table class="tbl"><thead><tr><th>البرنامج</th><th>الموعد</th><th>رئيس</th><th>مساند</th></tr></thead><tbody>${P.map(p => `<tr><td>${esc(p.name)}</td><td>${esc(pWhen(p))}</td><td>${esc(p.owner)}</td><td>${esc(p.helper)}</td></tr>`).join('')}</tbody></table></div>
-      <p class="sub">راجع القائمة، وما يحتاج تصحيحًا تعدّله بعد الاستيراد من «متابعة المبادرات». إعادة رفع الخطة تحدّث البرامج وتحتفظ بمتابعاتها.</p><div class="tools"><button class="btn pri" id="pl_ok">استيراد ${P.length} برنامجًا</button></div>`;
+    box.innerHTML = `<div class="kpis" style="margin-top:10px"><div class="kpi"><span class="v">${P.length}</span><span class="l">برنامجًا ومبادرة</span></div><div class="kpi"><span class="v">${goals}</span><span class="l">هدفًا تفصيليًا</span></div><div class="kpi"><span class="v">${P.filter(p => p.type === 'initiative').length}</span><span class="l">مبادرة</span></div><div class="kpi ${noW ? 'warn' : ''}"><span class="v">${noW}</span><span class="l">مستمر أو بلا أسبوع محدد</span></div></div>
+      <div class="tablewrap" style="max-height:320px;overflow:auto;margin-top:10px"><table class="tbl"><thead><tr><th>النوع</th><th>الاسم</th><th>الموعد</th><th>رئيس</th><th>مساند</th></tr></thead><tbody>${P.map(p => `<tr><td>${p.type === 'initiative' ? 'مبادرة' : 'برنامج'}</td><td>${esc(p.name)}</td><td>${esc(pWhen(p))}</td><td>${esc(p.owner)}</td><td>${esc(p.helper)}</td></tr>`).join('')}</tbody></table></div>
+      <p class="sub">البرامج تظهر في «المهام» والمبادرات في «متابعة المبادرات». ما يحتاج تصحيحًا، ومنه النوع، تعدّله بعد الاستيراد من زر «تعديل». إعادة رفع الخطة تحدّث البرامج وتحتفظ بمتابعاتها.</p><div class="tools"><button class="btn pri" id="pl_ok">استيراد ${P.length} برنامجًا</button></div>`;
     $('#pl_ok').onclick = async () => { $('#pl_ok').disabled = true; const key = p => pnorm(p.name) + '|' + pnorm(p.sub);
       const old = new Map(S.plan.filter(p => p.src === 'pdf').map(p => [key(p), p])), docs = [], seen = new Set();
       P.forEach(p => { const o = old.get(key(p)); seen.add(key(p)); const {page, ...d} = p;
-        docs.push(o ? {...o, ...d, id:o.id} : {...d, id:newId(), src:'pdf', done:{}, follow:[], createdAt:Date.now()}); });
+        docs.push(o ? {...o, ...d, ...(o.typeSet ? {type:o.type} : {}), id:o.id} : {...d, id:newId(), src:'pdf', done:{}, follow:[], createdAt:Date.now()}); });
       const dels = S.plan.filter(p => p.src === 'pdf' && !seen.has(key(p)) && !(p.follow || []).length).map(p => p.id);
       try { const s1 = fval('pl_s1'), s2 = fval('pl_s2'); if (s1 !== (set().sem1Start || '') || s2 !== (set().sem2Start || '')) await put('settings/school', {sem1Start:s1, sem2Start:s2}, true);
         await bulkPut('plan', docs, dels); closeModal(); toast(`استُوردت ${docs.length} برنامجًا`); }
@@ -2990,60 +2991,66 @@ function planFollowForm(id){
     const h = {at:Date.now(), date:fval('pf_dt') || today(), occ:k, done:d, reason:fval('pf_r'), action:fval('pf_a')}; if (file) h.file = file;
     if (await put('plan/' + id, {done, follow:[...(p.follow || []), h]}, true)) { closeModal(); toast('حُفظت المتابعة'); } else $('#ok').disabled = false; };
 }
-function planForm(id){
-  const p = id ? S.plan.find(x => x.id === id) : {sem:[1], weeks:[]}; if (!p) return; const sem = p.sem || [];
+function planForm(id, kind){
+  const p = id ? S.plan.find(x => x.id === id) : {sem:[1], weeks:[], type:kind || 'initiative'}; if (!p) return; const sem = p.sem || [], ty = p.type || (isInit(p) ? 'initiative' : 'program'), N = ty === 'initiative' ? 'مبادرة' : 'برنامج';
   const fl = (k, l, full) => `<div class="f ${full ? 'full' : ''}"><label for="pe_${k}">${l}</label><input id="pe_${k}" value="${esc(p[k] || '')}"></div>`;
-  modal(id ? 'تعديل مبادرة' : 'إضافة مبادرة', `<div class="fg">${fl('name', 'اسم المبادرة أو البرنامج', true)}${fl('goal', 'الهدف العام')}${fl('sub', 'الهدف التفصيلي')}
+  modal((id ? 'تعديل ' : 'إضافة ') + N, `<div class="fg"><div class="f"><label for="pe_type">النوع</label><select id="pe_type"><option value="program" ${ty === 'program' ? 'selected' : ''}>برنامج (يظهر في المهام)</option><option value="initiative" ${ty === 'initiative' ? 'selected' : ''}>مبادرة (تظهر في متابعة المبادرات)</option></select></div>${fl('name', 'الاسم', true)}${fl('goal', 'الهدف العام')}${fl('sub', 'الهدف التفصيلي')}
     <div class="f"><span class="lb">الفصل</span><div class="tools"><label class="check"><input type="checkbox" id="pe_s1" ${sem.includes(1) ? 'checked' : ''}> الأول</label><label class="check"><input type="checkbox" id="pe_s2" ${sem.includes(2) ? 'checked' : ''}> الثاني</label></div></div>
     <div class="f"><label for="pe_w">الأسبوع</label><input id="pe_w" value="${esc((p.weeks || []).join('، '))}" placeholder="مثل: 4 أو 4، 9"><span class="hint">اتركه فارغًا للبرامج المستمرة طوال العام.</span></div>
     ${fl('owner', 'المسؤول الرئيس')}${fl('helper', 'المساند')}${fl('targets', 'المستهدفون')}${fl('method', 'أسلوب التنفيذ')}${fl('kpi', 'مؤشر الإنجاز', true)}${fl('evidence', 'الشواهد', true)}</div>`,
     `<button class="btn pri" id="ok">حفظ</button>${id ? `<button class="btn danger" data-act="planDel" data-id="${id}">حذف</button>` : ''}<button class="btn" data-act="close">إلغاء</button>`, true);
-  $('#ok').onclick = async () => { const name = fval('pe_name'); if (!name) return toast('اكتب اسم المبادرة', 'bad');
+  $('#ok').onclick = async () => { const name = fval('pe_name'); if (!name) return toast('اكتب الاسم', 'bad');
     const weeks = [...new Set((latinDig(fval('pe_w')).match(/\d+/g) || []).map(Number).filter(n => n >= 1 && n <= 22))];
-    const d = {name, goal:fval('pe_goal'), sub:fval('pe_sub'), sem:[1, 2].filter(n => document.getElementById('pe_s' + n).checked), weeks, cont:!weeks.length, owner:fval('pe_owner'), helper:fval('pe_helper'), targets:fval('pe_targets'), method:fval('pe_method'), kpi:fval('pe_kpi'), evidence:fval('pe_evidence')};
-    if (await (id ? put('plan/' + id, d, true) : put('plan/' + newId(), {...d, src:'manual', done:{}, follow:[], createdAt:Date.now()}))) { closeModal(); toast('حُفظت'); } };
+    const d = {type:fval('pe_type'), typeSet:true, name, goal:fval('pe_goal'), sub:fval('pe_sub'), sem:[1, 2].filter(n => document.getElementById('pe_s' + n).checked), weeks, cont:!weeks.length, owner:fval('pe_owner'), helper:fval('pe_helper'), targets:fval('pe_targets'), method:fval('pe_method'), kpi:fval('pe_kpi'), evidence:fval('pe_evidence')};
+    if (await (id ? put('plan/' + id, d, true) : put('plan/' + newId(), {...d, src:'manual', done:{}, follow:[], createdAt:Date.now()}))) { closeModal(); toast(fval('pe_type') === 'initiative' ? 'حُفظت في متابعة المبادرات' : 'حُفظ في برامج المهام'); } };
 }
 /* ---------- متابعة المبادرات ---------- */
-function vInits(){
-  const all = planSorted(), f = UI.iFilter || 'all', st = p => pStat(p)[1];
+// النوع: برامج الخطة تظهر في «المهام»، والمبادرات في «متابعة المبادرات» سواء وردت في الخطة أم لا
+const isInit = p => p.type ? p.type === 'initiative' : p.src !== 'pdf';
+const kindN = p => isInit(p) ? 'مبادرة' : 'برنامج';
+function planBoard(kind){
+  const isI = kind === 'initiative', fk = isI ? 'iFilter' : 'gFilter', all = planSorted().filter(p => isInit(p) === isI), f = UI[fk] || 'all', st = p => pStat(p)[1], N = isI ? 'مبادرة' : 'برنامج';
   const tPend = all.filter(p => p.src === 'teacher' && p.status === 'proposed').length;
   const list = all.filter(p => f === 'all' || (f === 'teachers' ? p.src === 'teacher' : f === 'mine' ? myPart(p) : f === 'late' ? ['متأخر','متعثر'].includes(st(p)) : f === 'now' ? st(p) === 'هذا الأسبوع' : st(p) === 'نُفذ'));
-  const sched = all.filter(p => occs(p).length), done = sched.filter(p => st(p) === 'نُفذ').length, late = all.filter(p => ['متأخر','متعثر'].includes(st(p))).length;
+  const sched = all.filter(p => occs(p).length), done = all.filter(p => st(p) === 'نُفذ').length, late = all.filter(p => ['متأخر','متعثر'].includes(st(p))).length;
   const t = parseD(today()), due = sched.flatMap(p => occs(p).filter(o => o.to < t).map(o => occDone(p, o))), pct = due.length ? Math.round(due.filter(Boolean).length / due.length * 100) : null;
-  const seg = [['all','الكل'],['mine','المطلوب مني'],['now','هذا الأسبوع'],['late','متأخرة ومتعثرة'],['done','منفذة'],['teachers','مبادرات المعلمين' + (tPend ? ` (${tPend} للاعتماد)` : '')]].map(([k, l]) => `<button data-act="iFilter" data-id="${k}" aria-pressed="${f === k}">${l}</button>`).join('');
-  const groups = []; list.forEach(p => { const g = p.src === 'teacher' ? 'مبادرات المعلمين' : p.goal || 'مبادرات أخرى'; let x = groups.find(y => y.g === g); if (!x) groups.push(x = {g, l:[]}); x.l.push(p); });
-  return head('متابعة المبادرات', 'برامج الخطة التشغيلية ومبادرات المدرسة: موعدها، والمسؤول عنها، وما نُفذ منها وشواهده.',
-    (isAdmin() ? '<button class="btn pri" data-act="planAdd">إضافة مبادرة</button><button class="btn" data-act="planImport">رفع الخطة التشغيلية</button><button class="btn" data-act="tInvite">دعوة المعلمين لإضافة مبادراتهم</button>' : '') + (all.length ? '<button class="btn" data-act="planReport">تقرير المتابعة</button><button class="btn" data-act="planXlsx">كشف Excel</button>' : '')) + loadingNote() +
-    (all.length ? `<div class="kpis"><div class="kpi"><span class="v">${all.length}</span><span class="l">مبادرة وبرنامجًا</span></div><div class="kpi"><span class="v">${planNow(all).length}</span><span class="l">في هذا الأسبوع</span></div><div class="kpi"><span class="v">${done}</span><span class="l">نُفذت بالكامل</span></div><div class="kpi ${late ? 'bad' : ''}"><span class="v">${late}</span><span class="l">متأخرة أو متعثرة</span></div>${all.some(p => p.src === 'teacher') ? `<div class="kpi ${tPend ? 'warn' : ''}"><span class="v">${all.filter(p => p.src === 'teacher').length}</span><span class="l">مبادرة من المعلمين${tPend ? ` · ${tPend} تنتظر اعتمادك` : ''}</span></div>` : ''}<div class="kpi ${pct !== null && pct < 80 ? 'warn' : ''}"><span class="v">${pct === null ? '—' : pct + '٪'}</span><span class="l">نسبة إنجاز ما حلّ موعده</span></div></div>
-      <div class="seg" role="group" aria-label="تصفية" style="margin-top:12px">${seg}</div>
-      ${groups.length ? groups.map(x => `<section class="panel"><h3>${esc(x.g)}</h3><div class="list">${x.l.map(p => { const [c, l] = pStat(p), part = myPart(p); return `<div class="row"><div style="flex:1;min-width:220px"><div class="t">${esc(p.name)}</div><div class="m">${esc(pWhen(p))} · ${p.src === 'teacher' ? 'المعلم' : 'رئيس'}: ${esc(p.owner || '—')}${p.helper ? ' · مساند: ' + esc(p.helper) : ''}${p.src === 'teacher' && p.goal ? ' · الهدف: ' + esc(p.goal) : ''}</div>${p.kpi ? `<div class="m">المؤشر: ${esc(p.kpi)}</div>` : ''}</div>
-        <div class="tools">${part ? `<span class="chip info">أنت ${part}</span>` : ''}<span class="chip ${c}">${l}</span>${(p.follow || []).length ? `<span class="chip mute num">${p.follow.length} متابعة</span>` : ''}${p.src === 'teacher' && p.status === 'proposed' && isAdmin() ? `<button class="btn sm pri" data-act="tInitDecide" data-id="${p.id}">اعتماد</button>` : ''}<button class="btn sm ${p.src === 'teacher' && p.status === 'proposed' ? '' : 'pri'}" data-act="planFollow" data-id="${p.id}">متابعة</button>${isAdmin() && p.src !== 'teacher' ? `<button class="btn sm" data-act="planEdit" data-id="${p.id}">تعديل</button>` : ''}</div></div>`; }).join('')}</div></section>`).join('') : '<div class="empty">لا توجد مبادرات في هذا التصنيف.</div>'}`
-    : '<div class="empty">لا توجد مبادرات بعد. ارفع الخطة التشغيلية PDF لتُقرأ برامجها تلقائيًا، أو أضف مبادرة يدويًا.</div>');
+  const seg = [['all','الكل'],['mine','المطلوب مني'],['now','هذا الأسبوع'],['late','متأخرة ومتعثرة'],['done','منفذة'], ...(isI ? [['teachers','مبادرات المعلمين' + (tPend ? ` (${tPend} للاعتماد)` : '')]] : [])].map(([k, l]) => `<button data-act="${fk}" data-id="${k}" aria-pressed="${f === k}">${l}</button>`).join('');
+  const groups = []; list.forEach(p => { const g = p.src === 'teacher' ? 'مبادرات المعلمين' : p.goal || (isI ? 'مبادرات المدرسة' : 'برامج أخرى'); let x = groups.find(y => y.g === g); if (!x) groups.push(x = {g, l:[]}); x.l.push(p); });
+  const row = p => { const [c, l] = pStat(p), part = myPart(p); return `<div class="row"><div style="flex:1;min-width:220px"><div class="t">${esc(p.name)}</div><div class="m">${esc(pWhen(p))} · ${p.src === 'teacher' ? 'المعلم' : 'رئيس'}: ${esc(p.owner || '—')}${p.helper ? ' · مساند: ' + esc(p.helper) : ''}${p.src === 'teacher' && p.goal ? ' · الهدف: ' + esc(p.goal) : ''}</div>${p.kpi ? `<div class="m">المؤشر: ${esc(p.kpi)}</div>` : ''}</div>
+    <div class="tools">${part ? `<span class="chip info">أنت ${part}</span>` : ''}${isI && p.src === 'pdf' ? '<span class="chip mute">من الخطة</span>' : ''}<span class="chip ${c}">${l}</span>${(p.follow || []).length ? `<span class="chip mute num">${p.follow.length} متابعة</span>` : ''}${p.src === 'teacher' && p.status === 'proposed' && isAdmin() ? `<button class="btn sm pri" data-act="tInitDecide" data-id="${p.id}">اعتماد</button>` : ''}<button class="btn sm ${p.src === 'teacher' && p.status === 'proposed' ? '' : 'pri'}" data-act="planFollow" data-id="${p.id}">متابعة</button>${isAdmin() && p.src !== 'teacher' ? `<button class="btn sm" data-act="planEdit" data-id="${p.id}">تعديل</button>` : ''}</div></div>`; };
+  const tools = (isAdmin() ? `<button class="btn ${isI ? 'pri' : 'sm'}" data-act="planAdd" data-id="${kind}">إضافة ${N}</button>${isI ? '<button class="btn" data-act="tInvite">دعوة المعلمين لإضافة مبادراتهم</button>' : ''}` : '') + (all.length ? `<button class="btn ${isI ? '' : 'sm'}" data-act="planReport" data-id="${kind}">تقرير المتابعة</button><button class="btn ${isI ? '' : 'sm'}" data-act="planXlsx" data-id="${kind}">كشف Excel</button>` : '');
+  const body = all.length ? `<div class="kpis"><div class="kpi"><span class="v">${all.length}</span><span class="l">${isI ? 'مبادرة' : 'برنامجًا'}</span></div><div class="kpi"><span class="v">${planNow(all).length}</span><span class="l">في هذا الأسبوع</span></div><div class="kpi"><span class="v">${done}</span><span class="l">نُفذت</span></div><div class="kpi ${late ? 'bad' : ''}"><span class="v">${late}</span><span class="l">متأخرة أو متعثرة</span></div>${isI && all.some(p => p.src === 'teacher') ? `<div class="kpi ${tPend ? 'warn' : ''}"><span class="v">${all.filter(p => p.src === 'teacher').length}</span><span class="l">مبادرة من المعلمين${tPend ? ` · ${tPend} تنتظر اعتمادك` : ''}</span></div>` : ''}${sched.length ? `<div class="kpi ${pct !== null && pct < 80 ? 'warn' : ''}"><span class="v">${pct === null ? '—' : pct + '٪'}</span><span class="l">نسبة إنجاز ما حلّ موعده</span></div>` : ''}</div>
+    <div class="seg" role="group" aria-label="تصفية" style="margin-top:12px">${seg}</div>
+    ${groups.length ? groups.map(x => isI ? `<section class="panel"><h3>${esc(x.g)}</h3><div class="list">${x.l.map(row).join('')}</div></section>` : `<h4 style="margin:16px 0 4px">${esc(x.g)}</h4><div class="list">${x.l.map(row).join('')}</div>`).join('') : `<div class="empty">لا يوجد ما يطابق هذا التصنيف.</div>`}`
+    : `<div class="empty">${isI ? 'لا توجد مبادرات بعد. أضف مبادرة، أو ادعُ المعلمين لإضافة مبادراتهم. وإن كان في الخطة التشغيلية مبادرات فتُضاف هنا تلقائيًا عند رفعها.' : 'لا توجد برامج.'}</div>`;
+  if (isI) return head('متابعة المبادرات', 'مبادرات المدرسة والمعلمين، سواء وردت في الخطة التشغيلية أم لا: موعدها، والمسؤول عنها، وما نُفذ منها وشواهده.', tools) + loadingNote() + body;
+  return all.length ? `<section class="panel"><div class="head" style="margin:0 0 10px"><div><h3 style="margin:0">برامج الخطة التشغيلية (${all.length})</h3><p class="sub" style="margin:4px 0 0">كل برامج الخطة مع حالتها ومتابعتها. المبادرات في قسم «متابعة المبادرات».</p></div><div class="tools">${tools}</div></div>${body}</section>` : '';
 }
-function planReportDoc(){
-  const all = planSorted(), t = parseD(today()); let fm; try { fm = new Intl.DateTimeFormat('ar-SA-u-ca-islamic-umalqura', {month:'long'}); } catch { fm = null; }
+const vInits = () => planBoard('initiative');
+function planReportDoc(kind){
+  const isI = kind === 'initiative', all = planSorted().filter(p => isInit(p) === isI), t = parseD(today()); let fm; try { fm = new Intl.DateTimeFormat('ar-SA-u-ca-islamic-umalqura', {month:'long'}); } catch { fm = null; }
   const months = []; all.forEach(p => occs(p).forEach(o => { const m = fm ? fm.format(o.from) : isoDay(o.from).slice(0, 7); let x = months.find(y => y.m === m); if (!x) months.push(x = {m, n:0, d:0, l:0}); x.n++; if (occDone(p, o)) x.d++; else if (o.to < t) x.l++; }));
-  const subs = []; all.filter(p => p.status !== 'rejected').forEach(p => { const g = p.src === 'teacher' ? 'مبادرات المعلمين' : p.sub || p.goal || 'مبادرات أخرى'; let x = subs.find(y => y.g === g); if (!x) subs.push(x = {g, l:[]}); x.l.push(p); });
+  const subs = []; all.filter(p => p.status !== 'rejected').forEach(p => { const g = p.src === 'teacher' ? 'مبادرات المعلمين' : p.sub || p.goal || (isI ? 'مبادرات المدرسة' : 'برامج أخرى'); let x = subs.find(y => y.g === g); if (!x) subs.push(x = {g, l:[]}); x.l.push(p); });
   const lastF = p => [...(p.follow || [])].reverse().find(h => h.done !== 'إلغاء') || {};
   const why = h => h.reason || (h.by === 'teacher' ? h.text : '') || '';
-  return `<div class="paper land">${docHead('متابعة تنفيذ برامج الخطة التشغيلية', 'حتى ' + hij(today()), '', hij(today()))}
-    <h4>المتابعة الشهرية</h4><table><tr><th>الشهر</th><th>المخطط</th><th>المنفذ</th><th>المتأخر</th><th>نسبة الإنجاز</th></tr>${months.map(x => `<tr><td>${esc(x.m)}</td><td>${x.n}</td><td>${x.d}</td><td>${x.l}</td><td>${x.d + x.l ? Math.round(x.d / (x.d + x.l) * 100) + '٪' : '—'}</td></tr>`).join('')}</table>
-    ${subs.map(x => `<h4>${esc(x.g)}</h4><table><tr><th style="width:4%">م</th><th style="width:20%">البرنامج</th><th>الموعد</th><th>المسؤول</th><th>الحالة</th><th>تاريخ المتابعة</th><th>سبب عدم التنفيذ</th><th>إجراءات التحسين</th></tr>${x.l.map((p, i) => { const h = lastF(p); return `<tr><td>${i + 1}</td><td>${esc(p.name)}</td><td>${esc(pWhen(p))}</td><td>${esc(p.owner || '')}</td><td>${esc(pStat(p)[1])}</td><td>${h.date ? esc(hij(h.date)) : ''}</td><td>${esc(why(h))}</td><td>${esc(h.action || '')}</td></tr>`; }).join('')}</table>`).join('')}
+  return `<div class="paper land">${docHead(isI ? 'متابعة تنفيذ المبادرات' : 'متابعة تنفيذ برامج الخطة التشغيلية', 'حتى ' + hij(today()), '', hij(today()))}
+    ${months.length ? '' : '<!--'}<h4>المتابعة الشهرية</h4><table><tr><th>الشهر</th><th>المخطط</th><th>المنفذ</th><th>المتأخر</th><th>نسبة الإنجاز</th></tr>${months.map(x => `<tr><td>${esc(x.m)}</td><td>${x.n}</td><td>${x.d}</td><td>${x.l}</td><td>${x.d + x.l ? Math.round(x.d / (x.d + x.l) * 100) + '٪' : '—'}</td></tr>`).join('')}</table>${months.length ? '' : '-->'}
+    ${subs.map(x => `<h4>${esc(x.g)}</h4><table><tr><th style="width:4%">م</th><th style="width:20%">${isI ? 'المبادرة' : 'البرنامج'}</th><th>الموعد</th><th>المسؤول</th><th>الحالة</th><th>تاريخ المتابعة</th><th>سبب عدم التنفيذ</th><th>إجراءات التحسين</th></tr>${x.l.map((p, i) => { const h = lastF(p); return `<tr><td>${i + 1}</td><td>${esc(p.name)}</td><td>${esc(pWhen(p))}</td><td>${esc(p.owner || '')}</td><td>${esc(pStat(p)[1])}</td><td>${h.date ? esc(hij(h.date)) : ''}</td><td>${esc(why(h))}</td><td>${esc(h.action || '')}</td></tr>`; }).join('')}</table>`).join('')}
     ${sigRow('مدير المدرسة', principal(), null)}</div>`;
 }
 function planWeekDoc(){
-  const cw = curWeek(), all = planSorted(), list = UI.planAll ? all : all.filter(myPart), now = planNow(list), late = planLate(list).filter(p => !now.includes(p));
+  const cw = curWeek(), all = planSorted().filter(p => !isInit(p)), list = UI.planAll ? all : all.filter(myPart), now = planNow(list), late = planLate(list).filter(p => !now.includes(p));
   const tb = l => `<table><tr><th style="width:4%">م</th><th style="width:24%">البرنامج</th><th>رئيس</th><th>مساند</th><th>أسلوب التنفيذ</th><th>مؤشر الإنجاز</th><th style="width:9%">نُفذ</th></tr>${l.map((p, i) => `<tr><td>${i + 1}</td><td>${esc(p.name)}</td><td>${esc(p.owner || '')}</td><td>${esc(p.helper || '')}</td><td>${esc(p.method || '')}</td><td>${esc(p.kpi || '')}</td><td></td></tr>`).join('')}</table>`;
   return `<div class="paper land">${docHead('برامج الخطة التشغيلية للأسبوع', cw.week >= 1 ? weekLabel(cw.sem, cw.week) : '', '', hij(today()))}
     <p>${UI.planAll ? 'جميع البرامج' : 'المطلوب من: ' + esc(myRoles().join('، '))}</p><h4>برامج هذا الأسبوع</h4>${now.length ? tb(now) : '<p>لا برامج.</p>'}${late.length ? `<h4>متأخرة لم يُسجل تنفيذها</h4>${tb(late)}` : ''}</div>`;
 }
 Object.assign(ACT, {
-  planImport: planImportForm, planRoles: rolesForm, planDone: planDoneTog, planFollow: planFollowForm, planEdit: id => planForm(id), planAdd: () => planForm(),
+  planImport: planImportForm, planRoles: rolesForm, planDone: planDoneTog, planFollow: planFollowForm, planEdit: id => planForm(id), planAdd: id => planForm(null, id || 'initiative'),
   planDel: id => confirmBox('حذف مبادرة', 'ستُحذف المبادرة ومتابعاتها نهائيًا.', 'حذف', () => del('plan/' + id)),
-  planAll: id => { UI.planAll = !!id; render(true); }, iFilter: id => { UI.iFilter = id; render(true); },
-  planReport: () => printDoc(planReportDoc()), planWeekPrint: () => printDoc(planWeekDoc()),
-  planXlsx: () => saveXlsx('برامج الخطة التشغيلية', [{name:'البرامج', rows:[['الهدف العام','الهدف التفصيلي','البرنامج','الموعد','رئيس','مساند','المستهدفون','أسلوب التنفيذ','مؤشر الإنجاز','الشواهد','الحالة','عدد المتابعات'],
-    ...planSorted().map(p => [p.goal || '', p.sub || '', p.name, pWhen(p), p.owner || '', p.helper || '', p.targets || '', p.method || '', p.kpi || '', p.evidence || '', pStat(p)[1], (p.follow || []).length])]}])
+  planAll: id => { UI.planAll = !!id; render(true); }, iFilter: id => { UI.iFilter = id; render(true); }, gFilter: id => { UI.gFilter = id; render(true); },
+  planReport: id => printDoc(planReportDoc(id || 'initiative')), planWeekPrint: () => printDoc(planWeekDoc()),
+  planXlsx: id => saveXlsx(id === 'program' ? 'برامج الخطة التشغيلية' : 'المبادرات', [{name:id === 'program' ? 'البرامج' : 'المبادرات', rows:[['الهدف العام','الهدف التفصيلي',id === 'program' ? 'البرنامج' : 'المبادرة','الموعد','رئيس','مساند','المستهدفون','أسلوب التنفيذ','مؤشر الإنجاز','الشواهد','الحالة','عدد المتابعات'],
+    ...planSorted().filter(p => isInit(p) === (id !== 'program')).map(p => [p.goal || '', p.sub || '', p.name, pWhen(p), p.owner || '', p.helper || '', p.targets || '', p.method || '', p.kpi || '', p.evidence || '', pStat(p)[1], (p.follow || []).length])]}])
 });
 document.addEventListener('change', e => { if (e.target.id === 'waApp') { store.set('mdr.wa', e.target.value || null); toast(e.target.value ? 'ستُفتح الرسائل في واتساب للأعمال على هذا الجهاز' : 'ستُفتح الرسائل في التطبيق الافتراضي'); } });
 // روابط intent تفتح التطبيق مباشرة، فتبقى المنصة في نفس الصفحة بدل فتح تبويب فارغ
