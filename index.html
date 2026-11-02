@@ -309,11 +309,16 @@ const stamp = ts => { if (!ts) return '—'; try { return fStamp ? fStamp.format
 function intl(p){ let d = String(p||'').replace(/\D/g,''); if (d.startsWith('00')) d = d.slice(2);
   if (d.startsWith('05') && d.length === 10) d = '966' + d.slice(1); else if (d.startsWith('5') && d.length === 9) d = '966' + d;
   return d.length >= 11 ? d : ''; }
-const waLink = (phone, text) => { const n = intl(phone); return n ? `https://wa.me/${n}?text=${encodeURIComponent(text)}` : ''; };
+const ANDROID = /Android/i.test(navigator.userAgent);
+// على أندرويد يُفتح واتساب للأعمال مباشرة برابط intent، وإن لم يكن مثبتًا يعود المتصفح إلى wa.me
+const waUrl = (n, text) => { const web = `https://wa.me/${n}?text=${encodeURIComponent(text)}`;
+  return ANDROID && store.get('mdr.wa') === 'biz' ? `intent://send?${n ? 'phone=' + n + '&' : ''}text=${encodeURIComponent(text)}#Intent;scheme=whatsapp;package=com.whatsapp.w4b;S.browser_fallback_url=${encodeURIComponent(web)};end` : web; };
+const waLink = (phone, text) => { const n = intl(phone); return n ? waUrl(n, text) : ''; };
+const waShare = text => waUrl('', text);
 const phoneCell = p => p ? `<span class="phone">${esc(p)}</span> <button class="btn sm" data-act="copy" data-v="${esc(p)}" title="نسخ الرقم">نسخ</button>` : '<span class="m">—</span>';
 
 /* ---------- state ---------- */
-const COLS = ['teachers','absences','notices','committees','exams','parents','docs','students','attendance','incidents','schedule','lessons','visits','tasks','grading','ctrlsigns','records','recsigns','ctrlissue','sendlog','duty','dutylog'];
+const COLS = ['teachers','absences','notices','committees','exams','parents','docs','students','attendance','incidents','schedule','lessons','visits','tasks','grading','ctrlsigns','records','recsigns','ctrlissue','sendlog','duty','dutylog','plan'];
 const LOGO = 'data:image/jpeg;base64,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xKKjsITxXhnx+1a/hv7az3zW9q8jLJICQrDjg17mayte0HTdbtvs+o20c0YOQGUGrhLlZxZhh6lejyQdmeM/AG/1Y+J73TIbiS40ZFDh85CtjgV74OlZOheH9L0SLytNs4rdCMEIoGfc1rUpO7uVgKE6FJQm7sKKKKk7RCK89+Inwy0rxTdJfbPKvFJzIHKk/WvQ6KcZOOxz4jDU8RDkqK6OG+HPgHTPBYf7J5jTXCjzHZt3NdwOOKWkOKJSctyqFCnQjywVkKOlBrkvEnj/AMN6FMILzUI1m3FTHySMeuK3tE1Wx1e0jurGdZonUMGU8c03FpXFHE05zcIvUuSoJEKsMg15j4j+CvhPWNdbVnSeKSWTfMqSYVvoO1eo9aKFJrYVfCUsR/EVzO0HSrTR7CKys02xRIEUew6Vo0UUm7msIRhFRjsgo70UGkWUNdM40m6NsSJvKby8dd2OK+TZrjWRqdzO9zdR6stwcqT8/WvsB1DAhhkGsiTw3osmojUH062NyP8AloYxk1pCSR5GZYCeKacHawng1pn8N2LXCuspgQvu65wM1sUkahRgDAFOqG7s9KlBwgot7CFQeoFMjiiQnbGq59BUlFI0smIBS0UUDCjAoooAKKKKACjiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAMUYoooAMUUUUAFFFFABRRRQAGmSA7CB3p5pKBPXQ+cviN4S12HxpqWqx6R9utbslYjvAwcdcdq9S+CuhahoHhOKz1GPZMx83G7OM9q7lo0b7yK31FOUAdBitZVeaNjzMNlkaFZ1U9xaKKKyPUCiiigAooooAMUYoooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACigmigAooooAKKKKACiiigAooooAKKQmkdwgyfpQA6ikJo5xQAtFFFABRRRQAUUUUAFFFFABRRmigAooooAKKKKACiiigAooooAKKKKACiiigAoozRQAUUZFGaACiiigAoopMigBabK2xC3pTqiuhmBvpTW5FR2i2jx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';
 const S = { settings:{}, loaded:false };
 COLS.forEach(c => S[c] = []);
@@ -330,7 +335,7 @@ const MODE = hashArg('t') ? 'teacher' : hashArg('p') ? 'parent' : 'admin';
 document.documentElement.classList.toggle('portal', MODE !== 'admin');
 const KEY = hashArg('t') || hashArg('p');
 let token = store.get('mdr.token');
-const APP_VER = '3.5'; // ارفعه مع site/version.json في كل نشر
+const APP_VER = '3.6'; // ارفعه مع site/version.json في كل نشر
 const DEV = store.get('mdr.dev') || [...crypto.getRandomValues(new Uint8Array(16))].map(b => b.toString(16).padStart(2, '0')).join(''); store.set('mdr.dev', DEV);
 const devInfo = () => { const u = navigator.userAgent; return {device:DEV, deviceName:`${/iPhone|iPad/.test(u) ? 'آيفون' : /Android/.test(u) ? 'أندرويد' : 'كمبيوتر'} · ${/Edg/.test(u) ? 'Edge' : /Chrome/.test(u) ? 'Chrome' : /Safari/.test(u) ? 'Safari' : /Firefox/.test(u) ? 'Firefox' : 'متصفح'}`}; };
 const ERR = {
@@ -593,13 +598,14 @@ const teacherLink = t => t && t.key ? `${BASE}#t=${t.key}` : '';
 const parentLink = p => p && p.key ? `${BASE}#p=${p.key}` : '';
 
 /* ---------- nav & shell ---------- */
-const TABS = [['dash','لوحة المتابعة'],['sched','متابعة الحصص'],['duty','متابعة المناوبة'],['teachers','المعلمون والغياب'],['notices','المساءلات'],['students','الطلاب'],['control','كنترول الاختبارات'],['parents','أولياء الأمور'],['records','المحاضر والخطابات'],['guide','الدليل التنظيمي'],['tasks','المهام'],['archive','الأرشيف'],['settings','الإعدادات']];
+const TABS = [['dash','لوحة المتابعة'],['sched','متابعة الحصص'],['duty','متابعة المناوبة'],['inits','متابعة المبادرات'],['teachers','المعلمون والغياب'],['notices','المساءلات'],['students','الطلاب'],['control','كنترول الاختبارات'],['parents','أولياء الأمور'],['records','المحاضر والخطابات'],['guide','الدليل التنظيمي'],['tasks','المهام'],['archive','الأرشيف'],['settings','الإعدادات']];
 function navBadge(k){
   if (k === 'notices') return S.notices.filter(n => n.status !== 'closed').length;
   if (k === 'parents') return S.parents.filter(p => !p.parentSig && !p.noSign).length;
   if (k === 'control') return S.exams.filter(e => e.date === isoDay() && !e.ret).length;
   if (k === 'tasks') return S.tasks.filter(t => !t.done && t.due && t.due <= isoDay()).length;
   if (k === 'students') return atRisk().length;
+  if (k === 'inits') return planLate(S.plan.filter(myPart)).length;
   return 0;
 }
 function renderNav(){
@@ -619,7 +625,7 @@ function render(force){
   if (document.activeElement?.id === 'lTxt') return;
   const m = $('#main');
   if (!force && UI.tab === 'settings' && document.getElementById('setForm')) return;
-  const V = {dash:vDash, sched:vSched, duty:vDuty, teachers:vTeachers, notices:vNotices, students:vStudents, control:vControl, parents:vParents, records:vRecords, guide:vGuide, tasks:vTasks, archive:vArchive, settings:vSettings}[UI.tab] || vDash;
+  const V = {dash:vDash, sched:vSched, duty:vDuty, inits:vInits, teachers:vTeachers, notices:vNotices, students:vStudents, control:vControl, parents:vParents, records:vRecords, guide:vGuide, tasks:vTasks, archive:vArchive, settings:vSettings}[UI.tab] || vDash;
   m.innerHTML = V();
 }
 const head = (title, sub, tools) => `<div class="head"><div><h2>${title}</h2>${sub ? `<p>${sub}</p>` : ''}</div>${tools ? `<div class="tools">${tools}</div>` : ''}</div>`;
@@ -636,6 +642,7 @@ function vDash(){
   const actions = [
     ...waitP.map(n => ({t:`مساءلة ${n.no} — ${tName(n.teacherId)}`, m:'ردّ المعلم، وتنتظر قرارك وتوقيعك', c:['info','قرار المدير'], act:'viewNotice', id:n.id})),
     ...waitT.map(n => ({t:`مساءلة ${n.no} — ${tName(n.teacherId)}`, m:`${n.kind} · ${hij(n.date)}`, c:['warn','رد المعلم'], act:'viewNotice', id:n.id})),
+    ...(() => { const m = S.plan.filter(myPart), n = planNow(m); return [...n.map(p => ({t:p.name, m:`الخطة التشغيلية · ${myPart(p)}: ${p.owner || ''}`, c:['info','هذا الأسبوع'], act:'planFollow', id:p.id})), ...planLate(m).filter(p => !n.includes(p)).slice(0,4).map(p => ({t:p.name, m:`الخطة التشغيلية · ${pWhen(p)}`, c:['bad','متأخر'], act:'planFollow', id:p.id}))]; })(),
     ...parPend.slice(0,6).map(p => ({t:`${p.kind} — ${p.student}`, m:`ولي الأمر: ${p.parentName||'—'}`, c:['warn','توقيع ولي الأمر'], act:'viewParent', id:p.id}))
   ].slice(0,10);
   const setupNeeded = !set().phone || !S.teachers.length;
@@ -768,10 +775,15 @@ function vSettings(){
       ${f('health','الموجه الصحي', s.health)}
       ${f('safety','منسق الأمن والسلامة', s.safety)}
       ${f('periods','عدد الحصص اليومية', s.periods || 7, 'number')}
+      ${f('sem1Start','بداية الفصل الدراسي الأول', s.sem1Start || SEM_DEF[1], 'date', 'تُحسب منها أسابيع الخطة التشغيلية')}
+      ${f('sem2Start','بداية الفصل الدراسي الثاني', s.sem2Start || SEM_DEF[2], 'date')}
       ${f('missLimit','حد عدم دخول الحصص لإصدار مساءلة', s.missLimit || 2, 'number')}
       ${f('absLimit','حد غياب الطالب للإنذار المبكر (٪)', s.absLimit || 15, 'number')}
       ${f('incLimit','عدد المخالفات للإنذار المبكر', s.incLimit || 3, 'number')}
     </div><div><button class="btn pri" type="submit">حفظ الإعدادات</button></div></form>
+    <section class="panel"><h3>واتساب على هذا الجهاز</h3><p class="sub">إن كان في الجوال واتساب العادي وواتساب للأعمال معًا، اختر هنا أيهما تفتح فيه رسائل المنصة. الاختيار لهذا الجهاز فقط.</p>
+      <div class="fg"><div class="f"><label for="waApp">تفتح الرسائل في</label><select id="waApp"><option value="">التطبيق الافتراضي في الجهاز</option><option value="biz" ${store.get('mdr.wa') === 'biz' ? 'selected' : ''}>واتساب للأعمال (أندرويد)</option></select>
+      <span class="hint">${ANDROID ? 'يعمل على جوالات أندرويد.' : /iPhone|iPad/.test(navigator.userAgent) ? 'في الآيفون لا تستطيع المواقع اختيار التطبيق، فيفتح واتساب العادي إن كان مثبتًا. أرسل من الكمبيوتر المربوط برقم المدرسة، أو انسخ الرسالة.' : 'على الكمبيوتر تُفتح الرسائل في واتساب المربوط بالكمبيوتر، فاربطه برقم المدرسة.'}</span></div></div></section>
     <section class="panel"><h3>الدخول للوحة المدير</h3><p class="sub">رمز المدرسة: <b class="phone">${esc(S.code || store.get('mdr.code') || '')}</b> — تحتاجه مع كلمة المرور للدخول من أي جهاز. من يعرفهما يدخل لوحة المدير كاملة، فشاركهما مع الوكيل أو رئيس الكنترول عند الحاجة فقط.</p>
       <p class="sub">يُفتح الحساب على ثلاثة أجهزة كحد أقصى من جوال وكمبيوتر. واحتفظ بمفتاح التفعيل، فهو طريقة استعادة كلمة المرور.</p>
       <div class="tools"><button class="btn" data-act="changePw">تغيير كلمة المرور</button><button class="btn" data-act="devices">الأجهزة</button><button class="btn" data-act="showKey">مفتاح التفعيل</button></div></section>`;
@@ -1110,7 +1122,7 @@ document.addEventListener('click', e => {
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('#modalRoot').innerHTML) closeModal(); });
 document.addEventListener('submit', async e => {
   if (e.target.id !== 'setForm') return; e.preventDefault();
-  const keys = ['school','region','year','principal','phone','deputy','deputyPhone','schoolWa','controlHead','controlPhone','counselor','health','safety','periods','missLimit','absLimit','incLimit'];
+  const keys = ['school','region','year','principal','phone','deputy','deputyPhone','schoolWa','controlHead','controlPhone','counselor','health','safety','periods','sem1Start','sem2Start','missLimit','absLimit','incLimit'];
   const data = {}; keys.forEach(k => data[k] = fval('s_' + k));
   if (await put('settings/school', data)) { UI.setDirty = false; toast('حُفظت الإعدادات'); }
 });
@@ -1471,7 +1483,7 @@ function viewVisit(id){
 /* ---------- المهام ---------- */
 function vTasks(){
   const list = [...S.tasks].sort((a,b) => (!!a.done - !!b.done) || String(a.due || '').localeCompare(String(b.due || '')));
-  return head('المهام', 'اجتماعاتك وزياراتك ومتابعاتك اليومية في مكان واحد.', isAdmin() ? '<button class="btn pri" data-act="addTask">إضافة مهمة</button>' : '') + loadingNote() +
+  return head('المهام', 'اجتماعاتك وزياراتك ومتابعاتك اليومية في مكان واحد.', isAdmin() ? `<button class="btn pri" data-act="addTask">إضافة مهمة</button>${S.plan.length ? '<button class="btn" data-act="planImport">رفع الخطة التشغيلية</button>' : ''}` : '') + loadingNote() + planAgenda() +
     (list.length ? `<section class="panel"><div class="list">${list.map(x => `<div class="row"><label class="check" style="flex:1;min-width:200px"><input type="checkbox" data-act="doneTask" data-id="${x.id}" ${x.done ? 'checked' : ''}><span><span class="t" style="${x.done ? 'text-decoration:line-through;color:var(--muted)' : ''}">${esc(x.title)}</span><br><span class="m" style="font-size:13px;color:var(--muted)">${x.due ? esc(dayName(x.due) + ' ' + hij(x.due)) : ''}</span></span></label>
       <div class="tools"><span class="chip ${x.pri === 'عاجل' ? 'bad' : x.pri === 'متوسط' ? 'warn' : 'mute'}">${esc(x.pri || 'عادي')}</span>${isAdmin() ? `<button class="btn sm danger" data-act="delTask" data-id="${x.id}">حذف</button>` : ''}</div></div>`).join('')}</div></section>`
       : '<div class="empty">لا مهام. سجّل هنا اجتماعاتك وزياراتك ومتابعاتك.</div>');
@@ -2789,7 +2801,7 @@ function sendQueue(title, items, logId, note, group){
   const draw = () => { const ok = items.filter(i => waLink(i.phone, '.')); const done = ok.filter(i => sent(i.id)); const next = ok.find(i => !sent(i.id)); const noPh = items.length - ok.length;
     $('#sqBody').innerHTML = `<div class="tools"><span class="chip ok num">أُرسل ${done.length} من ${ok.length}</span>${noPh ? `<span class="chip warn num">بلا جوال: ${noPh}</span>` : ''}${next ? `<a class="btn pri" href="${esc(waLink(next.phone, next.msg))}" target="_blank" rel="noopener" data-qid="${esc(next.id)}">إرسال التالي: ${esc(next.name)}</a>` : (ok.length ? '<span class="chip ok">اكتمل الإرسال</span>' : '')}</div>
       <div class="list">${items.map(i => { const w = waLink(i.phone, i.msg); return `<div class="row"><div><div class="t">${esc(i.name)}</div><div class="m">${esc(i.sub || '')}${i.phone ? ' · <span class="phone">' + esc(i.phone) + '</span>' : ''}</div></div><div class="tools">${sent(i.id) ? '<span class="chip ok">أُرسل</span>' : ''}${w ? `<a class="btn sm wa" href="${esc(w)}" target="_blank" rel="noopener" data-qid="${esc(i.id)}">${sent(i.id) ? 'إعادة' : 'إرسال'}</a>` : '<span class="chip mute">لا يوجد واتساب</span>'}${i.sid ? `<input data-qph="${esc(i.id)}" dir="ltr" inputmode="tel" placeholder="رقم واتساب" aria-label="رقم واتساب ${esc(i.name)}" style="width:125px"><button type="button" class="btn sm" data-qsave="${esc(i.id)}">حفظ الرقم</button>` : ''}</div></div>`; }).join('')}</div>`; };
-  const dlg = modal(title, `${note ? `<p class="sub" style="margin:0 0 8px">${esc(note)}</p>` : ''}<p class="sub" style="margin:0 0 10px">تُفتح كل محادثة في واتساب برسالتها الجاهزة، فاضغط إرسال فيه ثم عد هنا للتالي.</p>${group ? `<div class="notice-bar info"><b>رسالة واحدة تكفي الجميع:</b> أرسلها في مجموعة المعلمين أو قائمة البث، ويفتح كل معلم رابطه الخاص الذي وصله من قبل. الرسالة عامة ولا تحمل اسمًا ولا رابطًا خاصًا.<div class="tools" style="margin-top:8px"><a class="btn sm wa" href="https://wa.me/?text=${encodeURIComponent(group)}" target="_blank" rel="noopener">إرسال للمجموعة</a><button type="button" class="btn sm" id="sqCopy">نسخ الرسالة</button></div></div><p class="sub" style="margin:0 0 8px">أو أرسل لكل معلم على حدة:</p>` : ''}<div id="sqBody"></div>`, '', true);
+  const dlg = modal(title, `${note ? `<p class="sub" style="margin:0 0 8px">${esc(note)}</p>` : ''}<p class="sub" style="margin:0 0 10px">تُفتح كل محادثة في واتساب برسالتها الجاهزة، فاضغط إرسال فيه ثم عد هنا للتالي.</p>${group ? `<div class="notice-bar info"><b>رسالة واحدة تكفي الجميع:</b> أرسلها في مجموعة المعلمين أو قائمة البث، ويفتح كل معلم رابطه الخاص الذي وصله من قبل. الرسالة عامة ولا تحمل اسمًا ولا رابطًا خاصًا.<div class="tools" style="margin-top:8px"><a class="btn sm wa" href="${esc(waShare(group))}" target="_blank" rel="noopener">إرسال للمجموعة</a><button type="button" class="btn sm" id="sqCopy">نسخ الرسالة</button></div></div><p class="sub" style="margin:0 0 8px">أو أرسل لكل معلم على حدة:</p>` : ''}<div id="sqBody"></div>`, '', true);
   if (group) $('#sqCopy').onclick = async () => { try { await navigator.clipboard.writeText(group); toast('نُسخت الرسالة'); } catch { toast('تعذّر النسخ', 'bad'); } };
   dlg.addEventListener('click', e => { const a = e.target.closest('[data-qid]'); if (!a) return;
     save2('sendlog', logId, {[a.dataset.qid]:Date.now()}).then(draw); });
@@ -2798,6 +2810,233 @@ function sendQueue(title, items, logId, note, group){
     i.phone = ph; if (i.remsg) i.msg = i.remsg(); toast('حُفظ رقم الواتساب'); draw(); });
   draw();
 }
+
+/* ---------- قراءة الخطة التشغيلية من PDF ---------- */
+// نسخة pdf.js في vendor معدّلة لتصحيح ترتيب الحروف المتصلة العربية (لا، لأ، لم) عند استخراج النص
+let pdfReady;
+const loadPdf = () => pdfReady ||= import(new URL('vendor/pdf.min.mjs', location.href).href).then(m => { m.GlobalWorkerOptions.workerSrc = new URL('vendor/pdf.worker.min.mjs', location.href).href; return m; });
+const latinDig = s => String(s || '').replace(/[٠-٩]/g, d => d.charCodeAt(0) - 1632).replace(/[۰-۹]/g, d => d.charCodeAt(0) - 1776);
+const pnorm = s => String(s || '').replace(/[أإآ]/g, 'ا').replace(/ى/g, 'ي').replace(/ة/g, 'ه').replace(/[\sـ:]/g, '');
+const PCOLS = {no:['م','رقم'], name:['اسمالبرنامج','البرنامج','اسمالمبادره','المبادره','البرامج','الاجراء','الاجراءات','النشاط'], sem:['الفصل','الفصلالدراسي'], week:['الاسبوع'],
+  when:['زمنالتنفيذ','موعدالتنفيذ','التوقيت','وقتالتنفيذ','مدهالتنفيذ','الفترهالزمنيه'], targets:['المستهدفون','المستهدفين','الفئهالمستهدفه'], req:['ماليه','غير','غيرماليه','المتطلبات'],
+  method:['اسلوب','اسلوبالتنفيذ','التنفيذ','اليهالتنفيذ','اساليبالتنفيذ'], owner:['رئيس','مسؤولالتنفيذ','المسؤول','المسؤولعنالتنفيذ','المنفذ','جههالتنفيذ'], helper:['مساند','المساند'], kpi:['مؤشرالانجاز','مؤشرالاداء','مؤشراتالانجاز','مؤشراتالاداء','مؤشرالتحقق']};
+const pfield = s => { const n = pnorm(s); for (const [f, l] of Object.entries(PCOLS)) if (l.includes(n)) return f; return ''; };
+// يجمع عناصر السطر من اليمين لليسار، ويضع الأرقام المتجاورة بترتيبها الصحيح
+function pline(items){
+  const a = [...items].sort((x, y) => y.x - x.x), out = [];
+  for (let i = 0; i < a.length; i++) {
+    if (/^\d+$/.test(latinDig(a[i].s.trim()))) { let j = i; while (j + 1 < a.length && /^\d+$/.test(latinDig(a[j + 1].s.trim())) && a[j].x - (a[j + 1].x + a[j + 1].w) < 2) j++;
+      out.push({s:a.slice(i, j + 1).reverse().map(x => x.s.trim()).join(''), x:a[j].x, w:a[i].x + a[i].w - a[j].x, sp:a[i].sp}); i = j; } else out.push(a[i]); }
+  return out.reduce((t, x, i) => t + (i && (x.sp || out[i - 1].sp || out[i - 1].x - (x.x + x.w) > 2.5) ? ' ' : '') + x.s.trim(), '');
+}
+function ptext(items){
+  const rows = []; [...items].sort((a, b) => a.y - b.y).forEach(it => { const r = rows.find(r => Math.abs(r.y - it.y) <= 3.5); r ? r.items.push(it) : rows.push({y:it.y, items:[it]}); });
+  return ptidy(rows.map(r => pline(r.items)).join(' '));
+}
+// تصحيح ما يفقده استخراج النص من مسافات: كلمتان ملتصقتان قبل «ال»، والأرقام الملتصقة، والحروف المنفصلة والتنوين
+const ptidy = s => s.replace(/\s+/g, ' ').replace(/(^|\s)[ً-ٟ](?=\s|$)/g, '$1').replace(/\s+([ً-ٟ])/g, '$1')
+  .replace(/([ء-ي]{3,})(ال[ء-ي]{3,})/g, (m, a, b) => /^(وال|بال|فال|كال|لل|وبال|ولل|فلل)/.test(a + b) && a.length < 4 ? m : a + ' ' + b)
+  .replace(/([ء-ي]) ([ء-هى-ي])(?=[\s.,،:]|$)/g, '$1$2')
+  .replace(/([ء-ي])([0-9٠-٩])/g, '$1 $2').replace(/([0-9٠-٩])([ء-ي])/g, '$1 $2').replace(/([0-9٠-٩]) %/g, '$1%').replace(/\s+/g, ' ').trim();
+function pageItems(tc, vp){
+  const out = []; let prev = null;
+  for (const it of tc.items) { if (!('str' in it)) continue;
+    if (!it.str.trim()) { if (prev) prev.sp = true; continue; }
+    prev = {s:it.str.normalize('NFKC'), x:it.transform[4], y:vp.height - it.transform[5], w:it.width}; out.push(prev); }
+  return out;
+}
+function planTables(items){
+  // رأس الجدول: خانة «اسم البرنامج» ومعها ثلاث خانات رأس أخرى على الأقل في السطر نفسه
+  const heads = items.filter(i => pfield(i.s) === 'name' && new Set(items.filter(j => Math.abs(j.y - i.y) <= 22).map(j => pfield(j.s)).filter(Boolean)).size >= 4).sort((a, b) => a.y - b.y), progs = [];
+  heads.forEach((h, hi) => {
+    const top = h.y - 22, end = hi + 1 < heads.length ? heads[hi + 1].y - 30 : Infinity;
+    const hdr = items.filter(i => Math.abs(i.y - h.y) <= 22 && pfield(i.s)).map(i => ({f:pfield(i.s), n:pnorm(i.s), l:i.x, r:i.x + i.w}));
+    let cols = hdr;
+    const has = f => cols.some(x => x.f === f);
+    if (has('sem') && has('week')) cols = cols.filter(x => x.f !== 'when');
+    if (cols.some(x => x.n === 'رئيس')) cols = cols.filter(x => x.f !== 'owner' || x.n === 'رئيس');
+    if (cols.some(x => x.n === 'ماليه')) cols = cols.filter(x => x.n !== 'المتطلبات');
+    if (!cols.some(x => ['sem','week','when'].includes(x.f)) || !cols.some(x => x.f === 'owner')) return;
+    const bottom = Math.max(...items.filter(i => Math.abs(i.y - h.y) <= 22 && pfield(i.s)).map(i => i.y)) + 3;
+    // حدود الأعمدة في منتصف المسافة بين عناوينها، فالخانة العريضة لا تأخذ نص جارتها
+    const span = {}; cols.forEach(x => { const o = span[x.f] ||= {f:x.f, l:x.l, r:x.r}; o.l = Math.min(o.l, x.l); o.r = Math.max(o.r, x.r); });
+    const ord = Object.values(span).sort((a, b) => b.r - a.r); ord.forEach((x, k) => x.cut = k + 1 < ord.length ? (x.l + ord[k + 1].r) / 2 : -Infinity);
+    const col = it => { const c = it.x + it.w / 2; return (ord.find(x => c >= x.cut) || ord[ord.length - 1]).f; };
+    const body = items.filter(i => i.y > bottom && i.y < end);
+    const lineOf = lab => { const l = items.find(i => pnorm(i.s) === lab && i.y < h.y && i.y > top - 140); if (!l) return ''; return ptext(items.filter(i => i !== l && Math.abs(i.y - l.y) <= 4 && i.x < l.x)); };
+    const goal = lineOf('الهدفالعام'), sub = lineOf('الهدفالتفصيلي');
+    let anchors = body.filter(i => col(i) === 'no' && /^\d+$/.test(latinDig(i.s.trim()))).sort((a, b) => a.y - b.y);
+    if (!anchors.length) { const nm = body.filter(i => col(i) === 'name').sort((a, b) => a.y - b.y); anchors = nm.filter((i, k) => !k || i.y - nm[k - 1].y > 12); }
+    anchors.forEach((a, k) => {
+      const lo = k ? (anchors[k - 1].y + a.y) / 2 : bottom, hiY = k + 1 < anchors.length ? (a.y + anchors[k + 1].y) / 2 : end;
+      const cell = {}; body.filter(i => i.y >= lo && i.y < hiY).forEach(i => { const f = col(i); if (f !== 'no') (cell[f] ||= []).push(i); });
+      const T = f => ptext(cell[f] || []); const name = T('name').replace(/^\d+\s*[-.)]?\s*/, '');
+      if (!name) return;
+      const semT = T('sem') + ' ' + T('when'), weekT = latinDig(T('week') || T('when'));
+      const sem = [/الأول|الاول/.test(semT) ? 1 : 0, /الثاني/.test(semT) ? 2 : 0].filter(Boolean);
+      const weeks = (weekT.match(/\d+/g) || []).map(Number).filter(n => n >= 1 && n <= 22);
+      const kpiT = T('kpi'), ev = kpiT.split(/الشواهد\s*:?/);
+      progs.push({name, goal, sub, sem, weeks:[...new Set(weeks)], cont:/مستمر|كل\s*(أسبوع|اسبوع|شهر)|دوري|طوال/.test(semT + ' ' + weekT) || (!weeks.length), when:(T('when') || [T('sem'), T('week')].filter(Boolean).join(' / ')),
+        targets:T('targets'), method:T('method'), owner:T('owner'), helper:T('helper'), kpi:ev[0].trim(), evidence:(ev[1] || '').trim()});
+    });
+  });
+  return progs;
+}
+async function readPlanPdf(file){
+  const pdfjs = await loadPdf(); const doc = await pdfjs.getDocument({data:await file.arrayBuffer()}).promise; const progs = []; let chars = 0;
+  for (let n = 1; n <= doc.numPages; n++) { const pg = await doc.getPage(n), vp = pg.getViewport({scale:1}); const items = pageItems(await pg.getTextContent(), vp);
+    chars += items.reduce((s, i) => s + i.s.length, 0); planTables(items).forEach(p => progs.push({...p, page:n})); }
+  return {progs, pages:doc.numPages, scanned: chars < doc.numPages * 20};
+}
+
+/* ---------- الخطة التشغيلية: الأسابيع والمطلوب مني ---------- */
+// بداية الفصلين حسب التقويم المعلن لعام ١٤٤٨هـ، ويعدّلها المدير عند رفع الخطة أو من الإعدادات
+const SEM_DEF = {1:'2026-08-23', 2:'2027-01-17'}, SEM_N = ['', 'الأول', 'الثاني'];
+const semStart = n => parseD(set()['sem' + n + 'Start'] || SEM_DEF[n]);
+const addD = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
+function curWeek(){ const t = parseD(today()); for (const s of [2, 1]) { const st = semStart(s); if (t >= st) return {sem:s, week:Math.floor((t - st) / 864e5 / 7) + 1}; } return {sem:1, week:0}; }
+function occs(p){ if (p.cont || !(p.weeks || []).length) return [];
+  return (p.sem && p.sem.length ? p.sem : [1]).flatMap(s => p.weeks.map(w => { const from = addD(semStart(s), 7 * (w - 1)); return {sem:s, week:w, key:s + '-' + w, from, to:addD(from, 4)}; })); }
+const occDone = (p, o) => !!(p.done || {})[o.key];
+const pWhen = p => occs(p).length ? (p.sem && p.sem.length ? p.sem : [1]).map(s => 'الفصل ' + SEM_N[s]).join(' و') + ' · الأسبوع ' + p.weeks.join('، ') : (p.when || 'مستمر طوال العام');
+function pStat(p){
+  const o = occs(p), t = parseD(today()), cw = curWeek(), last = (p.follow || []).at(-1);
+  if (o.length && o.every(x => occDone(p, x))) return ['ok', 'نُفذ'];
+  if (last && last.done === 'لا') return ['bad', 'متعثر'];
+  if (o.some(x => !occDone(p, x) && x.to < t)) return ['bad', 'متأخر'];
+  if (o.some(x => !occDone(p, x) && x.sem === cw.sem && x.week === cw.week)) return ['info', 'هذا الأسبوع'];
+  return o.length ? ['mute', 'قادم'] : ['mute', 'مستمر'];
+}
+const myRoles = () => { try { const r = JSON.parse(store.get('mdr.roles')); if (Array.isArray(r) && r.length) return r; } catch {} return ['مدير المدرسة']; };
+const rn = s => pnorm(s).replace(/^ال/, '');
+const roleIn = (txt, r) => { const a = rn(txt), b = rn(r); return !!a && !!b && (a.includes(b) || b.includes(a)); };
+const myPart = p => myRoles().some(r => roleIn(p.owner, r)) ? 'رئيس' : myRoles().some(r => roleIn(p.helper, r)) ? 'مساند' : '';
+const planSorted = () => [...S.plan].sort((a, b) => ((occs(a)[0]?.from || 9e15) - (occs(b)[0]?.from || 9e15)) || String(a.name).localeCompare(String(b.name)));
+const planNow = list => { const cw = curWeek(); return list.filter(p => occs(p).some(o => o.sem === cw.sem && o.week === cw.week && !occDone(p, o))); };
+const planLate = list => { const t = parseD(today()); return list.filter(p => occs(p).some(o => !occDone(p, o) && o.to < t)); };
+const weekLabel = (s, w) => { const a = addD(semStart(s), 7 * (w - 1)); return `الأسبوع ${w} من الفصل ${SEM_N[s]}: ${hij(isoDay(a))} – ${hij(isoDay(addD(a, 4)))}`; };
+function planRow(p, k){
+  const part = myPart(p), [c, l] = pStat(p), o = occs(p).find(x => x.key === k);
+  return `<div class="row"><div style="flex:1;min-width:220px"><div class="t">${esc(p.name)}</div><div class="m">${esc(pWhen(p))} · رئيس: ${esc(p.owner || '—')}${p.helper ? ' · مساند: ' + esc(p.helper) : ''}</div>${p.kpi ? `<div class="m">المؤشر: ${esc(p.kpi)}</div>` : ''}</div>
+    <div class="tools">${part ? `<span class="chip info">أنت ${part}</span>` : ''}<span class="chip ${c}">${l}</span>${isAdmin() && o ? `<button class="btn sm ${occDone(p, o) ? '' : 'pri'}" data-act="planDone" data-id="${p.id}" data-k="${o.key}">${occDone(p, o) ? 'إلغاء التنفيذ' : 'تم التنفيذ'}</button>` : ''}<button class="btn sm" data-act="planFollow" data-id="${p.id}">متابعة</button></div></div>`;
+}
+function planAgenda(){
+  if (!S.plan.length) return `<section class="panel"><h3>الخطة التشغيلية</h3><p class="sub">ارفع ملف الخطة التشغيلية PDF، فتقرأ المنصة برامجها وتوزعها على أسابيع الفصلين، وتعرض لك ما هو مطلوب منك كل أسبوع.</p>${isAdmin() ? '<div><button class="btn pri" data-act="planImport">رفع الخطة التشغيلية</button></div>' : ''}</section>`;
+  const cw = curWeek(), all = planSorted(), list = UI.planAll ? all : all.filter(myPart);
+  const now = planNow(list), late = planLate(list).filter(p => !now.includes(p)), next = [1, 2, 3].map(d => cw.week + d).map(w => [w, list.filter(p => occs(p).some(o => o.sem === cw.sem && o.week === w && !occDone(p, o)))]).filter(x => x[1].length);
+  const cont = list.filter(p => !occs(p).length);
+  const seg = [['','المطلوب مني'],['1','كل البرامج']].map(([k, l]) => `<button data-act="planAll" data-id="${k}" aria-pressed="${(UI.planAll ? '1' : '') === k}">${l}</button>`).join('');
+  return `<section class="panel"><div class="head" style="margin:0"><div><h3 style="margin:0">الخطة التشغيلية</h3><p class="sub" style="margin:4px 0 0">${cw.week >= 1 ? esc(weekLabel(cw.sem, cw.week)) : 'لم يبدأ الفصل الدراسي بعد.'}</p></div>
+      <div class="tools"><button class="btn sm" data-act="planRoles">أدواري: ${esc(myRoles().join('، '))}</button><button class="btn sm" data-act="planWeekPrint">طباعة الأسبوع</button><button class="btn sm" data-act="tab" data-id="inits">متابعة المبادرات</button></div></div>
+    <div class="seg" role="group" aria-label="عرض البرامج" style="margin-top:10px">${seg}</div>
+    <h4 style="margin:14px 0 4px">هذا الأسبوع (${now.length})</h4>${now.length ? `<div class="list">${now.map(p => planRow(p, occs(p).find(o => o.sem === cw.sem && o.week === cw.week)?.key)).join('')}</div>` : `<div class="empty">${UI.planAll ? 'لا برامج في هذا الأسبوع.' : 'لا شيء مطلوب منك في هذا الأسبوع.'}</div>`}
+    ${late.length ? `<h4 style="margin:14px 0 4px;color:var(--bad)">متأخرة لم يُسجل تنفيذها (${late.length})</h4><div class="list">${late.map(p => planRow(p, occs(p).find(o => !occDone(p, o) && o.to < parseD(today()))?.key)).join('')}</div>` : ''}
+    ${next.map(([w, l]) => `<h4 style="margin:14px 0 4px">${esc(weekLabel(cw.sem, w))}</h4><div class="list">${l.map(p => planRow(p, cw.sem + '-' + w)).join('')}</div>`).join('')}
+    ${cont.length ? `<details style="margin-top:12px"><summary>برامج مستمرة طوال العام (${cont.length})</summary><div class="list">${cont.map(p => planRow(p)).join('')}</div></details>` : ''}</section>`;
+}
+function rolesForm(){
+  const all = [...new Set(['مدير المدرسة', ...S.plan.flatMap(p => [p.owner, p.helper]).map(s => String(s || '').trim()).filter(Boolean)])].sort((a, b) => a.localeCompare(b)), mine = myRoles();
+  modal('أدواري في الخطة', `<p class="sub" style="margin:0 0 8px">اختر صفتك كما وردت في الخطة، فيظهر لك ما أنت رئيس فيه أو مساند. الاختيار محفوظ على هذا الجهاز فقط، فلكل من يستخدم الحساب أدواره على جهازه.</p><div class="pick">${all.map(r => `<label class="check"><input type="checkbox" data-role="${esc(r)}" ${mine.includes(r) ? 'checked' : ''}> ${esc(r)}</label>`).join('')}</div>`,
+    `<button class="btn pri" id="ok">حفظ</button><button class="btn" data-act="close">إلغاء</button>`, true);
+  $('#ok').onclick = () => { const r = [...document.querySelectorAll('[data-role]')].filter(b => b.checked).map(b => b.dataset.role); if (!r.length) return toast('اختر صفة واحدة على الأقل', 'bad'); store.set('mdr.roles', JSON.stringify(r)); closeModal(); render(true); };
+}
+function planImportForm(){
+  modal('رفع الخطة التشغيلية', `<div class="f full"><label for="pl_f">ملف الخطة (PDF)</label><input id="pl_f" type="file" accept="application/pdf,.pdf"><span class="hint">تقرأ المنصة جداول البرامج: الاسم والفصل والأسبوع والمسؤول الرئيس والمساند ومؤشر الإنجاز. يُقرأ الملف على جهازك ولا يُرفع.</span></div>
+    <div class="fg" style="margin-top:8px"><div class="f"><label for="pl_s1">بداية الفصل الأول</label><input id="pl_s1" type="date" value="${esc(set().sem1Start || SEM_DEF[1])}"></div><div class="f"><label for="pl_s2">بداية الفصل الثاني</label><input id="pl_s2" type="date" value="${esc(set().sem2Start || SEM_DEF[2])}"></div></div><div id="pl_pv"></div>`,
+    `<button class="btn" data-act="close">إغلاق</button>`, true);
+  $('#pl_f').onchange = async e => { const f = e.target.files[0]; if (!f) return; const box = $('#pl_pv'); box.innerHTML = '<div class="notice-bar info">جارٍ قراءة الخطة…</div>';
+    let r; try { r = await readPlanPdf(f); } catch { box.innerHTML = '<div class="notice-bar">تعذّرت قراءة الملف. تأكد أنه PDF سليم.</div>'; return; }
+    if (r.scanned) { box.innerHTML = '<div class="notice-bar">الملف صور ممسوحة لا تحوي نصًا. احفظ الخطة من Word بصيغة PDF ثم ارفعها.</div>'; return; }
+    if (!r.progs.length) { box.innerHTML = '<div class="notice-bar">لم أجد جدول برامج بالعناوين المعتادة (اسم البرنامج، الفصل، الأسبوع، المسؤول). أرسل الملف للدعم لإضافة صيغته.</div>'; return; }
+    const P = r.progs, noW = P.filter(p => !p.weeks.length).length, goals = new Set(P.map(p => p.sub || p.goal)).size;
+    box.innerHTML = `<div class="kpis" style="margin-top:10px"><div class="kpi"><span class="v">${P.length}</span><span class="l">برنامجًا</span></div><div class="kpi"><span class="v">${goals}</span><span class="l">هدفًا تفصيليًا</span></div><div class="kpi ${noW ? 'warn' : ''}"><span class="v">${noW}</span><span class="l">مستمر أو بلا أسبوع محدد</span></div></div>
+      <div class="tablewrap" style="max-height:320px;overflow:auto;margin-top:10px"><table class="tbl"><thead><tr><th>البرنامج</th><th>الموعد</th><th>رئيس</th><th>مساند</th></tr></thead><tbody>${P.map(p => `<tr><td>${esc(p.name)}</td><td>${esc(pWhen(p))}</td><td>${esc(p.owner)}</td><td>${esc(p.helper)}</td></tr>`).join('')}</tbody></table></div>
+      <p class="sub">راجع القائمة، وما يحتاج تصحيحًا تعدّله بعد الاستيراد من «متابعة المبادرات». إعادة رفع الخطة تحدّث البرامج وتحتفظ بمتابعاتها.</p><div class="tools"><button class="btn pri" id="pl_ok">استيراد ${P.length} برنامجًا</button></div>`;
+    $('#pl_ok').onclick = async () => { $('#pl_ok').disabled = true; const key = p => pnorm(p.name) + '|' + pnorm(p.sub);
+      const old = new Map(S.plan.filter(p => p.src === 'pdf').map(p => [key(p), p])), docs = [], seen = new Set();
+      P.forEach(p => { const o = old.get(key(p)); seen.add(key(p)); const {page, ...d} = p;
+        docs.push(o ? {...o, ...d, id:o.id} : {...d, id:newId(), src:'pdf', done:{}, follow:[], createdAt:Date.now()}); });
+      const dels = S.plan.filter(p => p.src === 'pdf' && !seen.has(key(p)) && !(p.follow || []).length).map(p => p.id);
+      try { const s1 = fval('pl_s1'), s2 = fval('pl_s2'); if (s1 !== (set().sem1Start || '') || s2 !== (set().sem2Start || '')) await put('settings/school', {sem1Start:s1, sem2Start:s2}, true);
+        await bulkPut('plan', docs, dels); closeModal(); toast(`استُوردت ${docs.length} برنامجًا`); }
+      catch(err){ toast(errMsg(err), 'bad'); $('#pl_ok').disabled = false; } };
+  };
+}
+async function planDoneTog(id, b){ const p = S.plan.find(x => x.id === id); if (!p) return; const k = b.dataset.k, done = {...(p.done || {})};
+  if (done[k]) delete done[k]; else done[k] = today();
+  if (await put('plan/' + id, {done, follow:[...(p.follow || []), {at:Date.now(), date:today(), occ:k, done:done[k] ? 'نعم' : 'إلغاء'}]}, true)) toast(done[k] ? 'سُجل التنفيذ' : 'أُلغي التنفيذ'); }
+function planFollowForm(id){
+  const p = S.plan.find(x => x.id === id); if (!p) return; const o = occs(p), hist = [...(p.follow || [])].reverse();
+  modal('متابعة: ' + p.name, `<div class="notice-bar info" style="margin-top:0">${esc(pWhen(p))} · رئيس: ${esc(p.owner || '—')}${p.helper ? ' · مساند: ' + esc(p.helper) : ''}${p.kpi ? '<br>المؤشر: ' + esc(p.kpi) : ''}${p.evidence ? '<br>الشواهد: ' + esc(p.evidence) : ''}</div>
+    ${isAdmin() ? `<div class="fg"><div class="f"><label for="pf_o">الموعد</label><select id="pf_o">${o.map(x => `<option value="${x.key}">${esc('الفصل ' + SEM_N[x.sem] + ' · الأسبوع ' + x.week)}${occDone(p, x) ? ' ✓' : ''}</option>`).join('')}<option value="">متابعة عامة</option></select></div>
+      <div class="f"><label for="pf_d">نُفذ؟</label><select id="pf_d"><option>نعم</option><option>جزئيًا</option><option>لا</option></select></div>
+      <div class="f"><label for="pf_dt">تاريخ المتابعة</label><input id="pf_dt" type="date" value="${today()}"></div>
+      <div class="f"><label for="pf_r">سبب عدم التنفيذ</label><input id="pf_r" placeholder="عند عدم التنفيذ"></div>
+      <div class="f full"><label for="pf_a">إجراءات التحسين أو ملاحظة</label><input id="pf_a"></div>${fileField('pf_file', 'شاهد التنفيذ (اختياري)')}</div>` : ''}
+    <h4 style="margin:14px 0 4px">سجل المتابعة</h4>${hist.length ? `<div class="list">${hist.map(h => `<div class="row"><div><div class="t">${esc(h.done || '')}${h.occ ? ' · ' + esc('الفصل ' + SEM_N[h.occ.split('-')[0]] + ' الأسبوع ' + h.occ.split('-')[1]) : ''}</div><div class="m">${esc(hij(h.date))}${h.reason ? ' · السبب: ' + esc(h.reason) : ''}${h.action ? ' · ' + esc(h.action) : ''}</div></div>${h.file ? `<a class="btn sm" href="${esc(fileUrl(h.file.id))}" target="_blank" rel="noopener">الشاهد</a>` : ''}</div>`).join('')}</div>` : '<div class="empty">لا متابعات بعد.</div>'}`,
+    isAdmin() ? `<button class="btn pri" id="ok">حفظ المتابعة</button><button class="btn" data-act="planEdit" data-id="${id}">تعديل البرنامج</button><button class="btn" data-act="close">إغلاق</button>` : `<button class="btn" data-act="close">إغلاق</button>`, true);
+  if (!isAdmin()) return;
+  $('#ok').onclick = async () => { $('#ok').disabled = true; const file = await uploadFrom('pf_file'); if (file === false) { $('#ok').disabled = false; return; }
+    const k = fval('pf_o'), d = fval('pf_d'), done = {...(p.done || {})}; if (k) { if (d === 'نعم') done[k] = fval('pf_dt') || today(); else delete done[k]; }
+    const h = {at:Date.now(), date:fval('pf_dt') || today(), occ:k, done:d, reason:fval('pf_r'), action:fval('pf_a')}; if (file) h.file = file;
+    if (await put('plan/' + id, {done, follow:[...(p.follow || []), h]}, true)) { closeModal(); toast('حُفظت المتابعة'); } else $('#ok').disabled = false; };
+}
+function planForm(id){
+  const p = id ? S.plan.find(x => x.id === id) : {sem:[1], weeks:[]}; if (!p) return; const sem = p.sem || [];
+  const fl = (k, l, full) => `<div class="f ${full ? 'full' : ''}"><label for="pe_${k}">${l}</label><input id="pe_${k}" value="${esc(p[k] || '')}"></div>`;
+  modal(id ? 'تعديل مبادرة' : 'إضافة مبادرة', `<div class="fg">${fl('name', 'اسم المبادرة أو البرنامج', true)}${fl('goal', 'الهدف العام')}${fl('sub', 'الهدف التفصيلي')}
+    <div class="f"><span class="lb">الفصل</span><div class="tools"><label class="check"><input type="checkbox" id="pe_s1" ${sem.includes(1) ? 'checked' : ''}> الأول</label><label class="check"><input type="checkbox" id="pe_s2" ${sem.includes(2) ? 'checked' : ''}> الثاني</label></div></div>
+    <div class="f"><label for="pe_w">الأسبوع</label><input id="pe_w" value="${esc((p.weeks || []).join('، '))}" placeholder="مثل: 4 أو 4، 9"><span class="hint">اتركه فارغًا للبرامج المستمرة طوال العام.</span></div>
+    ${fl('owner', 'المسؤول الرئيس')}${fl('helper', 'المساند')}${fl('targets', 'المستهدفون')}${fl('method', 'أسلوب التنفيذ')}${fl('kpi', 'مؤشر الإنجاز', true)}${fl('evidence', 'الشواهد', true)}</div>`,
+    `<button class="btn pri" id="ok">حفظ</button>${id ? `<button class="btn danger" data-act="planDel" data-id="${id}">حذف</button>` : ''}<button class="btn" data-act="close">إلغاء</button>`, true);
+  $('#ok').onclick = async () => { const name = fval('pe_name'); if (!name) return toast('اكتب اسم المبادرة', 'bad');
+    const weeks = [...new Set((latinDig(fval('pe_w')).match(/\d+/g) || []).map(Number).filter(n => n >= 1 && n <= 22))];
+    const d = {name, goal:fval('pe_goal'), sub:fval('pe_sub'), sem:[1, 2].filter(n => document.getElementById('pe_s' + n).checked), weeks, cont:!weeks.length, owner:fval('pe_owner'), helper:fval('pe_helper'), targets:fval('pe_targets'), method:fval('pe_method'), kpi:fval('pe_kpi'), evidence:fval('pe_evidence')};
+    if (await (id ? put('plan/' + id, d, true) : put('plan/' + newId(), {...d, src:'manual', done:{}, follow:[], createdAt:Date.now()}))) { closeModal(); toast('حُفظت'); } };
+}
+/* ---------- متابعة المبادرات ---------- */
+function vInits(){
+  const all = planSorted(), f = UI.iFilter || 'all', st = p => pStat(p)[1];
+  const list = all.filter(p => f === 'all' || (f === 'mine' ? myPart(p) : f === 'late' ? ['متأخر','متعثر'].includes(st(p)) : f === 'now' ? st(p) === 'هذا الأسبوع' : st(p) === 'نُفذ'));
+  const sched = all.filter(p => occs(p).length), done = sched.filter(p => st(p) === 'نُفذ').length, late = all.filter(p => ['متأخر','متعثر'].includes(st(p))).length;
+  const t = parseD(today()), due = sched.flatMap(p => occs(p).filter(o => o.to < t).map(o => occDone(p, o))), pct = due.length ? Math.round(due.filter(Boolean).length / due.length * 100) : null;
+  const seg = [['all','الكل'],['mine','المطلوب مني'],['now','هذا الأسبوع'],['late','متأخرة ومتعثرة'],['done','منفذة']].map(([k, l]) => `<button data-act="iFilter" data-id="${k}" aria-pressed="${f === k}">${l}</button>`).join('');
+  const groups = []; list.forEach(p => { const g = p.goal || 'مبادرات أخرى'; let x = groups.find(y => y.g === g); if (!x) groups.push(x = {g, l:[]}); x.l.push(p); });
+  return head('متابعة المبادرات', 'برامج الخطة التشغيلية ومبادرات المدرسة: موعدها، والمسؤول عنها، وما نُفذ منها وشواهده.',
+    (isAdmin() ? '<button class="btn pri" data-act="planAdd">إضافة مبادرة</button><button class="btn" data-act="planImport">رفع الخطة التشغيلية</button>' : '') + (all.length ? '<button class="btn" data-act="planReport">تقرير المتابعة</button><button class="btn" data-act="planXlsx">كشف Excel</button>' : '')) + loadingNote() +
+    (all.length ? `<div class="kpis"><div class="kpi"><span class="v">${all.length}</span><span class="l">مبادرة وبرنامجًا</span></div><div class="kpi"><span class="v">${planNow(all).length}</span><span class="l">في هذا الأسبوع</span></div><div class="kpi"><span class="v">${done}</span><span class="l">نُفذت بالكامل</span></div><div class="kpi ${late ? 'bad' : ''}"><span class="v">${late}</span><span class="l">متأخرة أو متعثرة</span></div><div class="kpi ${pct !== null && pct < 80 ? 'warn' : ''}"><span class="v">${pct === null ? '—' : pct + '٪'}</span><span class="l">نسبة إنجاز ما حلّ موعده</span></div></div>
+      <div class="seg" role="group" aria-label="تصفية" style="margin-top:12px">${seg}</div>
+      ${groups.length ? groups.map(x => `<section class="panel"><h3>${esc(x.g)}</h3><div class="list">${x.l.map(p => { const [c, l] = pStat(p), part = myPart(p); return `<div class="row"><div style="flex:1;min-width:220px"><div class="t">${esc(p.name)}</div><div class="m">${esc(pWhen(p))} · رئيس: ${esc(p.owner || '—')}${p.helper ? ' · مساند: ' + esc(p.helper) : ''}</div>${p.kpi ? `<div class="m">المؤشر: ${esc(p.kpi)}</div>` : ''}</div>
+        <div class="tools">${part ? `<span class="chip info">أنت ${part}</span>` : ''}<span class="chip ${c}">${l}</span>${(p.follow || []).length ? `<span class="chip mute num">${p.follow.length} متابعة</span>` : ''}<button class="btn sm pri" data-act="planFollow" data-id="${p.id}">متابعة</button>${isAdmin() ? `<button class="btn sm" data-act="planEdit" data-id="${p.id}">تعديل</button>` : ''}</div></div>`; }).join('')}</div></section>`).join('') : '<div class="empty">لا توجد مبادرات في هذا التصنيف.</div>'}`
+    : '<div class="empty">لا توجد مبادرات بعد. ارفع الخطة التشغيلية PDF لتُقرأ برامجها تلقائيًا، أو أضف مبادرة يدويًا.</div>');
+}
+function planReportDoc(){
+  const all = planSorted(), t = parseD(today()); let fm; try { fm = new Intl.DateTimeFormat('ar-SA-u-ca-islamic-umalqura', {month:'long'}); } catch { fm = null; }
+  const months = []; all.forEach(p => occs(p).forEach(o => { const m = fm ? fm.format(o.from) : isoDay(o.from).slice(0, 7); let x = months.find(y => y.m === m); if (!x) months.push(x = {m, n:0, d:0, l:0}); x.n++; if (occDone(p, o)) x.d++; else if (o.to < t) x.l++; }));
+  const subs = []; all.forEach(p => { const g = p.sub || p.goal || 'مبادرات أخرى'; let x = subs.find(y => y.g === g); if (!x) subs.push(x = {g, l:[]}); x.l.push(p); });
+  const lastF = p => [...(p.follow || [])].reverse().find(h => h.done !== 'إلغاء') || {};
+  return `<div class="paper land">${docHead('متابعة تنفيذ برامج الخطة التشغيلية', 'حتى ' + hij(today()), '', hij(today()))}
+    <h4>المتابعة الشهرية</h4><table><tr><th>الشهر</th><th>المخطط</th><th>المنفذ</th><th>المتأخر</th><th>نسبة الإنجاز</th></tr>${months.map(x => `<tr><td>${esc(x.m)}</td><td>${x.n}</td><td>${x.d}</td><td>${x.l}</td><td>${x.d + x.l ? Math.round(x.d / (x.d + x.l) * 100) + '٪' : '—'}</td></tr>`).join('')}</table>
+    ${subs.map(x => `<h4>${esc(x.g)}</h4><table><tr><th style="width:4%">م</th><th style="width:20%">البرنامج</th><th>الموعد</th><th>المسؤول</th><th>الحالة</th><th>تاريخ المتابعة</th><th>سبب عدم التنفيذ</th><th>إجراءات التحسين</th></tr>${x.l.map((p, i) => { const h = lastF(p); return `<tr><td>${i + 1}</td><td>${esc(p.name)}</td><td>${esc(pWhen(p))}</td><td>${esc(p.owner || '')}</td><td>${esc(pStat(p)[1])}</td><td>${h.date ? esc(hij(h.date)) : ''}</td><td>${esc(h.reason || '')}</td><td>${esc(h.action || '')}</td></tr>`; }).join('')}</table>`).join('')}
+    ${sigRow('مدير المدرسة', principal(), null)}</div>`;
+}
+function planWeekDoc(){
+  const cw = curWeek(), all = planSorted(), list = UI.planAll ? all : all.filter(myPart), now = planNow(list), late = planLate(list).filter(p => !now.includes(p));
+  const tb = l => `<table><tr><th style="width:4%">م</th><th style="width:24%">البرنامج</th><th>رئيس</th><th>مساند</th><th>أسلوب التنفيذ</th><th>مؤشر الإنجاز</th><th style="width:9%">نُفذ</th></tr>${l.map((p, i) => `<tr><td>${i + 1}</td><td>${esc(p.name)}</td><td>${esc(p.owner || '')}</td><td>${esc(p.helper || '')}</td><td>${esc(p.method || '')}</td><td>${esc(p.kpi || '')}</td><td></td></tr>`).join('')}</table>`;
+  return `<div class="paper land">${docHead('برامج الخطة التشغيلية للأسبوع', cw.week >= 1 ? weekLabel(cw.sem, cw.week) : '', '', hij(today()))}
+    <p>${UI.planAll ? 'جميع البرامج' : 'المطلوب من: ' + esc(myRoles().join('، '))}</p><h4>برامج هذا الأسبوع</h4>${now.length ? tb(now) : '<p>لا برامج.</p>'}${late.length ? `<h4>متأخرة لم يُسجل تنفيذها</h4>${tb(late)}` : ''}</div>`;
+}
+Object.assign(ACT, {
+  planImport: planImportForm, planRoles: rolesForm, planDone: planDoneTog, planFollow: planFollowForm, planEdit: id => planForm(id), planAdd: () => planForm(),
+  planDel: id => confirmBox('حذف مبادرة', 'ستُحذف المبادرة ومتابعاتها نهائيًا.', 'حذف', () => del('plan/' + id)),
+  planAll: id => { UI.planAll = !!id; render(true); }, iFilter: id => { UI.iFilter = id; render(true); },
+  planReport: () => printDoc(planReportDoc()), planWeekPrint: () => printDoc(planWeekDoc()),
+  planXlsx: () => saveXlsx('برامج الخطة التشغيلية', [{name:'البرامج', rows:[['الهدف العام','الهدف التفصيلي','البرنامج','الموعد','رئيس','مساند','المستهدفون','أسلوب التنفيذ','مؤشر الإنجاز','الشواهد','الحالة','عدد المتابعات'],
+    ...planSorted().map(p => [p.goal || '', p.sub || '', p.name, pWhen(p), p.owner || '', p.helper || '', p.targets || '', p.method || '', p.kpi || '', p.evidence || '', pStat(p)[1], (p.follow || []).length])]}])
+});
+document.addEventListener('change', e => { if (e.target.id === 'waApp') { store.set('mdr.wa', e.target.value || null); toast(e.target.value ? 'ستُفتح الرسائل في واتساب للأعمال على هذا الجهاز' : 'ستُفتح الرسائل في التطبيق الافتراضي'); } });
+// روابط intent تفتح التطبيق مباشرة، فتبقى المنصة في نفس الصفحة بدل فتح تبويب فارغ
+document.addEventListener('click', e => { const a = e.target.closest && e.target.closest('a[href^="intent:"]'); if (a) a.target = '_self'; }, true);
 
 /* ---------- الإجراءات الجماعية ---------- */
 const groupNote = what => `السلام عليكم ورحمة الله وبركاته\nالزملاء الكرام، ${what}\nنأمل فتح رابطكم الخاص في منصة ${school()} والاطلاع والتوقيع.\n${principal()} — ${school()}`;
