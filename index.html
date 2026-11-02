@@ -335,14 +335,14 @@ const MODE = hashArg('t') ? 'teacher' : hashArg('p') ? 'parent' : 'admin';
 document.documentElement.classList.toggle('portal', MODE !== 'admin');
 const KEY = hashArg('t') || hashArg('p');
 let token = store.get('mdr.token');
-const APP_VER = '3.6'; // ارفعه مع site/version.json في كل نشر
+const APP_VER = '3.7'; // ارفعه مع site/version.json في كل نشر
 const DEV = store.get('mdr.dev') || [...crypto.getRandomValues(new Uint8Array(16))].map(b => b.toString(16).padStart(2, '0')).join(''); store.set('mdr.dev', DEV);
 const devInfo = () => { const u = navigator.userAgent; return {device:DEV, deviceName:`${/iPhone|iPad/.test(u) ? 'آيفون' : /Android/.test(u) ? 'أندرويد' : 'كمبيوتر'} · ${/Edg/.test(u) ? 'Edge' : /Chrome/.test(u) ? 'Chrome' : /Safari/.test(u) ? 'Safari' : /Firefox/.test(u) ? 'Firefox' : 'متصفح'}`}; };
 const ERR = {
   too_many_devices:'الحساب مفتوح على ثلاثة أجهزة.', too_many_moves:'استُبدلت الأجهزة كثيرًا هذا الشهر. أخرج جهازًا من الإعدادات أو تواصل مع البائع.',
   wrong_password:'كلمة المرور غير صحيحة.', wrong_login:'رمز المدرسة أو كلمة المرور غير صحيحة.', bad_key:'مفتاح التفعيل غير صحيح لرمز المدرسة هذا. انسخه كاملًا كما وصلك.', bad_code:'رمز المدرسة غير صحيح.', already_registered:'هذه المدرسة مسجلة من قبل. ادخل برمزها وكلمة مرورها.', too_many_attempts:'محاولات كثيرة خاطئة. انتظر ربع ساعة ثم أعد المحاولة.', weak_password:'كلمة المرور قصيرة، اكتب ٦ أحرف أو أرقام على الأقل.',
   unauthorized:'انتهت الجلسة. سجّل الدخول من جديد.', already_replied:'سبق إرسال الإفادة على هذه المساءلة.', already_signed:'سبق التوقيع على هذا النموذج.', receive_first:'وقّع على استلام الأسئلة أولًا.',
-  too_large:'الملف أكبر من ١٠ ميجابايت. اضغطه أو صوّره بدقة أقل.', unsupported_type:'نوع الملف غير مدعوم. ارفع PDF أو صورة.', not_found:'الرابط غير صحيح أو حُذف النموذج.'
+  too_large:'الملف أكبر من ١٠ ميجابايت. اضغطه أو صوّره بدقة أقل.', unsupported_type:'نوع الملف غير مدعوم. ارفع PDF أو صورة.', not_found:'الرابط غير صحيح أو حُذف النموذج.', locked:'اعتُمدت المبادرة، فلا يمكن تعديلها.', not_approved:'تنتظر المبادرة اعتماد الإدارة أولًا.', too_many:'وصلت إلى الحد الأقصى من المبادرات.'
 };
 async function api(path, opt = {}){
   const headers = {...(opt.headers || {})};
@@ -605,7 +605,7 @@ function navBadge(k){
   if (k === 'control') return S.exams.filter(e => e.date === isoDay() && !e.ret).length;
   if (k === 'tasks') return S.tasks.filter(t => !t.done && t.due && t.due <= isoDay()).length;
   if (k === 'students') return atRisk().length;
-  if (k === 'inits') return planLate(S.plan.filter(myPart)).length;
+  if (k === 'inits') return planLate(S.plan.filter(myPart)).length + S.plan.filter(p => p.src === 'teacher' && p.status === 'proposed').length;
   return 0;
 }
 function renderNav(){
@@ -643,6 +643,7 @@ function vDash(){
     ...waitP.map(n => ({t:`مساءلة ${n.no} — ${tName(n.teacherId)}`, m:'ردّ المعلم، وتنتظر قرارك وتوقيعك', c:['info','قرار المدير'], act:'viewNotice', id:n.id})),
     ...waitT.map(n => ({t:`مساءلة ${n.no} — ${tName(n.teacherId)}`, m:`${n.kind} · ${hij(n.date)}`, c:['warn','رد المعلم'], act:'viewNotice', id:n.id})),
     ...(() => { const m = S.plan.filter(myPart), n = planNow(m); return [...n.map(p => ({t:p.name, m:`الخطة التشغيلية · ${myPart(p)}: ${p.owner || ''}`, c:['info','هذا الأسبوع'], act:'planFollow', id:p.id})), ...planLate(m).filter(p => !n.includes(p)).slice(0,4).map(p => ({t:p.name, m:`الخطة التشغيلية · ${pWhen(p)}`, c:['bad','متأخر'], act:'planFollow', id:p.id}))]; })(),
+    ...S.plan.filter(p => p.src === 'teacher' && p.status === 'proposed').map(p => ({t:'مبادرة: ' + p.name, m:'من المعلم: ' + (p.owner || ''), c:['warn','اعتماد المدير'], act:'tInitDecide', id:p.id})),
     ...parPend.slice(0,6).map(p => ({t:`${p.kind} — ${p.student}`, m:`ولي الأمر: ${p.parentName||'—'}`, c:['warn','توقيع ولي الأمر'], act:'viewParent', id:p.id}))
   ].slice(0,10);
   const setupNeeded = !set().phone || !S.teachers.length;
@@ -2232,6 +2233,7 @@ function renderTeacher(){
   $('#gateRoot').innerHTML = `<div class="portal">${portalHead('الأستاذ/ ' + t.name, esc(t.specialty || ''))}
     ${pend ? `<div class="notice-bar">لديك ${pend} ${pend === 1 ? 'إجراء ينتظر' : 'إجراءات تنتظر'} توقيعك.</div>` : '<div class="done">لا يوجد ما ينتظر توقيعك. شكرًا لك.</div>'}
     <section class="panel"><h3>المساءلات</h3>${ns.length ? `<div class="list">${ns.map(n => { const [c,l] = nStatus(n); return `<div class="row"><div><div class="t">مساءلة رقم <span class="num">${esc(n.no)}</span> · ${esc(n.kind)}</div><div class="m">${esc(dayName(n.date))} ${esc(hij(n.date))}${n.decision ? ' · القرار: ' + esc(decOf(n)[n.decision]) : ''}</div></div><div class="tools"><span class="chip ${c}">${l}</span>${n.status === 'issued' ? `<button class="btn sm pri" data-act="reply" data-id="${n.id}">كتابة الإفادة والتوقيع</button>` : ''}<button class="btn sm" data-act="viewNotice" data-id="${n.id}">عرض</button></div></div>`; }).join('')}</div>` : '<div class="empty">لا توجد مساءلات عليك.</div>'}</section>
+    ${teacherInitPanel()}
     ${teacherCtrlPanel()}
     ${teacherRecPanel()}
     <section class="panel"><h3>مظاريف الاختبارات</h3><p class="sub">وقّع عند استلام مظروف الأسئلة من الكنترول، ثم عند تسليم أوراق الإجابة.</p>${ex.length ? `<div class="list">${ex.map(e => `<div class="row"><div><div class="t">${esc(e.subject)} · ${esc(e.grade||'')}</div><div class="m">${esc(dayName(e.date))} ${esc(hij(e.date))} · الفترة ${esc(e.period||'')} · ${esc(committee(e.committeeId)?.name||'')}</div></div><div class="tools">
@@ -2249,7 +2251,7 @@ function renderParent(){
 async function startPortal(){
   gate('<p>جارٍ فتح النموذج…</p>');
   try {
-    if (MODE === 'teacher') { const d = await api('/t/' + KEY); S.teachers = [d.teacher]; S.notices = d.notices; S.exams = d.exams; S.committees = d.committees; S.grading = d.grading || []; S.ctrlsigns = d.ctrlsign ? [{id:d.teacher.id, ...d.ctrlsign}] : []; S.records = d.records || []; S.recsigns = d.recsigns || []; S.settings = d.settings; }
+    if (MODE === 'teacher') { const d = await api('/t/' + KEY); S.teachers = [d.teacher]; S.notices = d.notices; S.exams = d.exams; S.committees = d.committees; S.grading = d.grading || []; S.ctrlsigns = d.ctrlsign ? [{id:d.teacher.id, ...d.ctrlsign}] : []; S.records = d.records || []; S.recsigns = d.recsigns || []; S.plan = d.inits || []; S.settings = d.settings; }
     else { const d = await api('/p/' + KEY); S.parents = [d.form]; S.settings = d.settings; }
     S.loaded = true; $('#gateRoot').innerHTML = ''; render();
     if (MODE === 'teacher' && /[#&]copy=1/.test(location.hash) && S.ctrlsigns.length) viewCopy(S.teachers[0].id);
@@ -2898,8 +2900,15 @@ function curWeek(){ const t = parseD(today()); for (const s of [2, 1]) { const s
 function occs(p){ if (p.cont || !(p.weeks || []).length) return [];
   return (p.sem && p.sem.length ? p.sem : [1]).flatMap(s => p.weeks.map(w => { const from = addD(semStart(s), 7 * (w - 1)); return {sem:s, week:w, key:s + '-' + w, from, to:addD(from, 4)}; })); }
 const occDone = (p, o) => !!(p.done || {})[o.key];
-const pWhen = p => occs(p).length ? (p.sem && p.sem.length ? p.sem : [1]).map(s => 'الفصل ' + SEM_N[s]).join(' و') + ' · الأسبوع ' + p.weeks.join('، ') : (p.when || 'مستمر طوال العام');
+const pWhen = p => p.src === 'teacher' ? (p.from ? hij(p.from) + (p.to && p.to !== p.from ? ' – ' + hij(p.to) : '') : 'بلا موعد محدد') : occs(p).length ? (p.sem && p.sem.length ? p.sem : [1]).map(s => 'الفصل ' + SEM_N[s]).join(' و') + ' · الأسبوع ' + p.weeks.join('، ') : (p.when || 'مستمر طوال العام');
+function tStat(p){
+  const last = [...(p.follow || [])].reverse().find(h => h.done !== 'إلغاء'), t = today();
+  if (p.status === 'rejected') return ['mute', 'غير معتمدة']; if (!p.approved) return ['warn', 'بانتظار الاعتماد'];
+  if (last?.done === 'نعم') return ['ok', 'نُفذ']; if (last?.done === 'لا') return ['bad', 'متعثر'];
+  if (p.to && p.to < t) return ['bad', 'متأخر']; if (p.from && p.from <= t) return ['info', 'جارية']; return ['mute', 'معتمدة'];
+}
 function pStat(p){
+  if (p.src === 'teacher') return tStat(p);
   const o = occs(p), t = parseD(today()), cw = curWeek(), last = (p.follow || []).at(-1);
   if (o.length && o.every(x => occDone(p, x))) return ['ok', 'نُفذ'];
   if (last && last.done === 'لا') return ['bad', 'متعثر'];
@@ -2967,14 +2976,14 @@ async function planDoneTog(id, b){ const p = S.plan.find(x => x.id === id); if (
   if (await put('plan/' + id, {done, follow:[...(p.follow || []), {at:Date.now(), date:today(), occ:k, done:done[k] ? 'نعم' : 'إلغاء'}]}, true)) toast(done[k] ? 'سُجل التنفيذ' : 'أُلغي التنفيذ'); }
 function planFollowForm(id){
   const p = S.plan.find(x => x.id === id); if (!p) return; const o = occs(p), hist = [...(p.follow || [])].reverse();
-  modal('متابعة: ' + p.name, `<div class="notice-bar info" style="margin-top:0">${esc(pWhen(p))} · رئيس: ${esc(p.owner || '—')}${p.helper ? ' · مساند: ' + esc(p.helper) : ''}${p.kpi ? '<br>المؤشر: ' + esc(p.kpi) : ''}${p.evidence ? '<br>الشواهد: ' + esc(p.evidence) : ''}</div>
+  modal('متابعة: ' + p.name, `<div class="notice-bar info" style="margin-top:0">${p.src === 'teacher' ? `مبادرة المعلم: <b>${esc(p.owner)}</b> · ${esc(pStat(p)[1])}${p.goal ? '<br>الهدف: ' + esc(p.goal) : ''}${p.targets ? '<br>المستهدفون: ' + esc(p.targets) : ''}${p.method ? '<br>الوصف: ' + esc(p.method) : ''}<br>` : ''}${esc(pWhen(p))} · ${p.src === 'teacher' ? 'المنفذ' : 'رئيس'}: ${esc(p.owner || '—')}${p.helper ? ' · مساند: ' + esc(p.helper) : ''}${p.kpi ? '<br>المؤشر: ' + esc(p.kpi) : ''}${p.evidence ? '<br>الشواهد: ' + esc(p.evidence) : ''}</div>
     ${isAdmin() ? `<div class="fg"><div class="f"><label for="pf_o">الموعد</label><select id="pf_o">${o.map(x => `<option value="${x.key}">${esc('الفصل ' + SEM_N[x.sem] + ' · الأسبوع ' + x.week)}${occDone(p, x) ? ' ✓' : ''}</option>`).join('')}<option value="">متابعة عامة</option></select></div>
       <div class="f"><label for="pf_d">نُفذ؟</label><select id="pf_d"><option>نعم</option><option>جزئيًا</option><option>لا</option></select></div>
       <div class="f"><label for="pf_dt">تاريخ المتابعة</label><input id="pf_dt" type="date" value="${today()}"></div>
       <div class="f"><label for="pf_r">سبب عدم التنفيذ</label><input id="pf_r" placeholder="عند عدم التنفيذ"></div>
       <div class="f full"><label for="pf_a">إجراءات التحسين أو ملاحظة</label><input id="pf_a"></div>${fileField('pf_file', 'شاهد التنفيذ (اختياري)')}</div>` : ''}
-    <h4 style="margin:14px 0 4px">سجل المتابعة</h4>${hist.length ? `<div class="list">${hist.map(h => `<div class="row"><div><div class="t">${esc(h.done || '')}${h.occ ? ' · ' + esc('الفصل ' + SEM_N[h.occ.split('-')[0]] + ' الأسبوع ' + h.occ.split('-')[1]) : ''}</div><div class="m">${esc(hij(h.date))}${h.reason ? ' · السبب: ' + esc(h.reason) : ''}${h.action ? ' · ' + esc(h.action) : ''}</div></div>${h.file ? `<a class="btn sm" href="${esc(fileUrl(h.file.id))}" target="_blank" rel="noopener">الشاهد</a>` : ''}</div>`).join('')}</div>` : '<div class="empty">لا متابعات بعد.</div>'}`,
-    isAdmin() ? `<button class="btn pri" id="ok">حفظ المتابعة</button><button class="btn" data-act="planEdit" data-id="${id}">تعديل البرنامج</button><button class="btn" data-act="close">إغلاق</button>` : `<button class="btn" data-act="close">إغلاق</button>`, true);
+    <h4 style="margin:14px 0 4px">سجل المتابعة</h4>${hist.length ? `<div class="list">${hist.map(h => `<div class="row"><div><div class="t">${esc(h.done || '')}${h.occ ? ' · ' + esc('الفصل ' + SEM_N[h.occ.split('-')[0]] + ' الأسبوع ' + h.occ.split('-')[1]) : ''}</div><div class="m">${esc(hij(h.date))}${h.by === 'teacher' ? ' · تقرير المعلم' : ''}${h.reason ? ' · السبب: ' + esc(h.reason) : ''}${h.action ? ' · ' + esc(h.action) : ''}${h.count ? ' · المستفيدون: ' + esc(h.count) : ''}</div>${h.text ? `<div class="m" style="white-space:pre-wrap">${esc(h.text)}</div>` : ''}</div><div class="tools">${[h.file, ...(h.files || [])].filter(Boolean).map(f => `<a class="btn sm" href="${esc(fileUrl(f.id))}" target="_blank" rel="noopener">${esc(f.name || 'الشاهد')}</a>`).join('')}</div></div>`).join('')}</div>` : '<div class="empty">لا متابعات بعد.</div>'}`,
+    isAdmin() ? `<button class="btn pri" id="ok">حفظ المتابعة</button>${p.src === 'teacher' ? `<button class="btn" data-act="tInitDecide" data-id="${id}">الاعتماد</button>` : `<button class="btn" data-act="planEdit" data-id="${id}">تعديل البرنامج</button>`}<button class="btn" data-act="close">إغلاق</button>` : `<button class="btn" data-act="close">إغلاق</button>`, true);
   if (!isAdmin()) return;
   $('#ok').onclick = async () => { $('#ok').disabled = true; const file = await uploadFrom('pf_file'); if (file === false) { $('#ok').disabled = false; return; }
     const k = fval('pf_o'), d = fval('pf_d'), done = {...(p.done || {})}; if (k) { if (d === 'نعم') done[k] = fval('pf_dt') || today(); else delete done[k]; }
@@ -2997,27 +3006,29 @@ function planForm(id){
 /* ---------- متابعة المبادرات ---------- */
 function vInits(){
   const all = planSorted(), f = UI.iFilter || 'all', st = p => pStat(p)[1];
-  const list = all.filter(p => f === 'all' || (f === 'mine' ? myPart(p) : f === 'late' ? ['متأخر','متعثر'].includes(st(p)) : f === 'now' ? st(p) === 'هذا الأسبوع' : st(p) === 'نُفذ'));
+  const tPend = all.filter(p => p.src === 'teacher' && p.status === 'proposed').length;
+  const list = all.filter(p => f === 'all' || (f === 'teachers' ? p.src === 'teacher' : f === 'mine' ? myPart(p) : f === 'late' ? ['متأخر','متعثر'].includes(st(p)) : f === 'now' ? st(p) === 'هذا الأسبوع' : st(p) === 'نُفذ'));
   const sched = all.filter(p => occs(p).length), done = sched.filter(p => st(p) === 'نُفذ').length, late = all.filter(p => ['متأخر','متعثر'].includes(st(p))).length;
   const t = parseD(today()), due = sched.flatMap(p => occs(p).filter(o => o.to < t).map(o => occDone(p, o))), pct = due.length ? Math.round(due.filter(Boolean).length / due.length * 100) : null;
-  const seg = [['all','الكل'],['mine','المطلوب مني'],['now','هذا الأسبوع'],['late','متأخرة ومتعثرة'],['done','منفذة']].map(([k, l]) => `<button data-act="iFilter" data-id="${k}" aria-pressed="${f === k}">${l}</button>`).join('');
-  const groups = []; list.forEach(p => { const g = p.goal || 'مبادرات أخرى'; let x = groups.find(y => y.g === g); if (!x) groups.push(x = {g, l:[]}); x.l.push(p); });
+  const seg = [['all','الكل'],['mine','المطلوب مني'],['now','هذا الأسبوع'],['late','متأخرة ومتعثرة'],['done','منفذة'],['teachers','مبادرات المعلمين' + (tPend ? ` (${tPend} للاعتماد)` : '')]].map(([k, l]) => `<button data-act="iFilter" data-id="${k}" aria-pressed="${f === k}">${l}</button>`).join('');
+  const groups = []; list.forEach(p => { const g = p.src === 'teacher' ? 'مبادرات المعلمين' : p.goal || 'مبادرات أخرى'; let x = groups.find(y => y.g === g); if (!x) groups.push(x = {g, l:[]}); x.l.push(p); });
   return head('متابعة المبادرات', 'برامج الخطة التشغيلية ومبادرات المدرسة: موعدها، والمسؤول عنها، وما نُفذ منها وشواهده.',
-    (isAdmin() ? '<button class="btn pri" data-act="planAdd">إضافة مبادرة</button><button class="btn" data-act="planImport">رفع الخطة التشغيلية</button>' : '') + (all.length ? '<button class="btn" data-act="planReport">تقرير المتابعة</button><button class="btn" data-act="planXlsx">كشف Excel</button>' : '')) + loadingNote() +
-    (all.length ? `<div class="kpis"><div class="kpi"><span class="v">${all.length}</span><span class="l">مبادرة وبرنامجًا</span></div><div class="kpi"><span class="v">${planNow(all).length}</span><span class="l">في هذا الأسبوع</span></div><div class="kpi"><span class="v">${done}</span><span class="l">نُفذت بالكامل</span></div><div class="kpi ${late ? 'bad' : ''}"><span class="v">${late}</span><span class="l">متأخرة أو متعثرة</span></div><div class="kpi ${pct !== null && pct < 80 ? 'warn' : ''}"><span class="v">${pct === null ? '—' : pct + '٪'}</span><span class="l">نسبة إنجاز ما حلّ موعده</span></div></div>
+    (isAdmin() ? '<button class="btn pri" data-act="planAdd">إضافة مبادرة</button><button class="btn" data-act="planImport">رفع الخطة التشغيلية</button><button class="btn" data-act="tInvite">دعوة المعلمين لإضافة مبادراتهم</button>' : '') + (all.length ? '<button class="btn" data-act="planReport">تقرير المتابعة</button><button class="btn" data-act="planXlsx">كشف Excel</button>' : '')) + loadingNote() +
+    (all.length ? `<div class="kpis"><div class="kpi"><span class="v">${all.length}</span><span class="l">مبادرة وبرنامجًا</span></div><div class="kpi"><span class="v">${planNow(all).length}</span><span class="l">في هذا الأسبوع</span></div><div class="kpi"><span class="v">${done}</span><span class="l">نُفذت بالكامل</span></div><div class="kpi ${late ? 'bad' : ''}"><span class="v">${late}</span><span class="l">متأخرة أو متعثرة</span></div>${all.some(p => p.src === 'teacher') ? `<div class="kpi ${tPend ? 'warn' : ''}"><span class="v">${all.filter(p => p.src === 'teacher').length}</span><span class="l">مبادرة من المعلمين${tPend ? ` · ${tPend} تنتظر اعتمادك` : ''}</span></div>` : ''}<div class="kpi ${pct !== null && pct < 80 ? 'warn' : ''}"><span class="v">${pct === null ? '—' : pct + '٪'}</span><span class="l">نسبة إنجاز ما حلّ موعده</span></div></div>
       <div class="seg" role="group" aria-label="تصفية" style="margin-top:12px">${seg}</div>
-      ${groups.length ? groups.map(x => `<section class="panel"><h3>${esc(x.g)}</h3><div class="list">${x.l.map(p => { const [c, l] = pStat(p), part = myPart(p); return `<div class="row"><div style="flex:1;min-width:220px"><div class="t">${esc(p.name)}</div><div class="m">${esc(pWhen(p))} · رئيس: ${esc(p.owner || '—')}${p.helper ? ' · مساند: ' + esc(p.helper) : ''}</div>${p.kpi ? `<div class="m">المؤشر: ${esc(p.kpi)}</div>` : ''}</div>
-        <div class="tools">${part ? `<span class="chip info">أنت ${part}</span>` : ''}<span class="chip ${c}">${l}</span>${(p.follow || []).length ? `<span class="chip mute num">${p.follow.length} متابعة</span>` : ''}<button class="btn sm pri" data-act="planFollow" data-id="${p.id}">متابعة</button>${isAdmin() ? `<button class="btn sm" data-act="planEdit" data-id="${p.id}">تعديل</button>` : ''}</div></div>`; }).join('')}</div></section>`).join('') : '<div class="empty">لا توجد مبادرات في هذا التصنيف.</div>'}`
+      ${groups.length ? groups.map(x => `<section class="panel"><h3>${esc(x.g)}</h3><div class="list">${x.l.map(p => { const [c, l] = pStat(p), part = myPart(p); return `<div class="row"><div style="flex:1;min-width:220px"><div class="t">${esc(p.name)}</div><div class="m">${esc(pWhen(p))} · ${p.src === 'teacher' ? 'المعلم' : 'رئيس'}: ${esc(p.owner || '—')}${p.helper ? ' · مساند: ' + esc(p.helper) : ''}${p.src === 'teacher' && p.goal ? ' · الهدف: ' + esc(p.goal) : ''}</div>${p.kpi ? `<div class="m">المؤشر: ${esc(p.kpi)}</div>` : ''}</div>
+        <div class="tools">${part ? `<span class="chip info">أنت ${part}</span>` : ''}<span class="chip ${c}">${l}</span>${(p.follow || []).length ? `<span class="chip mute num">${p.follow.length} متابعة</span>` : ''}${p.src === 'teacher' && p.status === 'proposed' && isAdmin() ? `<button class="btn sm pri" data-act="tInitDecide" data-id="${p.id}">اعتماد</button>` : ''}<button class="btn sm ${p.src === 'teacher' && p.status === 'proposed' ? '' : 'pri'}" data-act="planFollow" data-id="${p.id}">متابعة</button>${isAdmin() && p.src !== 'teacher' ? `<button class="btn sm" data-act="planEdit" data-id="${p.id}">تعديل</button>` : ''}</div></div>`; }).join('')}</div></section>`).join('') : '<div class="empty">لا توجد مبادرات في هذا التصنيف.</div>'}`
     : '<div class="empty">لا توجد مبادرات بعد. ارفع الخطة التشغيلية PDF لتُقرأ برامجها تلقائيًا، أو أضف مبادرة يدويًا.</div>');
 }
 function planReportDoc(){
   const all = planSorted(), t = parseD(today()); let fm; try { fm = new Intl.DateTimeFormat('ar-SA-u-ca-islamic-umalqura', {month:'long'}); } catch { fm = null; }
   const months = []; all.forEach(p => occs(p).forEach(o => { const m = fm ? fm.format(o.from) : isoDay(o.from).slice(0, 7); let x = months.find(y => y.m === m); if (!x) months.push(x = {m, n:0, d:0, l:0}); x.n++; if (occDone(p, o)) x.d++; else if (o.to < t) x.l++; }));
-  const subs = []; all.forEach(p => { const g = p.sub || p.goal || 'مبادرات أخرى'; let x = subs.find(y => y.g === g); if (!x) subs.push(x = {g, l:[]}); x.l.push(p); });
+  const subs = []; all.filter(p => p.status !== 'rejected').forEach(p => { const g = p.src === 'teacher' ? 'مبادرات المعلمين' : p.sub || p.goal || 'مبادرات أخرى'; let x = subs.find(y => y.g === g); if (!x) subs.push(x = {g, l:[]}); x.l.push(p); });
   const lastF = p => [...(p.follow || [])].reverse().find(h => h.done !== 'إلغاء') || {};
+  const why = h => h.reason || (h.by === 'teacher' ? h.text : '') || '';
   return `<div class="paper land">${docHead('متابعة تنفيذ برامج الخطة التشغيلية', 'حتى ' + hij(today()), '', hij(today()))}
     <h4>المتابعة الشهرية</h4><table><tr><th>الشهر</th><th>المخطط</th><th>المنفذ</th><th>المتأخر</th><th>نسبة الإنجاز</th></tr>${months.map(x => `<tr><td>${esc(x.m)}</td><td>${x.n}</td><td>${x.d}</td><td>${x.l}</td><td>${x.d + x.l ? Math.round(x.d / (x.d + x.l) * 100) + '٪' : '—'}</td></tr>`).join('')}</table>
-    ${subs.map(x => `<h4>${esc(x.g)}</h4><table><tr><th style="width:4%">م</th><th style="width:20%">البرنامج</th><th>الموعد</th><th>المسؤول</th><th>الحالة</th><th>تاريخ المتابعة</th><th>سبب عدم التنفيذ</th><th>إجراءات التحسين</th></tr>${x.l.map((p, i) => { const h = lastF(p); return `<tr><td>${i + 1}</td><td>${esc(p.name)}</td><td>${esc(pWhen(p))}</td><td>${esc(p.owner || '')}</td><td>${esc(pStat(p)[1])}</td><td>${h.date ? esc(hij(h.date)) : ''}</td><td>${esc(h.reason || '')}</td><td>${esc(h.action || '')}</td></tr>`; }).join('')}</table>`).join('')}
+    ${subs.map(x => `<h4>${esc(x.g)}</h4><table><tr><th style="width:4%">م</th><th style="width:20%">البرنامج</th><th>الموعد</th><th>المسؤول</th><th>الحالة</th><th>تاريخ المتابعة</th><th>سبب عدم التنفيذ</th><th>إجراءات التحسين</th></tr>${x.l.map((p, i) => { const h = lastF(p); return `<tr><td>${i + 1}</td><td>${esc(p.name)}</td><td>${esc(pWhen(p))}</td><td>${esc(p.owner || '')}</td><td>${esc(pStat(p)[1])}</td><td>${h.date ? esc(hij(h.date)) : ''}</td><td>${esc(why(h))}</td><td>${esc(h.action || '')}</td></tr>`; }).join('')}</table>`).join('')}
     ${sigRow('مدير المدرسة', principal(), null)}</div>`;
 }
 function planWeekDoc(){
@@ -3037,6 +3048,55 @@ Object.assign(ACT, {
 document.addEventListener('change', e => { if (e.target.id === 'waApp') { store.set('mdr.wa', e.target.value || null); toast(e.target.value ? 'ستُفتح الرسائل في واتساب للأعمال على هذا الجهاز' : 'ستُفتح الرسائل في التطبيق الافتراضي'); } });
 // روابط intent تفتح التطبيق مباشرة، فتبقى المنصة في نفس الصفحة بدل فتح تبويب فارغ
 document.addEventListener('click', e => { const a = e.target.closest && e.target.closest('a[href^="intent:"]'); if (a) a.target = '_self'; }, true);
+
+/* ---------- مبادرات المعلمين ---------- */
+function tInitDecideForm(id){
+  const p = S.plan.find(x => x.id === id); if (!p) return; const t = S.teachers.find(x => x.id === p.teacherId);
+  modal('اعتماد مبادرة — ' + p.owner, `<table class="tbl"><tbody><tr><th>المبادرة</th><td>${esc(p.name)}</td></tr><tr><th>الهدف</th><td>${esc(p.goal || '—')}</td></tr><tr><th>المستهدفون</th><td>${esc(p.targets || '—')}</td></tr><tr><th>الموعد</th><td>${esc(pWhen(p))}</td></tr><tr><th>الوصف</th><td style="white-space:pre-wrap">${esc(p.method || '—')}</td></tr><tr><th>المؤشر</th><td>${esc(p.kpi || '—')}</td></tr><tr><th>الحالة</th><td>${esc(pStat(p)[1])}</td></tr></tbody></table>
+    <div class="f full" style="margin-top:10px"><label for="td_n">ملاحظة للمعلم</label><input id="td_n" value="${esc(p.decNote || '')}" placeholder="اختياري"></div>`,
+    `<button class="btn pri" id="td_ok">اعتماد</button><button class="btn danger" id="td_no">عدم اعتماد</button><button class="btn" data-act="close">إغلاق</button>`, true);
+  const go = async ok => { if (!await put('plan/' + id, {status:ok ? 'approved' : 'rejected', approved:ok, decNote:fval('td_n'), decAt:Date.now()}, true)) return;
+    const msg = `المكرم الأستاذ/ ${p.owner}\nالسلام عليكم ورحمة الله وبركاته\n${ok ? `اعتُمدت مبادرتك «${p.name}»، شكرًا لك. بعد تنفيذها أرفق تقرير التنفيذ وشواهده من رابطك الخاص` : `نشكر لك مبادرتك «${p.name}»، ولم تُعتمد هذه المرة. يمكنك الاطلاع على الملاحظة من رابطك الخاص`}:\n${teacherLink(t)}\n${principal()} — ${school()}`;
+    const wa = t && waLink(t.phone, msg);
+    modal(ok ? 'اعتُمدت المبادرة' : 'لم تُعتمد المبادرة', `<p style="margin:0">${ok ? 'اعتُمدت' : 'سُجّل عدم اعتماد'} «${esc(p.name)}». يظهر ذلك للمعلم في رابطه الخاص.</p>`, `${wa ? `<a class="btn wa" href="${esc(wa)}" target="_blank" rel="noopener">إبلاغ المعلم بالواتساب</a>` : ''}<button class="btn" data-act="close">إغلاق</button>`); };
+  $('#td_ok').onclick = () => go(true); $('#td_no').onclick = () => go(false);
+}
+function teacherInitPanel(){
+  const L = sortBy(S.plan, 'createdAt', -1);
+  return `<section class="panel"><h3>مبادراتي</h3><p class="sub">أضف مبادرتك لتعتمدها الإدارة، وبعد التنفيذ أرفق تقرير التنفيذ وشواهده.</p>
+    ${L.length ? `<div class="list">${L.map(p => { const [c, l] = pStat(p); return `<div class="row"><div style="flex:1;min-width:200px"><div class="t">${esc(p.name)}</div><div class="m">${esc(pWhen(p))}${(p.follow || []).length ? ' · ' + p.follow.length + ' تقرير' : ''}</div>${p.decNote ? `<div class="m">ملاحظة الإدارة: ${esc(p.decNote)}</div>` : ''}</div>
+      <div class="tools"><span class="chip ${c}">${l}</span>${p.status === 'proposed' ? `<button class="btn sm" data-act="tInitEdit" data-id="${p.id}">تعديل</button>` : ''}${p.approved ? `<button class="btn sm pri" data-act="tInitReport" data-id="${p.id}">تقرير التنفيذ</button>` : ''}</div></div>`; }).join('')}</div>` : '<div class="empty">لم تضف مبادرات بعد.</div>'}
+    <div style="margin-top:10px"><button class="btn pri" data-act="tInitEdit">إضافة مبادرة</button></div></section>`;
+}
+function tInitForm(id){
+  const p = id ? S.plan.find(x => x.id === id) : {}; if (!p) return;
+  modal(id ? 'تعديل مبادرة' : 'إضافة مبادرة', `<div class="fg"><div class="f full"><label for="ti_n">اسم المبادرة</label><input id="ti_n" value="${esc(p.name || '')}"></div>
+    <div class="f full"><label for="ti_g">الهدف منها</label><input id="ti_g" value="${esc(p.goal || '')}"></div>
+    <div class="f"><label for="ti_t">المستهدفون</label><input id="ti_t" value="${esc(p.targets || '')}" placeholder="طلاب الصف الرابع"></div>
+    <div class="f"><label for="ti_k">المؤشر أو الأثر المتوقع</label><input id="ti_k" value="${esc(p.kpi || '')}"></div>
+    <div class="f"><label for="ti_f">من تاريخ</label><input id="ti_f" type="date" value="${esc(p.from || '')}"></div><div class="f"><label for="ti_e">إلى تاريخ</label><input id="ti_e" type="date" value="${esc(p.to || '')}"></div>
+    <div class="f full"><label for="ti_m">وصف المبادرة وطريقة تنفيذها</label><textarea id="ti_m" rows="4">${esc(p.method || '')}</textarea></div></div>`,
+    `<button class="btn pri" id="ok">إرسال للإدارة</button><button class="btn" data-act="close">إلغاء</button>`, true);
+  $('#ok').onclick = async () => { const name = fval('ti_n'); if (!name) return toast('اكتب اسم المبادرة', 'bad'); if (fval('ti_f') && fval('ti_e') && fval('ti_e') < fval('ti_f')) return toast('تاريخ النهاية قبل البداية', 'bad'); $('#ok').disabled = true;
+    const nid = id || newId();
+    try { const r = await api(`/t/${KEY}/plan/${nid}`, {method:'POST', json:{name, goal:fval('ti_g'), targets:fval('ti_t'), kpi:fval('ti_k'), from:fval('ti_f'), to:fval('ti_e'), method:fval('ti_m')}});
+      upsert('plan', nid, r.doc); closeModal(); render(); toast('أُرسلت المبادرة للإدارة لاعتمادها'); } catch(e){ toast(errMsg(e), 'bad'); $('#ok').disabled = false; } };
+}
+function tInitReportForm(id){
+  const p = S.plan.find(x => x.id === id); if (!p) return;
+  modal('تقرير التنفيذ — ' + p.name, `<div class="fg"><div class="f"><label for="tr_d">نُفذت؟</label><select id="tr_d"><option>نعم</option><option>جزئيًا</option><option>لا</option></select></div>
+    <div class="f"><label for="tr_dt">تاريخ التنفيذ</label><input id="tr_dt" type="date" value="${today()}"></div><div class="f"><label for="tr_c">عدد المستفيدين</label><input id="tr_c" inputmode="numeric"></div>
+    <div class="f full"><label for="tr_x">ما الذي نُفذ؟ (أو سبب عدم التنفيذ)</label><textarea id="tr_x" rows="4"></textarea></div>${fileField('tr_f1', 'شاهد (صورة أو PDF)')}${fileField('tr_f2', 'شاهد آخر (اختياري)')}</div>`,
+    `<button class="btn pri" id="ok">إرسال التقرير</button><button class="btn" data-act="close">إلغاء</button>`, true);
+  $('#ok').onclick = async () => { const text = fval('tr_x'); if (!text) return toast('اكتب ما نُفذ', 'bad'); $('#ok').disabled = true;
+    const files = []; for (const f of ['tr_f1', 'tr_f2']) { const a = await uploadFrom(f); if (a === false) { $('#ok').disabled = false; return; } if (a) files.push(a); }
+    try { const r = await api(`/t/${KEY}/plan/${id}`, {method:'POST', json:{report:{done:fval('tr_d'), date:fval('tr_dt'), count:fval('tr_c'), text, attachments:files}}});
+      upsert('plan', id, r.doc); closeModal(); render(); toast('أُرسل التقرير للإدارة'); } catch(e){ toast(errMsg(e), 'bad'); $('#ok').disabled = false; } };
+}
+Object.assign(ACT, { tInitDecide: tInitDecideForm, tInitEdit: id => tInitForm(id), tInitReport: tInitReportForm,
+  tInvite: () => { if (!S.teachers.length) return toast('أضف المعلمين أولًا', 'bad');
+    sendQueue('دعوة المعلمين لإضافة مبادراتهم', sortBy(S.teachers, 'name').map(t => ({id:t.id, name:t.name, sub:t.specialty || '', phone:t.phone, msg:`المكرم الأستاذ/ ${t.name}\nالسلام عليكم ورحمة الله وبركاته\nنرحب بمبادراتك. أضفها من «مبادراتي» في رابطك الخاص لتعتمدها الإدارة، وبعد التنفيذ أرفق تقرير التنفيذ وشواهده:\n${teacherLink(t)}\n${principal()} — ${school()}`})), 'tinvite', '',
+      `السلام عليكم ورحمة الله وبركاته\nالزملاء الكرام، نرحب بمبادراتكم. أضيفوها من «مبادراتي» في رابطكم الخاص بمنصة ${school()} لتعتمدها الإدارة، وبعد التنفيذ أرفقوا تقرير التنفيذ وشواهده.\n${principal()} — ${school()}`); } });
 
 /* ---------- الإجراءات الجماعية ---------- */
 const groupNote = what => `السلام عليكم ورحمة الله وبركاته\nالزملاء الكرام، ${what}\nنأمل فتح رابطكم الخاص في منصة ${school()} والاطلاع والتوقيع.\n${principal()} — ${school()}`;
