@@ -338,7 +338,7 @@ const MODE = hashArg('t') ? 'teacher' : hashArg('p') ? 'parent' : 'admin';
 document.documentElement.classList.toggle('portal', MODE !== 'admin');
 const KEY = hashArg('t') || hashArg('p');
 let token = store.get('mdr.token');
-const APP_VER = '3.9'; // ارفعه مع site/version.json في كل نشر
+const APP_VER = '3.10'; // ارفعه مع site/version.json في كل نشر
 const DEV = store.get('mdr.dev') || [...crypto.getRandomValues(new Uint8Array(16))].map(b => b.toString(16).padStart(2, '0')).join(''); store.set('mdr.dev', DEV);
 const devInfo = () => { const u = navigator.userAgent; return {device:DEV, deviceName:`${/iPhone|iPad/.test(u) ? 'آيفون' : /Android/.test(u) ? 'أندرويد' : 'كمبيوتر'} · ${/Edg/.test(u) ? 'Edge' : /Chrome/.test(u) ? 'Chrome' : /Safari/.test(u) ? 'Safari' : /Firefox/.test(u) ? 'Firefox' : 'متصفح'}`}; };
 const ERR = {
@@ -1154,6 +1154,13 @@ const DEGREES = {
   4:{t:'الدرجة الرابعة — مخالفة جسيمة', ex:'الاعتداء الجسدي، إتلاف الممتلكات، التزوير، التنمر المتكرر', steps:['عقد لجنة التوجيه الطلابي وتحرير محضر','استدعاء عاجل لولي الأمر','تحويل الطالب للوحدة الإرشادية أو الأخصائي','إشعار إدارة التعليم عند الاقتضاء']},
   5:{t:'الدرجة الخامسة — مخالفة خطيرة', ex:'حيازة أدوات حادة أو مواد ممنوعة، اعتداء جسيم، تهديد سلامة الآخرين', steps:['عزل الطالب فورًا وتأمين سلامة الجميع','إبلاغ ولي الأمر وإدارة التعليم كتابيًا فورًا','تحرير محضر رسمي مفصّل بالوقائع والشهود','إحالة الحالة للجهة المختصة وفق اللوائح والأنظمة']}
 };
+// قائمة المخالفات للاختيار عند التسجيل، مرتبة على درجات المنصة؛ ويبقى تعديل الدرجة متاحًا
+const VIOL = {
+  1:['عدم التقيد بالزي المدرسي','التأخر الصباحي','عدم حضور الاصطفاف الصباحي مع وجوده في المدرسة','التأخر عن الاصطفاف الصباحي أو العبث أثناءه','التأخر في الدخول إلى الحصص','تناول الأطعمة أو المشروبات أثناء الدرس دون استئذان','النوم داخل الفصل','الدخول أو الخروج من الفصل دون استئذان','إعاقة سير الحصة','تكرار الخروج والدخول من بوابة المدرسة قبل وقت الحضور والانصراف','التجمهر أمام بوابة المدرسة'],
+  2:['إثارة الفوضى داخل الفصل أو المدرسة أو في وسائل النقل المدرسي','الشجار مع الزملاء','الاشتراك في مضاربة','الهروب من الحصة','إحضار أجهزة الاتصال','إلحاق الضرر المتعمد بممتلكات الزملاء','العبث بممتلكات المدرسة ومبانيها','سرقة شيء من ممتلكات الزملاء','التلفظ على الزملاء بألفاظ نابية أو تهديدهم'],
+  3:['التلفظ على المعلمين أو الإداريين بألفاظ نابية','مهاجمة أحد الزملاء بالضرب','التنمر','الهروب من المدرسة','التوقيع عن ولي الأمر دون علمه','امتهان الكتب المدرسية','تصوير المعلمين أو الطلاب بالأجهزة الإلكترونية','إحضار أو استخدام الألعاب الخطرة','حيازة أو عرض المواد الإعلامية الممنوعة','إحضار جهاز اتصال يحتوي على صور أو مقاطع غير لائقة','سرقة شيء من ممتلكات المعلمين أو المدرسة','إلحاق الضرر المتعمد بممتلكات المعلمين أو المدرسة','تعمد إتلاف شيء من تجهيزات المدرسة','التحرش غير المباشر'],
+  4:['التحرش المباشر','إشعال النار داخل المدرسة','حيازة السجائر أو التدخين','الاعتداء الجسدي على أحد منسوبي المدرسة'],
+  5:['إحضار آلة حادة بقصد التهديد أو الاعتداء','حيازة مواد ممنوعة أو مخدرة','الاعتداء الجسيم المهدد لسلامة الآخرين']};
 const ATT = ['حاضر','متأخر','غياب بعذر','غياب بدون عذر'];
 const ATT_C = {'حاضر':'ok','متأخر':'warn','غياب بعذر':'info','غياب بدون عذر':'bad'};
 const student = id => S.students.find(s => s.id === id);
@@ -1293,14 +1300,19 @@ function incidentForm(sid){
   modal('تسجيل مخالفة سلوكية', `<div class="fg">
     <div class="f full"><label for="in_s">الطالب</label><select id="in_s">${sortBy(S.students,'name').map(s => `<option value="${s.id}" ${s.id === sid ? 'selected' : ''}>${esc(s.name)} — ${esc(sClass(s))}</option>`).join('')}</select></div>
     <div class="f"><label for="in_d">التاريخ</label><input id="in_d" type="date" value="${today()}"></div>
-    <div class="f"><label for="in_g">درجة المخالفة</label><select id="in_g">${[1,2,3,4,5].map(d => `<option value="${d}">${DEGREES[d].t}</option>`).join('')}</select></div>
-    <div class="f full"><label for="in_desc">وصف الواقعة (المكان والوقت والشهود)</label><textarea id="in_desc" placeholder="اذكر الوقائع كما هي دون أحكام مسبقة"></textarea></div>
+    <div class="f full"><label for="in_v">المخالفة</label><select id="in_v"><option value="">— اختر المخالفة —</option>${[1,2,3,4,5].map(d => `<optgroup label="${esc(DEGREES[d].t)}">${VIOL[d].map(v => `<option value="${esc(v)}" data-deg="${d}">${esc(v)}</option>`).join('')}</optgroup>`).join('')}<option value="other">أخرى (أكتبها بنفسي)</option></select></div>
+    <div class="f full" id="in_ow" hidden><label for="in_o">اسم المخالفة</label><input id="in_o" placeholder="اكتب المخالفة"></div>
+    <div class="f"><label for="in_g">درجة المخالفة</label><select id="in_g">${[1,2,3,4,5].map(d => `<option value="${d}">${DEGREES[d].t}</option>`).join('')}</select><span class="hint">تتحدد تلقائيًا من المخالفة، ويمكن تغييرها.</span></div>
+    <div class="f full"><label for="in_desc">تفاصيل الواقعة (اختياري: المكان والوقت والشهود)</label><textarea id="in_desc" placeholder="اذكر الوقائع كما هي دون أحكام مسبقة"></textarea></div>
     <div class="f full notice-bar info" id="in_hint"></div></div>`,
     `<button class="btn pri" id="ok">حفظ المخالفة</button><button class="btn" data-act="close">إلغاء</button>`);
   const hint = () => { const d = DEGREES[fval('in_g')]; $('#in_hint').innerHTML = `<b>أمثلة:</b> ${esc(d.ex)}<br><b>الإجراء المقترح:</b><br>${d.steps.map((x,i) => `${i+1}. ${esc(x)}`).join('<br>')}`; };
   $('#in_g').onchange = hint; hint();
+  $('#in_v').onchange = () => { const o = $('#in_v').selectedOptions[0]; $('#in_ow').hidden = o.value !== 'other'; if (o.dataset.deg) { $('#in_g').value = o.dataset.deg; hint(); } if (o.value === 'other') $('#in_o').focus(); };
   $('#ok').onclick = async () => {
-    const data = {studentId:fval('in_s'), date:fval('in_d') || today(), deg:fval('in_g'), desc:fval('in_desc'), status:'open', createdAt:Date.now()};
+    const v = fval('in_v') === 'other' ? fval('in_o') : fval('in_v'), note = fval('in_desc');
+    if (!v) return toast(fval('in_v') === 'other' ? 'اكتب اسم المخالفة' : 'اختر المخالفة', 'bad');
+    const data = {studentId:fval('in_s'), date:fval('in_d') || today(), deg:fval('in_g'), v, note, desc:v + (note ? ' — ' + note : ''), status:'open', createdAt:Date.now()};
     const iid = newId(), st = student(data.studentId);
     if (await put('incidents/' + iid, data)) { const auto = +data.deg >= 2 && st; if (auto) await autoIncidentRec(iid, data, st); closeModal(); toast(auto ? 'سُجّلت المخالفة وأُضيف محضرها إلى السجل' : 'سُجّلت المخالفة'); }
   };
