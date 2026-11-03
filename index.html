@@ -338,7 +338,7 @@ const MODE = hashArg('t') ? 'teacher' : hashArg('p') ? 'parent' : 'admin';
 document.documentElement.classList.toggle('portal', MODE !== 'admin');
 const KEY = hashArg('t') || hashArg('p');
 let token = store.get('mdr.token');
-const APP_VER = '3.10'; // ارفعه مع site/version.json في كل نشر
+const APP_VER = '3.11'; // ارفعه مع site/version.json في كل نشر
 const DEV = store.get('mdr.dev') || [...crypto.getRandomValues(new Uint8Array(16))].map(b => b.toString(16).padStart(2, '0')).join(''); store.set('mdr.dev', DEV);
 const devInfo = () => { const u = navigator.userAgent; return {device:DEV, deviceName:`${/iPhone|iPad/.test(u) ? 'آيفون' : /Android/.test(u) ? 'أندرويد' : 'كمبيوتر'} · ${/Edg/.test(u) ? 'Edge' : /Chrome/.test(u) ? 'Chrome' : /Safari/.test(u) ? 'Safari' : /Firefox/.test(u) ? 'Firefox' : 'متصفح'}`}; };
 const ERR = {
@@ -1265,12 +1265,17 @@ function vAttendance(){
       <div class="f"><label for="attDate">التاريخ</label><input type="date" id="attDate" value="${esc(date)}"><span class="hint">${esc(dayName(date))} ${esc(hij(date))}</span></div>
       <div class="f"><label for="attGrade">الصف</label><select id="attGrade"><option value="">كل الصفوف</option>${grades.map(x => `<option ${x === g ? 'selected' : ''}>${esc(x)}</option>`).join('')}</select></div></div>
     <div class="tools">${ATT.map(a => `<span class="chip ${ATT_C[a]}">${a}: ${cnt[a]}</span>`).join('')}<span class="chip mute">لم يُرصد: ${un}</span>
+      ${isAdmin() && cnt['غياب بدون عذر'] ? `<button class="btn sm wa" data-act="todayAbs">إرسال لأولياء أمور الغائبين (${cnt['غياب بدون عذر']})</button>` : ''}
       ${isAdmin() && un ? '<button class="btn sm" data-act="allPresent">تحديد غير المرصودين حاضرين</button>' : ''}${isAdmin() && lateOn(date).length ? `<button class="btn sm" data-act="lateNotice">إشعار أولياء أمور المتأخرين عن الطابور (${lateOn(date).length})</button>` : ''}</div></div>
     ${list.length ? `<div class="tablewrap"><table class="tbl"><thead><tr><th>الطالب</th><th>الحالة</th><th></th></tr></thead><tbody>${list.map(s => { const v = D[s.id];
-      const wa = v === 'غياب بدون عذر' && waLink(stuWa(s), waNote(s, 'إشعار غياب', `نفيدكم بغياب ابنكم يوم ${dayName(date)} ${hij(date)} دون عذر. نأمل إفادتنا بسبب الغياب وتزويدنا بالعذر إن وجد.`));
+      // زر الإرسال يظهر فور رصد الغياب أو التأخر، ويُعلَّم بعد الإرسال
+      const why = v === 'غياب بدون عذر' || v === 'غياب بعذر' ? ['abs_', 'إشعار غياب', `نفيدكم بغياب ابنكم يوم ${dayName(date)} ${hij(date)}${v === 'غياب بعذر' ? '، وقد سُجّل غيابه بعذر' : ' دون عذر'}. ${v === 'غياب بعذر' ? 'نتمنى له دوام الصحة والعافية.' : 'نأمل إفادتنا بسبب الغياب وتزويدنا بالعذر إن وجد.'}`]
+        : v === 'متأخر' ? ['late_', 'إشعار تأخر', `نفيدكم بتأخر ابنكم عن الطابور الصباحي يوم ${dayName(date)} ${hij(date)}. نأمل الحرص على حضوره قبل بدء الطابور.`] : null;
+      const wl = why && waLink(stuWa(s), waNote(s, why[1], why[2])), sent = why && (S.sendlog.find(x => x.id === why[0] + date) || {})[s.id];
+      const wa = !why ? '' : wl ? `<a class="btn sm wa" href="${esc(wl)}" target="_blank" rel="noopener" data-attq="${why[0] + date}|${s.id}">${sent ? '✓ أُرسل · إعادة' : 'إرسال لولي الأمر'}</a>` : '<span class="chip warn">لا يوجد جوال لولي الأمر</span>';
       return `<tr><td><b>${esc(s.name)}</b><div style="font-size:12px;color:var(--muted)">${esc(sClass(s))}</div></td>
       <td><div class="seg">${ATT.map(a => `<button data-act="mark" data-id="${s.id}" data-v="${a}" aria-pressed="${v === a}">${a}</button>`).join('')}</div></td>
-      <td>${wa ? `<a class="btn sm wa" href="${esc(wa)}" target="_blank" rel="noopener">إشعار ولي الأمر</a>` : ''}</td></tr>`; }).join('')}</tbody></table></div>`
+      <td>${wa}</td></tr>`; }).join('')}</tbody></table></div>`
       : '<div class="empty">لا يوجد طلاب في هذا الصف. أضف الطلاب من «سجل الطلاب».</div>'}
     <div class="notice-bar info">الغياب بدون عذر يدخل في «الإنذار المبكر» في لوحة المتابعة عند تجاوز ${cfg().absLimit}٪ (يُضبط من الإعدادات).</div>`;
 }
@@ -1280,6 +1285,7 @@ document.addEventListener('change', e => {
   if (e.target.id === 'schDate') { UI.schDate = e.target.value; UI.schDay = null; render(true); }
   if (e.target.id === 'schDay') { UI.schDay = +e.target.value; render(true); }
 });
+document.addEventListener('click', e => { const a = e.target.closest('[data-attq]'); if (!a) return; const [log, sid] = a.dataset.attq.split('|'); save2('sendlog', log, {[sid]:Date.now()}); });
 function markAll(){
   const date = UI.attDate || today(), g = UI.attGrade || ''; const D = S.attendance.find(x => x.id === date) || {};
   const upd = {}; S.students.filter(s => (!g || s.grade === g) && !D[s.id]).forEach(s => upd[s.id] = 'حاضر');
