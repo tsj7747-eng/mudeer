@@ -338,7 +338,7 @@ const MODE = hashArg('t') ? 'teacher' : hashArg('p') ? 'parent' : 'admin';
 document.documentElement.classList.toggle('portal', MODE !== 'admin');
 const KEY = hashArg('t') || hashArg('p');
 let token = store.get('mdr.token');
-const APP_VER = '3.12'; // ارفعه مع site/version.json في كل نشر
+const APP_VER = '3.13'; // ارفعه مع site/version.json في كل نشر
 const DEV = store.get('mdr.dev') || [...crypto.getRandomValues(new Uint8Array(16))].map(b => b.toString(16).padStart(2, '0')).join(''); store.set('mdr.dev', DEV);
 const devInfo = () => { const u = navigator.userAgent; return {device:DEV, deviceName:`${/iPhone|iPad/.test(u) ? 'آيفون' : /Android/.test(u) ? 'أندرويد' : 'كمبيوتر'} · ${/Edg/.test(u) ? 'Edge' : /Chrome/.test(u) ? 'Chrome' : /Safari/.test(u) ? 'Safari' : /Firefox/.test(u) ? 'Firefox' : 'متصفح'}`}; };
 const ERR = {
@@ -1031,7 +1031,6 @@ function viewParent(id, fallback){
     `${!p.parentSig && !p.noSign ? `<button class="btn pri" data-act="signParent" data-id="${id}">توقيع ولي الأمر</button>` : ''}
      ${isAdmin() && p.form && p.parentSig && !p.action ? `<button class="btn pri" data-act="parAct" data-id="${id}">إجراء المدرسة</button>` : ''}
      ${isAdmin() && wa ? `<a class="btn wa" href="${esc(wa)}" target="_blank" rel="noopener">إرسال لولي الأمر واتساب</a>` : ''}
-     ${isAdmin() && okMail(student(p.studentId)?.email) ? `<a class="btn" href="${esc(mailLink(student(p.studentId).email, p.kind + ' — ' + p.student, parentMsg(p)))}">إرسال بالبريد</a>` : ''}
      ${isAdmin() ? `<button class="btn" data-act="copy" data-v="${esc(parentLink(p))}">نسخ رابط التوقيع</button><button class="btn" data-act="attachP" data-id="${id}">إرفاق مستند</button>` : ''}
      ${MODE === 'admin' ? `<button class="btn" data-act="printParent" data-id="${id}">طباعة / PDF</button>
      <button class="btn" data-act="dlParent" data-id="${id}">تنزيل النموذج</button>` : ''}
@@ -1222,12 +1221,11 @@ function studentForm(id){
     <div class="f"><label for="st_pn">ولي الأمر</label><input id="st_pn" value="${esc(s.guard)}"></div>
     <div class="f"><label for="st_pp">جوال ولي الأمر</label><input id="st_pp" dir="ltr" inputmode="tel" placeholder="05xxxxxxxx" value="${esc(s.phone)}"></div>
     <div class="f"><label for="st_wa">رقم واتساب آخر</label><input id="st_wa" dir="ltr" inputmode="tel" placeholder="إذا كان جوال ولي الأمر بلا واتساب" value="${esc(s.wa)}"></div>
-    <div class="f full"><label for="st_mail">بريد ولي الأمر</label><input id="st_mail" type="email" dir="ltr" placeholder="اختياري" value="${esc(s.email)}"></div>
     <div class="f full"><label for="st_note">ملاحظات</label><input id="st_note" value="${esc(s.note)}" placeholder="حالة صحية، احتياج خاص…"></div></div>`,
     `<button class="btn pri" id="ok">حفظ</button><button class="btn" data-act="close">إلغاء</button>`);
   $('#ok').onclick = async () => {
-    const name = fval('st_n'); if (!name) return toast('اكتب اسم الطالب', 'bad'); if (fval('st_mail') && !okMail(fval('st_mail'))) return toast('البريد الإلكتروني غير صحيح', 'bad');
-    const data = {name, nid:fval('st_nid'), grade:fval('st_g'), cls:fval('st_c'), guard:fval('st_pn'), phone:fval('st_pp'), wa:fval('st_wa'), email:fval('st_mail'), note:fval('st_note'), createdAt:s.createdAt || Date.now()};
+    const name = fval('st_n'); if (!name) return toast('اكتب اسم الطالب', 'bad');
+    const data = {name, nid:fval('st_nid'), grade:fval('st_g'), cls:fval('st_c'), guard:fval('st_pn'), phone:fval('st_pp'), wa:fval('st_wa'), note:fval('st_note'), createdAt:s.createdAt || Date.now()};
     if (await put('students/' + (id || newId()), data)) { closeModal(); toast('حُفظ الطالب'); }
   };
 }
@@ -1275,8 +1273,7 @@ function vAttendance(){
       const why = v === 'غياب بدون عذر' || v === 'غياب بعذر' ? ['abs_', 'إشعار غياب', `نفيدكم بغياب ابنكم يوم ${dayName(date)} ${hij(date)}${v === 'غياب بعذر' ? '، وقد سُجّل غيابه بعذر' : ' دون عذر'}. ${v === 'غياب بعذر' ? 'نتمنى له دوام الصحة والعافية.' : 'نأمل إفادتنا بسبب الغياب وتزويدنا بالعذر إن وجد.'}`]
         : v === 'متأخر' ? ['late_', 'إشعار تأخر', `نفيدكم بتأخر ابنكم عن الطابور الصباحي يوم ${dayName(date)} ${hij(date)}. نأمل الحرص على حضوره قبل بدء الطابور.`] : null;
       const wl = why && waLink(stuWa(s), waNote(s, why[1], why[2])), sent = why && (S.sendlog.find(x => x.id === why[0] + date) || {})[s.id];
-      const ml = why && okMail(s.email) && mailLink(s.email, why[1] + ' — ' + s.name, waNote(s, why[1], why[2]));
-      const wa = !why ? '' : (wl ? `<a class="btn sm wa" href="${esc(wl)}" target="_blank" rel="noopener" data-attq="${why[0] + date}|${s.id}">${sent ? '✓ أُرسل · إعادة' : 'إرسال لولي الأمر'}</a>` : '') + (ml ? `<a class="btn sm" href="${esc(ml)}" data-attq="${why[0] + date}|${s.id}">${wl ? 'بريد' : sent ? '✓ أُرسل · إعادة بالبريد' : 'إرسال بالبريد'}</a>` : '') || '<span class="chip warn">لا يوجد جوال ولا بريد لولي الأمر</span>';
+      const wa = !why ? '' : wl ? `<a class="btn sm wa" href="${esc(wl)}" target="_blank" rel="noopener" data-attq="${why[0] + date}|${s.id}">${sent ? '✓ أُرسل · إعادة' : 'إرسال لولي الأمر'}</a>` : '<span class="chip warn">لا يوجد جوال لولي الأمر</span>';
       return `<tr><td><b>${esc(s.name)}</b><div style="font-size:12px;color:var(--muted)">${esc(sClass(s))}</div></td>
       <td><div class="seg">${ATT.map(a => `<button data-act="mark" data-id="${s.id}" data-v="${a}" aria-pressed="${v === a}">${a}</button>`).join('')}</div></td>
       <td>${wa}</td></tr>`; }).join('')}</tbody></table></div>`
@@ -2745,7 +2742,6 @@ function cleanPhone(v){ let d = digits(v).replace(/\D/g,''); if (d.startsWith('0
 
 // تحديد معنى كل عمود من عنوانه، فيقبل ملف نور أو ملف المنصة أو أي ملف بعناوين مقاربة
 function stuColOf(h){ const c = normAr(h); if (!c || c.length > 40 || /تاريخ|قريب/.test(c)) return '';
-  if (/بريد|ايميل|email|e-mail/i.test(c)) return 'email';
   if (/واتس|whatsapp/i.test(c)) return 'wa';
   if (/جوال|هاتف|موبايل|تواصل|mobile|phone/i.test(c)) return 'phone';
   if (/ولي/.test(c)) return /هويه|سجل/.test(c) ? '' : 'guard';
@@ -2781,7 +2777,7 @@ function parseStudents(sheets, defaults){
       if (r.some(v => /^(الصف|الفصل)\s*[:：]/.test(cellStr(v)))) return scan(r);
       if (!name || !/[ء-ي]{2}/.test(name) || /مجموع|الاجمالي|الإجمالي|عدد الطلاب/.test(name)) return;
       const g = k => map[k] === undefined ? '' : cellStr(r[map[k]]);
-      out.push({name, nid:digits(g('nid')).replace(/\D/g,''), grade:g('grade') || grade || defaults.grade || '', cls:g('cls') || cls || defaults.cls || '', guard:g('guard'), phone:cleanPhone(g('phone')), wa:cleanPhone(g('wa')), email:okMail(g('email')) ? g('email').trim() : '', note:g('note')});
+      out.push({name, nid:digits(g('nid')).replace(/\D/g,''), grade:g('grade') || grade || defaults.grade || '', cls:g('cls') || cls || defaults.cls || '', guard:g('guard'), phone:cleanPhone(g('phone')), wa:cleanPhone(g('wa')), note:g('note')});
     });
   });
   return {rows:out, found};
@@ -2795,7 +2791,7 @@ function planStudents(rows){
   rows.forEach(r => { const k = r.nid || nameKey(r); if (seen.has(k)) { dup++; return; } seen.add(k);
     const hit = (r.nid && byNid.get(r.nid)) || byKey.get(nameKey(r)) || byName.get(normAr(r.name));
     if (!hit) return add.push({id:newId(), ...r, createdAt:Date.now()});
-    const ch = {}; ['nid','grade','cls','guard','phone','wa','email','note'].forEach(f => { if (r[f] && r[f] !== hit[f]) ch[f] = r[f]; });
+    const ch = {}; ['nid','grade','cls','guard','phone','wa','note'].forEach(f => { if (r[f] && r[f] !== hit[f]) ch[f] = r[f]; });
     if (Object.keys(ch).length) upd.push({...hit, ...ch}); else same++; });
   return {add, upd, same, dup};
 }
@@ -2804,7 +2800,7 @@ async function bulkPut(col, docs, dels){
   for (let i = 0; i < (dels || []).length; i += 100) await api('/bulk/' + col, {method:'POST', json:{del:dels.slice(i, i + 100)}});
   docs.forEach(({id, ...d}) => upsert(col, id, d)); if (dels?.length) S[col] = S[col].filter(x => !dels.includes(x.id)); render();
 }
-const STU_HEAD = ['رقم الهوية','اسم الطالب','الصف','الفصل','ولي الأمر','جوال ولي الأمر','رقم واتساب','بريد ولي الأمر','ملاحظات'];
+const STU_HEAD = ['رقم الهوية','اسم الطالب','الصف','الفصل','ولي الأمر','جوال ولي الأمر','رقم واتساب','ملاحظات'];
 function importStudentsForm(){
   modal('استيراد الطلاب من Excel', `<div class="f full"><label for="is_f">ملف الطلاب من نور أو من المنصة</label><input id="is_f" type="file" accept=".xlsx,.xls,.csv"><span class="hint">تُقرأ الأعمدة تلقائيًا: الاسم والهوية والصف والفصل وولي الأمر والجوال. الموجود يُحدَّث، والجديد يُضاف، ولا يُحذف أحد.</span></div><div id="is_pv"></div>`,
     `<button class="btn" id="is_tpl">تنزيل نموذج فارغ</button><button class="btn" data-act="close">إغلاق</button>`, true);
@@ -2816,7 +2812,7 @@ function importStudentsForm(){
       const p = planStudents(rows); const miss = rows.filter(r => !r.grade || !r.cls).length;
       const g0 = fval('is_g'), c0 = fval('is_c');
       box.innerHTML = `<div class="kpis"><div class="kpi"><span class="v">${p.add.length}</span><span class="l">طالب جديد</span></div><div class="kpi"><span class="v">${p.upd.length}</span><span class="l">تُحدَّث بياناته</span></div><div class="kpi"><span class="v">${p.same}</span><span class="l">بلا تغيير</span></div>${p.dup ? `<div class="kpi warn"><span class="v">${p.dup}</span><span class="l">مكرر في الملف</span></div>` : ''}</div>
-        <p class="sub">الأعمدة المقروءة: ${['name','nid','grade','cls','guard','phone','email','note'].filter(k => found.has(k)).map(k => ({name:'الاسم',nid:'الهوية',grade:'الصف',cls:'الفصل',guard:'ولي الأمر',phone:'الجوال',email:'البريد',note:'الملاحظات'})[k]).join('، ')}</p>
+        <p class="sub">الأعمدة المقروءة: ${['name','nid','grade','cls','guard','phone','note'].filter(k => found.has(k)).map(k => ({name:'الاسم',nid:'الهوية',grade:'الصف',cls:'الفصل',guard:'ولي الأمر',phone:'الجوال',note:'الملاحظات'})[k]).join('، ')}</p>
         ${miss || g0 || c0 ? `<div class="fg"><div class="f"><label for="is_g">الصف لمن لم يُذكر صفه</label><input id="is_g" value="${esc(g0)}" placeholder="الخامس"></div><div class="f"><label for="is_c">الفصل لمن لم يُذكر فصله</label><input id="is_c" value="${esc(c0)}" placeholder="أ"></div></div>` : ''}
         <div class="tablewrap"><table class="tbl"><thead><tr><th>الاسم</th><th>الهوية</th><th>الصف</th><th>الفصل</th><th>ولي الأمر</th><th>الجوال</th></tr></thead><tbody>${rows.slice(0,6).map(r => `<tr><td>${esc(r.name)}</td><td class="num">${esc(r.nid)}</td><td>${esc(r.grade)}</td><td>${esc(r.cls)}</td><td>${esc(r.guard)}</td><td class="num">${esc(r.phone)}</td></tr>`).join('')}</tbody></table></div>
         <div class="tools" style="margin-top:10px"><button class="btn pri" id="is_ok" ${p.add.length + p.upd.length ? '' : 'disabled'}>استيراد ${p.add.length + p.upd.length} طالبًا</button></div>`;
@@ -2830,13 +2826,14 @@ function importStudentsForm(){
 // لا إرسال آلي بلا خدمة مدفوعة: يفتح الطابور كل محادثة أو رسالة بريد جاهزة ويتتبع ما أُرسل
 const okMail = e => /^[^\s@<>,;]+@[^\s@<>,;]+\.[^\s@<>,;]{2,}$/.test(String(e || '').trim());
 const mailLink = (to, subject, body) => { const t = [].concat(to).filter(okMail); return t.length ? `mailto:${t.length === 1 ? encodeURIComponent(t[0]).replace('%40', '@') : ''}?${t.length > 1 ? 'bcc=' + t.map(x => encodeURIComponent(x).replace('%40', '@')).join(',') + '&' : ''}subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(String(body || '').replace(/\r?\n/g, '\r\n'))}` : ''; };
-// بريد المستلم: من بيانات الطالب (بريد ولي الأمر) أو المعلم
-const qMail = i => i.email || (i.sid ? student(i.sid)?.email : teacher(i.id)?.email) || '';
+// البريد للمعلمين فقط؛ رسائل أولياء الأمور بالواتساب
+const qMail = i => i.email || (!i.sid && teacher(i.id)?.email) || '';
 function sendQueue(title, items, logId, note, group){
   const gp = !!group && typeof group === 'object', gm = gp ? group.msg : group, sent = id => (S.sendlog.find(x => x.id === logId) || {})[id];
-  let ch = store.get('mdr.ch') === 'mail' ? 'mail' : 'wa';
+  const forT = items.length > 0 && items.every(i => !i.sid && teacher(i.id));
+  let ch = forT && store.get('mdr.ch') === 'mail' ? 'mail' : 'wa';
   const link = i => ch === 'wa' ? waLink(i.phone, i.msg) : mailLink(qMail(i), title, i.msg);
-  const owner = i => i.sid ? ['students/' + i.sid] : teacher(i.id) ? ['teachers/' + i.id] : null;
+  const owner = i => !i.sid && teacher(i.id) ? ['teachers/' + i.id] : null;
   const draw = () => { const tg = ch === 'wa' ? ' target="_blank" rel="noopener"' : ''; const ok = items.filter(link), done = ok.filter(i => sent(i.id)), next = ok.find(i => !sent(i.id)), noPh = items.length - ok.length, W = ch === 'wa';
     document.querySelectorAll('[data-sqch]').forEach(b => b.setAttribute('aria-pressed', b.dataset.sqch === ch));
     $('#sqHint').textContent = W ? 'تُفتح كل محادثة في واتساب برسالتها الجاهزة، فاضغط إرسال فيه ثم عد هنا للتالي.' : 'تُفتح كل رسالة في تطبيق البريد بعنوانها ونصها، فاضغط إرسال فيه ثم عد هنا للتالي.';
@@ -2845,7 +2842,7 @@ function sendQueue(title, items, logId, note, group){
     const cp = $('#sqCopy'); if (cp) cp.onclick = async () => { try { await navigator.clipboard.writeText(gm); toast('نُسخت الرسالة'); } catch { toast('تعذّر النسخ', 'bad'); } };
     $('#sqBody').innerHTML = `<div class="tools"><span class="chip ok num">أُرسل ${done.length} من ${ok.length}</span>${noPh ? `<span class="chip warn num">${W ? 'بلا جوال' : 'بلا بريد'}: ${noPh}</span>` : ''}${next ? `<a class="btn pri" href="${esc(link(next))}"${tg} data-qid="${esc(next.id)}">إرسال التالي: ${esc(next.name)}</a>` : (ok.length ? '<span class="chip ok">اكتمل الإرسال</span>' : '')}</div>
       <div class="list">${items.map(i => { const w = link(i), m = qMail(i), own = W ? i.sid : owner(i); return `<div class="row"><div><div class="t">${esc(i.name)}</div><div class="m">${esc(i.sub || '')}${W ? (i.phone ? ' · <span class="phone">' + esc(i.phone) + '</span>' : '') : (m ? ' · <span dir="ltr">' + esc(m) + '</span>' : '')}</div></div><div class="tools">${sent(i.id) ? '<span class="chip ok">أُرسل</span>' : ''}${w ? `<a class="btn sm${W ? ' wa' : ''}" href="${esc(w)}"${tg} data-qid="${esc(i.id)}">${sent(i.id) ? 'إعادة' : 'إرسال'}</a>` : `<span class="chip mute">${W ? 'لا يوجد واتساب' : 'لا يوجد بريد'}</span>`}${own && !w ? `<input data-qph="${esc(i.id)}" dir="ltr" ${W ? 'inputmode="tel" placeholder="رقم واتساب"' : 'type="email" placeholder="البريد الإلكتروني"'} aria-label="${W ? 'رقم واتساب' : 'بريد'} ${esc(i.name)}" style="width:${W ? 125 : 190}px"><button type="button" class="btn sm" data-qsave="${esc(i.id)}">حفظ</button>` : ''}</div></div>`; }).join('')}</div>`; };
-  const dlg = modal(title, `${note ? `<p class="sub" style="margin:0 0 8px">${esc(note)}</p>` : ''}<div class="tools" style="margin-bottom:8px"><span class="lb">الإرسال عبر</span><div class="seg" role="group" aria-label="طريقة الإرسال"><button type="button" data-sqch="wa">واتساب</button><button type="button" data-sqch="mail">البريد الإلكتروني</button></div></div><p class="sub" style="margin:0 0 10px" id="sqHint"></p><div id="sqGroup"></div><div id="sqBody"></div>`, '', true);
+  const dlg = modal(title, `${note ? `<p class="sub" style="margin:0 0 8px">${esc(note)}</p>` : ''}${forT ? `<div class="tools" style="margin-bottom:8px"><span class="lb">الإرسال عبر</span><div class="seg" role="group" aria-label="طريقة الإرسال"><button type="button" data-sqch="wa">واتساب</button><button type="button" data-sqch="mail">البريد الإلكتروني</button></div></div>` : ''}<p class="sub" style="margin:0 0 10px" id="sqHint"></p><div id="sqGroup"></div><div id="sqBody"></div>`, '', true);
   dlg.querySelectorAll('[data-sqch]').forEach(b => b.onclick = () => { ch = b.dataset.sqch; store.set('mdr.ch', ch); draw(); });
   dlg.addEventListener('click', e => { const a = e.target.closest('[data-qid]'); if (!a) return;
     save2('sendlog', logId, {[a.dataset.qid]:Date.now()}).then(draw); });
@@ -3454,7 +3451,7 @@ function exportStudents(classes, split){
   const risk = new Set(atRisk().map(x => x.s.id)); const set_ = new Set(classes);
   const list = S.students.filter(s => set_.has(clsOf(s))).sort((a,b) => String(a.name).localeCompare(String(b.name),'ar'));
   const head_ = [...STU_HEAD,'أيام مرصودة','نسبة الحضور','غياب بلا عذر','غياب بعذر','تأخر','مخالفات','أعلى درجة مخالفة','إنذار مبكر'];
-  const stat = s => { const st = stuStat(s.id); return [s.nid, s.name, s.grade, s.cls, s.guard, s.phone, s.wa, s.email || '', s.note, st.days, st.rate === null ? '' : st.rate + '٪', st.abs, st.exc, st.late, st.inc.length, st.maxDeg || '', risk.has(s.id) ? 'نعم' : '']; };
+  const stat = s => { const st = stuStat(s.id); return [s.nid, s.name, s.grade, s.cls, s.guard, s.phone, s.wa, s.note, st.days, st.rate === null ? '' : st.rate + '٪', st.abs, st.exc, st.late, st.inc.length, st.maxDeg || '', risk.has(s.id) ? 'نعم' : '']; };
   const abs = [['اسم الطالب','الصف','الفصل','اليوم','التاريخ الهجري','التاريخ الميلادي','الحالة']];
   sortBy(S.attendance, 'id').forEach(d => list.forEach(s => { const v = d[s.id]; if (v && v !== 'حاضر') abs.push([s.name, s.grade, s.cls, dayName(d.id), hij(d.id), d.id, v]); }));
   const beh = [['اسم الطالب','الصف','الفصل','التاريخ الهجري','الدرجة','الوصف','الحالة']]; const ids = new Set(list.map(s => s.id));
