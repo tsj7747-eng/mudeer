@@ -338,7 +338,7 @@ const MODE = hashArg('t') ? 'teacher' : hashArg('p') ? 'parent' : 'admin';
 document.documentElement.classList.toggle('portal', MODE !== 'admin');
 const KEY = hashArg('t') || hashArg('p');
 let token = store.get('mdr.token');
-const APP_VER = '3.13'; // ارفعه مع site/version.json في كل نشر
+const APP_VER = '3.14'; // ارفعه مع site/version.json في كل نشر
 const DEV = store.get('mdr.dev') || [...crypto.getRandomValues(new Uint8Array(16))].map(b => b.toString(16).padStart(2, '0')).join(''); store.set('mdr.dev', DEV);
 const devInfo = () => { const u = navigator.userAgent; return {device:DEV, deviceName:`${/iPhone|iPad/.test(u) ? 'آيفون' : /Android/.test(u) ? 'أندرويد' : 'كمبيوتر'} · ${/Edg/.test(u) ? 'Edge' : /Chrome/.test(u) ? 'Chrome' : /Safari/.test(u) ? 'Safari' : /Firefox/.test(u) ? 'Firefox' : 'متصفح'}`}; };
 const ERR = {
@@ -702,7 +702,7 @@ function vTeachers(){
         <button class="btn sm" data-act="recAbs" data-id="${t.id}">تسجيل غياب</button><button class="btn sm" data-act="visit" data-id="${t.id}">زيارة صفية</button><button class="btn sm" data-act="editTeacher" data-id="${t.id}">تعديل</button><button class="btn sm danger" data-act="delTeacher" data-id="${t.id}">حذف</button></td></tr>`;
   }).join('');
   return head('المعلمون والغياب', 'أسماء المعلمين وأرقام جوالاتهم وسجل الغياب والتأخر لكل معلم.',
-    (isAdmin() ? `<button class="btn pri" data-act="recAbs">تسجيل غياب أو تأخر</button><button class="btn" data-act="addTeacher">إضافة معلم</button><button class="btn" data-act="bulkTeachers">إضافة مجموعة</button><button class="btn" data-act="sendLinks">إرسال الروابط للجميع</button><button class="btn" data-act="pdfNew" data-id="teachers">PDF للتوقيع</button>` : '') + `<button class="btn" data-act="exportAbs">تنزيل سجل الغياب</button>`) + loadingNote() +
+    (isAdmin() ? `<button class="btn pri" data-act="recAbs">تسجيل غياب أو تأخر</button><button class="btn" data-act="addTeacher">إضافة معلم</button><button class="btn" data-act="bulkTeachers">إضافة مجموعة</button><button class="btn" data-act="importTeachers">استيراد من Excel</button><button class="btn" data-act="sendLinks">إرسال الروابط للجميع</button><button class="btn" data-act="pdfNew" data-id="teachers">PDF للتوقيع</button>` : '') + `<button class="btn" data-act="exportAbs">تنزيل سجل الغياب</button>`) + loadingNote() +
     (S.teachers.length ? '<div class="notice-bar info">لكل معلم رابط خاص ثابت، تظهر فيه كل تعاميمه ومساءلاته. يكفي إرساله مرة واحدة، ثم تُبلَّغ المجموعة برسالة واحدة.</div>' : '') +
     (S.teachers.length ? `<div class="tablewrap"><table class="tbl"><thead><tr><th>المعلم</th><th>الجوال</th><th>غياب</th><th>تأخر وخروج</th><th>مساءلات</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`
       : `<div class="empty">لا يوجد معلمون بعد. ${isAdmin() ? 'اضغط «إضافة مجموعة» والصق الأسماء والأرقام دفعة واحدة.' : ''}</div>`);
@@ -1097,7 +1097,7 @@ const ACT = {
   close: closeModal, tab: go,
   copy: (id, b) => copyText(b.dataset.v),
   nFilter: id => { UI.nFilter = id; render(true); }, pFilter: id => { UI.pFilter = id; render(true); }, cTab: id => { UI.cTab = id; render(true); },
-  addTeacher: () => teacherForm(), editTeacher: teacherForm, bulkTeachers: bulkForm, teacherFile,
+  addTeacher: () => teacherForm(), editTeacher: teacherForm, bulkTeachers: bulkForm, importTeachers: () => importTeachersForm(), teacherFile,
   delTeacher: id => confirmBox('حذف معلم', `سيُحذف «${tName(id)}» من قائمة المعلمين. تبقى مساءلاته وسجلاته السابقة.`, 'حذف', () => del('teachers/' + id)),
   refresh: () => loadAll(true),
   logout: async () => { try { await api('/logout', {method:'POST'}); } catch {} token = null; store.set('mdr.token', null); location.reload(); },
@@ -2799,6 +2799,55 @@ async function bulkPut(col, docs, dels){
   for (let i = 0; i < docs.length; i += 100) await api('/bulk/' + col, {method:'POST', json:{docs:docs.slice(i, i + 100)}});
   for (let i = 0; i < (dels || []).length; i += 100) await api('/bulk/' + col, {method:'POST', json:{del:dels.slice(i, i + 100)}});
   docs.forEach(({id, ...d}) => upsert(col, id, d)); if (dels?.length) S[col] = S[col].filter(x => !dels.includes(x.id)); render();
+}
+/* ---------- استيراد المعلمين من Excel ---------- */
+const TCH_HEAD = ['اسم المعلم','التخصص','رقم الجوال','السجل المدني','البريد الإلكتروني'];
+function tColOf(h){ const c = normAr(h); if (!c || c.length > 40) return '';
+  if (/بريد|ايميل|email/i.test(c)) return 'email';
+  if (/جوال|هاتف|موبايل|تواصل|واتس|mobile|phone/i.test(c)) return 'phone';
+  if (/سجل|هويه|اقامه/.test(c)) return 'nid';
+  if (/تخصص|الماده|المواد|specialty/i.test(c)) return 'specialty';
+  if (/اسم|^المعلم|^الموظف|^name/i.test(c)) return 'name'; return ''; }
+// يقرأ صف العناوين إن وُجد، وإلا يستدل على الأعمدة من محتواها (أسماء، جوالات، سجلات)
+function parseTeachers(sheets){ const out = [];
+  sheets.forEach(({rows}) => { let hi = -1, map = {};
+    rows.slice(0, 30).forEach((r, i) => { if (hi >= 0) return; const m = {}; r.forEach((v, j) => { const k = tColOf(cellStr(v)); if (k && !(k in m)) m[k] = j; }); if (m.name !== undefined && Object.keys(m).length >= 2) { hi = i; map = m; } });
+    if (hi < 0) { const n = Math.max(0, ...rows.slice(0, 60).map(r => r.length));
+      for (let c = 0; c < n; c++) { const v = rows.slice(0, 60).map(r => cellStr(r[c])).filter(Boolean); if (!v.length) continue; const sh = f => v.filter(f).length / v.length, dg = x => digits(x).replace(/\D/g, '');
+        if (map.phone === undefined && sh(x => /^(966|0)?5\d{8}$/.test(dg(x))) > .6) map.phone = c;
+        else if (map.nid === undefined && sh(x => /^[12]\d{9}$/.test(dg(x))) > .6) map.nid = c;
+        else if (map.email === undefined && sh(okMail) > .6) map.email = c;
+        else if (map.name === undefined && sh(x => /^[\u0600-\u06FF]{2,}(\s+[\u0600-\u06FF]{2,}){1,}$/.test(x)) > .6) map.name = c;
+        else if (map.name !== undefined && map.specialty === undefined && sh(x => /^[\u0600-\u06FF\s]+$/.test(x)) > .6) map.specialty = c; }
+      if (map.name === undefined) return; }
+    rows.slice(hi + 1).forEach(r => { const g = k => map[k] === undefined ? '' : cellStr(r[map[k]]), name = g('name');
+      if (!name || !/[ء-ي]{2}/.test(name) || /مجموع|الاجمالي|الإجمالي|^اسم /.test(name) || tColOf(name) === 'name') return;
+      const em = g('email'); out.push({name, specialty:g('specialty'), phone:cleanPhone(g('phone')), nid:digits(g('nid')).replace(/\D/g, ''), email:okMail(em) ? em : ''}); }); });
+  return out; }
+// الجديد يُضاف برابطه، والموجود (بالسجل أو الاسم) تُحدَّث خاناته غير الفارغة؛ لا يُحذف أحد
+function planTeachers(rows){ const byNid = new Map(), byName = new Map(), seen = new Set(), add = [], upd = []; let same = 0, dup = 0;
+  S.teachers.forEach(t => { if (t.nid) byNid.set(t.nid, t); byName.set(normAr(t.name), t); });
+  rows.forEach(r => { const k = r.nid || normAr(r.name); if (seen.has(k)) { dup++; return; } seen.add(k);
+    const hit = (r.nid && byNid.get(r.nid)) || byName.get(normAr(r.name));
+    if (!hit) return add.push({id:newId(), ...r, key:rnd(16), createdAt:Date.now()});
+    const ch = {}; ['specialty','phone','nid','email'].forEach(f => { if (r[f] && r[f] !== hit[f]) ch[f] = r[f]; });
+    if (Object.keys(ch).length) upd.push({...hit, ...ch}); else same++; });
+  return {add, upd, same, dup}; }
+function importTeachersForm(){
+  modal('استيراد المعلمين من Excel', `<div class="f full"><label for="it_f">ملف المعلمين (Excel أو CSV)</label><input id="it_f" type="file" accept=".xlsx,.xls,.csv"><span class="hint">تُقرأ الأعمدة تلقائيًا: الاسم والتخصص والجوال والسجل المدني والبريد. الموجود يُحدَّث، والجديد يُضاف برابطه الخاص، ولا يُحذف أحد.</span></div><div id="it_pv"></div>`,
+    `<button class="btn" id="it_tpl">تنزيل نموذج فارغ</button><button class="btn" data-act="close">إغلاق</button>`, true);
+  $('#it_tpl').onclick = () => saveXlsx('نموذج استيراد المعلمين', [{name:'المعلمون', rows:[TCH_HEAD]}]);
+  $('#it_f').onchange = async e => { const f = e.target.files[0]; if (!f) return; const box = $('#it_pv'); box.innerHTML = '<div class="notice-bar info">جارٍ قراءة الملف…</div>';
+    let sheets; try { sheets = await readBook(f); } catch { box.innerHTML = '<div class="notice-bar">تعذّرت قراءة الملف. احفظه بصيغة xlsx ثم أعد المحاولة.</div>'; return; }
+    const rows = parseTeachers(sheets);
+    if (!rows.length) { box.innerHTML = '<div class="notice-bar">لم أجد عمود أسماء المعلمين. اجعل في الملف عمودًا عنوانه «اسم المعلم» أو نزّل النموذج الفارغ واملأه.</div>'; return; }
+    const p = planTeachers(rows), noPh = rows.filter(r => !r.phone).length;
+    box.innerHTML = `<div class="kpis"><div class="kpi"><span class="v">${p.add.length}</span><span class="l">معلم جديد</span></div><div class="kpi"><span class="v">${p.upd.length}</span><span class="l">تُحدَّث بياناته</span></div><div class="kpi"><span class="v">${p.same}</span><span class="l">بلا تغيير</span></div>${p.dup ? `<div class="kpi warn"><span class="v">${p.dup}</span><span class="l">مكرر في الملف</span></div>` : ''}${noPh ? `<div class="kpi warn"><span class="v">${noPh}</span><span class="l">بلا جوال</span></div>` : ''}</div>
+      <div class="tablewrap"><table class="tbl"><thead><tr><th>الاسم</th><th>التخصص</th><th>الجوال</th><th>السجل</th><th>البريد</th></tr></thead><tbody>${rows.slice(0, 8).map(r => `<tr><td>${esc(r.name)}</td><td>${esc(r.specialty)}</td><td class="num">${esc(r.phone)}</td><td class="num">${esc(r.nid)}</td><td dir="ltr">${esc(r.email)}</td></tr>`).join('')}</tbody></table></div>${rows.length > 8 ? `<p class="sub">و${rows.length - 8} غيرهم.</p>` : ''}
+      <div class="tools" style="margin-top:10px"><button class="btn pri" id="it_ok" ${p.add.length + p.upd.length ? '' : 'disabled'}>استيراد ${p.add.length + p.upd.length} معلمًا</button></div>`;
+    $('#it_ok').onclick = async () => { $('#it_ok').disabled = true;
+      try { await bulkPut('teachers', [...p.add, ...p.upd]); closeModal(); toast(`أُضيف ${p.add.length} وحُدّث ${p.upd.length}. أرسل لهم روابطهم من «إرسال الروابط للجميع».`); }
+      catch(err){ toast(errMsg(err), 'bad'); loadAll(); closeModal(); } }; };
 }
 const STU_HEAD = ['رقم الهوية','اسم الطالب','الصف','الفصل','ولي الأمر','جوال ولي الأمر','رقم واتساب','ملاحظات'];
 function importStudentsForm(){
