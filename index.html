@@ -338,11 +338,13 @@ if (/github\.io$/.test(location.hostname)) location.replace(SITE + location.hash
 const BASE = /^(localhost|127\.0\.0\.1)$/.test(location.hostname) ? location.origin + location.pathname : SITE;
 const store = { get(k){ try { return localStorage.getItem(k); } catch { return null; } }, set(k,v){ try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k,v); } catch {} } };
 const hashArg = (k) => { const m = location.hash.match(new RegExp('[#&]' + k + '=([0-9a-f]{32})')); return m ? m[1] : ''; };
-const MODE = hashArg('t') ? 'teacher' : hashArg('p') ? 'parent' : 'admin';
+// رابط المعلم: مفتاحه الكامل يفتح كل أقسامه، والرابط المرسل مع كل إجراء يفتح ذلك الإجراء وحده
+const T_ARG = (location.hash.match(/[#&]t=([0-9a-f]{32}|[A-Z0-9]{4}-[A-Z0-9]{4}\.[A-Za-z0-9_-]{1,64}\.[a-z]+(?:-[A-Za-z0-9_-]{1,64})?\.[0-9a-f]{32})(?![\w.-])/) || [])[1] || '';
+const MODE = T_ARG ? 'teacher' : hashArg('p') ? 'parent' : 'admin';
 document.documentElement.classList.toggle('portal', MODE !== 'admin');
-const KEY = hashArg('t') || hashArg('p');
+const KEY = T_ARG || hashArg('p');
 let token = store.get('mdr.token');
-const APP_VER = '4.3'; // ارفعه مع site/version.json في كل نشر
+const APP_VER = '4.4'; // ارفعه مع site/version.json في كل نشر
 const DEV = store.get('mdr.dev') || [...crypto.getRandomValues(new Uint8Array(16))].map(b => b.toString(16).padStart(2, '0')).join(''); store.set('mdr.dev', DEV);
 const devInfo = () => { const u = navigator.userAgent; return {device:DEV, deviceName:`${/iPhone|iPad/.test(u) ? 'آيفون' : /Android/.test(u) ? 'أندرويد' : 'كمبيوتر'} · ${/Edg/.test(u) ? 'Edge' : /Chrome/.test(u) ? 'Chrome' : /Safari/.test(u) ? 'Safari' : /Firefox/.test(u) ? 'Firefox' : 'متصفح'}`}; };
 const ERR = {
@@ -579,7 +581,7 @@ function noticeDoc(n){
 }
 function noticeMsg(n){
   const t = teacher(n.teacherId) || {};
-  return `المكرم الأستاذ/ ${t.name||''}\nالسلام عليكم ورحمة الله وبركاته\nصدرت لكم مساءلة رقم ${n.no} عن ${n.kind} يوم ${dayName(n.date)} ${hij(n.date)}.\nنأمل فتح الرابط التالي للاطلاع وكتابة الإفادة والتوقيع إلكترونيًا خلال ثلاثة أيام عمل:\n${teacherLink(t)}\n${n.byRole || 'مدير المدرسة'}: ${n.byName || principal()}${(set().schoolWa || BY[n.byRole || 'مدير المدرسة']()[1]) ? ' — ' + (set().schoolWa || BY[n.byRole || 'مدير المدرسة']()[1]) : ''}`;
+  return `المكرم الأستاذ/ ${t.name||''}\nالسلام عليكم ورحمة الله وبركاته\nصدرت لكم مساءلة رقم ${n.no} عن ${n.kind} يوم ${dayName(n.date)} ${hij(n.date)}.\nنأمل فتح الرابط التالي للاطلاع وكتابة الإفادة والتوقيع إلكترونيًا خلال ثلاثة أيام عمل:\n${tLink(t, 'n-' + n.id)}\n${n.byRole || 'مدير المدرسة'}: ${n.byName || principal()}${(set().schoolWa || BY[n.byRole || 'مدير المدرسة']()[1]) ? ' — ' + (set().schoolWa || BY[n.byRole || 'مدير المدرسة']()[1]) : ''}`;
 }
 
 /* ---------- parents ---------- */
@@ -606,6 +608,18 @@ function parentMsg(p){
   return `السلام عليكم ورحمة الله وبركاته\nولي أمر الطالب: ${p.student}${p.grade ? ` (${p.grade})` : ''}\n\n${p.kind}\n${p.body}\n\n${p.noSign ? 'النسخة' : 'للاطلاع والتوقيع'}:\n${parentLink(p)}\n\n${school()}${set().phone ? ' — جوال المدير: ' + set().phone : ''}`;
 }
 const teacherLink = t => t && t.key ? `${BASE}#t=${t.key}` : '';
+// SHA-256 متزامن، لأن الرسائل تُبنى دفعة واحدة؛ والخادم يتحقق بالحساب نفسه
+function sha256hex(str){ const K = [], H = [], b = new TextEncoder().encode(str), l = b.length, n = ((l + 9 + 63) >> 6) << 4, w = new Uint32Array(n), W = new Uint32Array(64);
+  let c = 2; for (let k = 0; k < 64; c++) { let pr = true; for (let d = 2; d * d <= c; d++) if (c % d === 0) { pr = false; break; } if (pr) { if (k < 8) H[k] = (Math.pow(c, 1/2) % 1) * 2**32 | 0; K[k++] = (Math.pow(c, 1/3) % 1) * 2**32 | 0; } }
+  for (let i = 0; i < l; i++) w[i >> 2] |= b[i] << (24 - (i % 4) * 8); w[l >> 2] |= 0x80 << (24 - (l % 4) * 8); w[n - 1] = l * 8;
+  const r = (x, y) => (x >>> y) | (x << (32 - y));
+  for (let j = 0; j < n; j += 16) { let [a, bb, cc, d, e, f, g, h] = H;
+    for (let i = 0; i < 64; i++) { W[i] = i < 16 ? w[j + i] : (r(W[i-15], 7) ^ r(W[i-15], 18) ^ (W[i-15] >>> 3)) + W[i-7] + (r(W[i-2], 17) ^ r(W[i-2], 19) ^ (W[i-2] >>> 10)) + W[i-16] | 0;
+      const t1 = h + (r(e, 6) ^ r(e, 11) ^ r(e, 25)) + ((e & f) ^ (~e & g)) + K[i] + W[i] | 0, t2 = (r(a, 2) ^ r(a, 13) ^ r(a, 22)) + ((a & bb) ^ (a & cc) ^ (bb & cc)) | 0;
+      h = g; g = f; f = e; e = d + t1 | 0; d = cc; cc = bb; bb = a; a = t1 + t2 | 0; }
+    [a, bb, cc, d, e, f, g, h].forEach((v, i) => H[i] = H[i] + v | 0); }
+  return H.map(v => (v >>> 0).toString(16).padStart(8, '0')).join(''); }
+const tLink = (t, scope) => !t || !t.key ? '' : /^[A-Z0-9]{4}-[A-Z0-9]{4}$/.test(S.code || '') && /^[A-Za-z0-9_-]{1,64}$/.test(t.id) ? `${BASE}#t=${S.code}.${t.id}.${scope}.${sha256hex(t.key + '|' + scope).slice(0, 32)}` : teacherLink(t);
 const parentLink = p => p && p.key ? `${BASE}#p=${p.key}` : '';
 
 /* ---------- nav & shell ---------- */
@@ -2273,6 +2287,7 @@ function changePwForm(){
 /* ---------- teacher & parent portals ---------- */
 const portalHead = (title, sub) => `<div class="brandbar"><div class="logo" style="width:96px;background:#fff;border-radius:8px;padding:5px 7px"><img src="${LOGO}" alt="شعار وزارة التعليم" style="display:block;width:100%"></div><div style="flex:1;min-width:200px"><span class="m">${set().region ? esc(set().region) + ' · ' : ''}${esc(school())}</span><h1>${esc(title)}</h1>${sub ? `<span class="m">${sub}</span>` : ''}</div>
   <div class="contact"><span class="k">مدير المدرسة</span><span>${esc(principal())}</span><span>${set().phone ? `<a class="phone" href="tel:${esc(set().phone)}">${esc(set().phone)}</a>` : ''}</span></div></div>`;
+const tShow = k => !S.scope || S.scope === k || S.scope.startsWith(k + '-');
 function renderTeacher(){
   const t = S.teachers[0]; if (!t) return;
   const ns = sortBy(S.notices, 'createdAt', -1), ex = [...S.exams].sort((a,b) => (a.date+a.period).localeCompare(b.date+b.period));
@@ -2280,16 +2295,16 @@ function renderTeacher(){
   const pend = ns.filter(n => n.status === 'issued').length + ex.filter(e => !e.recv || !e.ret).length + ((ck.rows.length || ck.obs.length) && !S.ctrlsigns.length ? 1 : 0) + S.records.filter(r => !S.recsigns.some(x => x.recordId === r.id && x.teacherId === t.id)).length + S.subs.filter(x => !x.ack && x.date >= isoDay()).length;
   $('#gateRoot').innerHTML = `<div class="portal">${portalHead('الأستاذ/ ' + t.name, esc(t.specialty || ''))}
     ${pend ? `<div class="notice-bar">لديك ${pend} ${pend === 1 ? 'إجراء ينتظر' : 'إجراءات تنتظر'} توقيعك.</div>` : '<div class="done">لا يوجد ما ينتظر توقيعك. شكرًا لك.</div>'}
-    <section class="panel"><h3>المساءلات</h3>${ns.length ? `<div class="list">${ns.map(n => { const [c,l] = nStatus(n); return `<div class="row"><div><div class="t">مساءلة رقم <span class="num">${esc(n.no)}</span> · ${esc(n.kind)}</div><div class="m">${esc(dayName(n.date))} ${esc(hij(n.date))}${n.decision ? ' · القرار: ' + esc(decOf(n)[n.decision]) : ''}</div></div><div class="tools"><span class="chip ${c}">${l}</span>${n.status === 'issued' ? `<button class="btn sm pri" data-act="reply" data-id="${n.id}">كتابة الإفادة والتوقيع</button>` : ''}<button class="btn sm" data-act="viewNotice" data-id="${n.id}">عرض</button></div></div>`; }).join('')}</div>` : '<div class="empty">لا توجد مساءلات عليك.</div>'}</section>
-    ${teacherSubsPanel()}
-    ${teacherInitPanel()}
-    ${teacherLeavePanel()}
-    ${teacherCtrlPanel()}
-    ${teacherRecPanel()}
-    <section class="panel"><h3>مظاريف الاختبارات</h3><p class="sub">وقّع عند استلام مظروف الأسئلة من الكنترول، ثم عند تسليم أوراق الإجابة.</p>${ex.length ? `<div class="list">${ex.map(e => `<div class="row"><div><div class="t">${esc(e.subject)} · ${esc(e.grade||'')}</div><div class="m">${esc(dayName(e.date))} ${esc(hij(e.date))} · الفترة ${esc(e.period||'')} · ${esc(committee(e.committeeId)?.name||'')}</div></div><div class="tools">
+    ${!tShow('n') ? '' : `<section class="panel"><h3>المساءلات</h3>${ns.length ? `<div class="list">${ns.map(n => { const [c,l] = nStatus(n); return `<div class="row"><div><div class="t">مساءلة رقم <span class="num">${esc(n.no)}</span> · ${esc(n.kind)}</div><div class="m">${esc(dayName(n.date))} ${esc(hij(n.date))}${n.decision ? ' · القرار: ' + esc(decOf(n)[n.decision]) : ''}</div></div><div class="tools"><span class="chip ${c}">${l}</span>${n.status === 'issued' ? `<button class="btn sm pri" data-act="reply" data-id="${n.id}">كتابة الإفادة والتوقيع</button>` : ''}<button class="btn sm" data-act="viewNotice" data-id="${n.id}">عرض</button></div></div>`; }).join('')}</div>` : '<div class="empty">لا توجد مساءلات عليك.</div>'}</section>`}
+    ${tShow('sub') ? teacherSubsPanel() : ''}
+    ${tShow('init') ? teacherInitPanel() : ''}
+    ${S.scope ? '' : teacherLeavePanel()}
+    ${tShow('ctrl') ? teacherCtrlPanel() : ''}
+    ${tShow('rec') ? teacherRecPanel() : ''}
+    ${!tShow('ctrl') ? '' : `<section class="panel"><h3>مظاريف الاختبارات</h3><p class="sub">وقّع عند استلام مظروف الأسئلة من الكنترول، ثم عند تسليم أوراق الإجابة.</p>${ex.length ? `<div class="list">${ex.map(e => `<div class="row"><div><div class="t">${esc(e.subject)} · ${esc(e.grade||'')}</div><div class="m">${esc(dayName(e.date))} ${esc(hij(e.date))} · الفترة ${esc(e.period||'')} · ${esc(committee(e.committeeId)?.name||'')}</div></div><div class="tools">
       ${e.recv ? '<span class="chip ok">استُلمت الأسئلة</span>' : `<button class="btn sm pri" data-act="envRecv" data-id="${e.id}">توقيع الاستلام</button>`}
-      ${e.ret ? '<span class="chip ok">سُلّمت الإجابات</span>' : e.recv ? `<button class="btn sm pri" data-act="envRet" data-id="${e.id}">توقيع التسليم</button>` : ''}</div></div>`).join('')}</div>` : '<div class="empty">لم تُسند إليك ملاحظة اختبارات.</div>'}</section>
-    <p class="m" style="color:var(--muted);font-size:12px;text-align:center">هذا رابطك الخاص؛ لا تشاركه مع غيرك.</p></div>`;
+      ${e.ret ? '<span class="chip ok">سُلّمت الإجابات</span>' : e.recv ? `<button class="btn sm pri" data-act="envRet" data-id="${e.id}">توقيع التسليم</button>` : ''}</div></div>`).join('')}</div>` : '<div class="empty">لم تُسند إليك ملاحظة اختبارات.</div>'}</section>`}
+    <p class="m" style="color:var(--muted);font-size:12px;text-align:center">${S.scope ? 'هذا الرابط خاص بهذا الإجراء وحده؛ لا تشاركه مع غيرك.' : 'هذا رابطك الخاص؛ لا تشاركه مع غيرك.'}</p></div>`;
 }
 function renderParent(){
   const p = S.parents[0]; if (!p) return;
@@ -2301,7 +2316,7 @@ function renderParent(){
 async function startPortal(){
   gate('<p>جارٍ فتح النموذج…</p>');
   try {
-    if (MODE === 'teacher') { const d = await api('/t/' + KEY); S.teachers = [d.teacher]; S.notices = d.notices; S.exams = d.exams; S.committees = d.committees; S.grading = d.grading || []; S.ctrlsigns = d.ctrlsign ? [{id:d.teacher.id, ...d.ctrlsign}] : []; S.records = d.records || []; S.recsigns = d.recsigns || []; S.plan = d.inits || []; S.subs = d.subs || []; S.leaves = d.leaves || []; S.settings = d.settings; }
+    if (MODE === 'teacher') { const d = await api('/t/' + KEY); S.teachers = [d.teacher]; S.notices = d.notices; S.exams = d.exams; S.committees = d.committees; S.grading = d.grading || []; S.ctrlsigns = d.ctrlsign ? [{id:d.teacher.id, ...d.ctrlsign}] : []; S.records = d.records || []; S.recsigns = d.recsigns || []; S.plan = d.inits || []; S.subs = d.subs || []; S.leaves = d.leaves || []; S.settings = d.settings; S.scope = d.scope || ''; }
     else { const d = await api('/p/' + KEY); S.parents = [d.form]; S.settings = d.settings; }
     S.loaded = true; $('#gateRoot').innerHTML = ''; render();
     if (MODE === 'teacher' && /[#&]copy=1/.test(location.hash) && S.ctrlsigns.length) viewCopy(S.teachers[0].id);
@@ -3038,7 +3053,7 @@ async function subAuto(){ const date = UI.schDate || today(), docs = [];
 function subSend(){ const date = UI.schDate || today(), list = S.subs.filter(x => x.date === date), by = {};
   list.forEach(x => (by[x.subId] ||= []).push(x)); const ids = Object.keys(by).filter(teacher); if (!ids.length) return toast('لا توجد تكليفات', 'bad');
   sendQueue(`حصص الانتظار ${dayName(date)} ${hij(date)}`, ids.map(i => { const t = teacher(i), l = sortBy(by[i], 'p');
-    return {id:t.id, name:t.name, sub:l.map(x => 'الحصة ' + x.p).join('، '), phone:t.phone, msg:`المكرم الأستاذ/ ${t.name}\nالسلام عليكم ورحمة الله وبركاته\nكُلّفتم بحصص الانتظار يوم ${dayName(date)} ${hij(date)}:\n${l.map(x => `• الحصة ${x.p}${x.cls ? ' — فصل ' + x.cls : ''} (بدل الأستاذ ${x.absentName || tName(x.absentId)})`).join('\n')}\nنأمل التأكيد بالاستلام من رابطكم:\n${teacherLink(t)}\n${principal()} — ${school()}`}; }), 'subs_' + date); }
+    return {id:t.id, name:t.name, sub:l.map(x => 'الحصة ' + x.p).join('، '), phone:t.phone, msg:`المكرم الأستاذ/ ${t.name}\nالسلام عليكم ورحمة الله وبركاته\nكُلّفتم بحصص الانتظار يوم ${dayName(date)} ${hij(date)}:\n${l.map(x => `• الحصة ${x.p}${x.cls ? ' — فصل ' + x.cls : ''} (بدل الأستاذ ${x.absentName || tName(x.absentId)})`).join('\n')}\nنأمل التأكيد بالاستلام من رابطكم:\n${tLink(t, 'sub-' + date)}\n${principal()} — ${school()}`}; }), 'subs_' + date); }
 function subSheet(){ const date = UI.schDate || today(), need = subsNeed(date);
   return `<div class="paper">${docHead('جدول حصص الانتظار', `${dayName(date)} ${hij(date)}`, '', hij(date))}<table><tr><th style="width:8%">الحصة</th><th style="width:auto">الفصل</th><th style="width:auto">المعلم الغائب</th><th style="width:auto">المكلّف بالانتظار</th><th style="width:auto">التوقيع</th></tr>${need.map(e => { const x = subOf(date, e); return `<tr><td>${esc(e.p)}</td><td>${esc(String(e.cls || '').split(' - ')[0])}</td><td>${esc(tName(e.tid))}</td><td>${esc(x ? tName(x.subId) : '')}</td><td>${x?.ack ? 'استلم إلكترونيًا ' + esc(stamp(x.ack.at)) : ''}</td></tr>`; }).join('')}</table>
     <div class="sigs"><div class="s"><b>وكيل الشؤون التعليمية</b><span>${esc(set().deputy || '')}</span><div></div></div><div class="s"><b>مدير المدرسة</b><span>${esc(principal())}</span><div></div></div></div></div>`; }
@@ -3611,7 +3626,7 @@ function tInitDecideForm(id){
     <div class="f full" style="margin-top:10px"><label for="td_n">ملاحظة للمعلم</label><input id="td_n" value="${esc(p.decNote || '')}" placeholder="اختياري"></div>`,
     `<button class="btn pri" id="td_ok">اعتماد</button><button class="btn danger" id="td_no">عدم اعتماد</button><button class="btn" data-act="close">إغلاق</button>`, true);
   const go = async ok => { if (!await put('plan/' + id, {status:ok ? 'approved' : 'rejected', approved:ok, decNote:fval('td_n'), decAt:Date.now()}, true)) return;
-    const msg = `المكرم الأستاذ/ ${p.owner}\nالسلام عليكم ورحمة الله وبركاته\n${ok ? `اعتُمدت مبادرتك «${p.name}»، شكرًا لك. بعد تنفيذها أرفق تقرير التنفيذ وشواهده من رابطك الخاص` : `نشكر لك مبادرتك «${p.name}»، ولم تُعتمد هذه المرة. يمكنك الاطلاع على الملاحظة من رابطك الخاص`}:\n${teacherLink(t)}\n${principal()} — ${school()}`;
+    const msg = `المكرم الأستاذ/ ${p.owner}\nالسلام عليكم ورحمة الله وبركاته\n${ok ? `اعتُمدت مبادرتك «${p.name}»، شكرًا لك. بعد تنفيذها أرفق تقرير التنفيذ وشواهده من رابطك الخاص` : `نشكر لك مبادرتك «${p.name}»، ولم تُعتمد هذه المرة. يمكنك الاطلاع على الملاحظة من رابطك الخاص`}:\n${tLink(t, 'init')}\n${principal()} — ${school()}`;
     const wa = t && waLink(t.phone, msg);
     modal(ok ? 'اعتُمدت المبادرة' : 'لم تُعتمد المبادرة', `<p style="margin:0">${ok ? 'اعتُمدت' : 'سُجّل عدم اعتماد'} «${esc(p.name)}». يظهر ذلك للمعلم في رابطه الخاص.</p>`, `${wa ? `<a class="btn wa" href="${esc(wa)}" target="_blank" rel="noopener">إبلاغ المعلم بالواتساب</a>` : ''}<button class="btn" data-act="close">إغلاق</button>`); };
   $('#td_ok').onclick = () => go(true); $('#td_no').onclick = () => go(false);
@@ -3650,7 +3665,7 @@ function tInitReportForm(id){
 }
 Object.assign(ACT, { tInitDecide: tInitDecideForm, tInitEdit: id => tInitForm(id), tInitReport: tInitReportForm,
   tInvite: () => { if (!S.teachers.length) return toast('أضف المعلمين أولًا', 'bad');
-    sendQueue('دعوة المعلمين لإضافة مبادراتهم', sortBy(S.teachers, 'name').map(t => ({id:t.id, name:t.name, sub:t.specialty || '', phone:t.phone, msg:`المكرم الأستاذ/ ${t.name}\nالسلام عليكم ورحمة الله وبركاته\nنرحب بمبادراتك. أضفها من «مبادراتي» في رابطك الخاص لتعتمدها الإدارة، وبعد التنفيذ أرفق تقرير التنفيذ وشواهده:\n${teacherLink(t)}\n${principal()} — ${school()}`})), 'tinvite', '',
+    sendQueue('دعوة المعلمين لإضافة مبادراتهم', sortBy(S.teachers, 'name').map(t => ({id:t.id, name:t.name, sub:t.specialty || '', phone:t.phone, msg:`المكرم الأستاذ/ ${t.name}\nالسلام عليكم ورحمة الله وبركاته\nنرحب بمبادراتك. أضفها من «مبادراتي» في رابطك الخاص لتعتمدها الإدارة، وبعد التنفيذ أرفق تقرير التنفيذ وشواهده:\n${tLink(t, 'init')}\n${principal()} — ${school()}`})), 'tinvite', '',
       `السلام عليكم ورحمة الله وبركاته\nالزملاء الكرام، نرحب بمبادراتكم. أضيفوها من «مبادراتي» في رابطكم الخاص بمنصة ${school()} لتعتمدها الإدارة، وبعد التنفيذ أرفقوا تقرير التنفيذ وشواهده.\n${principal()} — ${school()}`); } });
 
 /* ---------- الإجراءات الجماعية ---------- */
@@ -3970,14 +3985,14 @@ function ctrlIssueNow(){
     const need = tasked.filter(t => !S.ctrlsigns.find(x => x.id === t.id));
     if (!need.length) return toast('كل المعلمين وقّعوا، لا يوجد ما يُرسل');
     sendQueue('إرسال المراقبة للمعلمين', need.map(t => { const k = curTasks(t.id); return {id:t.id, name:t.name, sub:`مراقبة ${k.obs.length} · مهام ${k.rows.length}`, phone:t.phone,
-      msg:`المكرم الأستاذ/ ${t.name}\nالسلام عليكم ورحمة الله وبركاته\nصدرت مهامك في الكنترول:\n${taskLines(k)}\nنأمل الاطلاع والتوقيع من رابطك الخاص:\n${teacherLink(t)}\n${principal()} — ${school()}`}; }), 'ctrl_' + no); };
+      msg:`المكرم الأستاذ/ ${t.name}\nالسلام عليكم ورحمة الله وبركاته\nصدرت مهامك في الكنترول:\n${taskLines(k)}\nنأمل الاطلاع والتوقيع من رابطك الخاص:\n${tLink(t, 'ctrl')}\n${principal()} — ${school()}`}; }), 'ctrl_' + no); };
   if (stale.length) confirmBox('إعادة الإصدار', `تغيّرت مهام ${stale.length} معلم بعد توقيعهم، فسيُلغى توقيعهم ليوقّعوا على المهام الجديدة: ${stale.map(t => t.name).join('، ')}.`, 'متابعة', () => { setTimeout(go_, 0); });
   else go_();
 }
 function ctrlCopiesQueue(){ const list = sortBy(S.teachers.filter(t => S.ctrlsigns.find(x => x.id === t.id)), 'name');
   if (!list.length) return toast('لم يوقّع أحد بعد', 'bad');
   sendQueue('إرسال النسخ الموقعة', list.map(t => { const c = S.ctrlsigns.find(x => x.id === t.id); return {id:t.id, name:t.name, sub:'وقّع ' + stamp(c.at), phone:t.phone,
-    msg:`المكرم الأستاذ/ ${t.name}\nشكرًا لتوقيعك. نسختك من مهام الكنترول متضمنة توقيعك والمراقبة والتصحيح والمراجعة والتدقيق على الرابط:\n${teacherLink(t)}&copy=1\n${school()}`}; }), 'copy_' + (issue()?.no || 0)); }
+    msg:`المكرم الأستاذ/ ${t.name}\nشكرًا لتوقيعك. نسختك من مهام الكنترول متضمنة توقيعك والمراقبة والتصحيح والمراجعة والتدقيق على الرابط:\n${tLink(t, 'ctrl')}&copy=1\n${school()}`}; }), 'copy_' + (issue()?.no || 0)); }
 
 /* ===================== المحاضر: التعبئة التلقائية والتوقيع الإلكتروني ===================== */
 const REC_STAFF = ['by','observer','from','to'];
@@ -4076,7 +4091,7 @@ async function autoIncidentRec(iid, i, s){ const tpl = recTpl('incident');
 function recSendSign(id){ const r = S.records.find(x => x.id === id); if (!r) return; const tpl = recTpl(r.tpl); const ids = r.signers || []; const done = recSigsOf(id).map(x => x.teacherId);
   const list = ids.filter(t => !done.includes(t)).map(teacher).filter(Boolean);
   if (!list.length) return toast(ids.length ? 'وقّع جميع المعلمين المحددين' : 'لا يوجد معلمون محددون للتوقيع في هذا المحضر', 'bad');
-  sendQueue('توقيع: ' + r.title, list.map(t => ({id:t.id, name:t.name, sub:t.specialty || '', phone:t.phone, msg:`المكرم الأستاذ/ ${t.name}\nالسلام عليكم ورحمة الله وبركاته\nنأمل الاطلاع على «${r.title}» والتوقيع عليه من رابطك الخاص:\n${teacherLink(t)}\n${principal()} — ${school()}`})), 'rec_' + id, '', r.tpl === 'letter' || r.tpl === 'pdf' ? groupNote(`${r.tpl === 'pdf' ? 'صدر مستند جديد للاطلاع والتوقيع' : 'صدر خطاب جديد'}: «${r.title.replace(/^(نموذج|تعميم): /, '')}».`) : ''); }
+  sendQueue('توقيع: ' + r.title, list.map(t => ({id:t.id, name:t.name, sub:t.specialty || '', phone:t.phone, msg:`المكرم الأستاذ/ ${t.name}\nالسلام عليكم ورحمة الله وبركاته\nنأمل الاطلاع على «${r.title}» والتوقيع عليه من رابطك الخاص:\n${tLink(t, 'rec-' + r.id)}\n${principal()} — ${school()}`})), 'rec_' + id, '', r.tpl === 'letter' || r.tpl === 'pdf' ? groupNote(`${r.tpl === 'pdf' ? 'صدر مستند جديد للاطلاع والتوقيع' : 'صدر خطاب جديد'}: «${r.title.replace(/^(نموذج|تعميم): /, '')}».`) : ''); }
 function recSendParent(id){ const r = S.records.find(x => x.id === id); if (!r) return; const had = S.parents.find(p => p.recordId === id); if (had) return viewParent(had.id);
   parentNotice(r.studentId, r.title.split(' — ')[0], recPlain(r), {recordId:id}); }
 function teacherRecPanel(){ if (!S.records.length) return ''; const t = S.teachers[0]; const mine = id => S.recsigns.find(x => x.recordId === id && x.teacherId === t.id);
