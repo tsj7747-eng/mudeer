@@ -342,12 +342,12 @@ const MODE = hashArg('t') ? 'teacher' : hashArg('p') ? 'parent' : 'admin';
 document.documentElement.classList.toggle('portal', MODE !== 'admin');
 const KEY = hashArg('t') || hashArg('p');
 let token = store.get('mdr.token');
-const APP_VER = '4.0'; // ارفعه مع site/version.json في كل نشر
+const APP_VER = '4.1'; // ارفعه مع site/version.json في كل نشر
 const DEV = store.get('mdr.dev') || [...crypto.getRandomValues(new Uint8Array(16))].map(b => b.toString(16).padStart(2, '0')).join(''); store.set('mdr.dev', DEV);
 const devInfo = () => { const u = navigator.userAgent; return {device:DEV, deviceName:`${/iPhone|iPad/.test(u) ? 'آيفون' : /Android/.test(u) ? 'أندرويد' : 'كمبيوتر'} · ${/Edg/.test(u) ? 'Edge' : /Chrome/.test(u) ? 'Chrome' : /Safari/.test(u) ? 'Safari' : /Firefox/.test(u) ? 'Firefox' : 'متصفح'}`}; };
 const ERR = {
   too_many_devices:'الحساب مفتوح على ثلاثة أجهزة.', too_many_moves:'استُبدلت الأجهزة كثيرًا هذا الشهر. أخرج جهازًا من الإعدادات أو تواصل مع البائع.',
-  wrong_password:'كلمة المرور غير صحيحة.', wrong_login:'رمز المدرسة أو كلمة المرور غير صحيحة.', bad_key:'مفتاح التفعيل غير صحيح لرمز المدرسة هذا. انسخه كاملًا كما وصلك.', bad_code:'رمز المدرسة غير صحيح.', already_registered:'هذه المدرسة مسجلة من قبل. ادخل برمزها وكلمة مرورها.', too_many_attempts:'محاولات كثيرة خاطئة. انتظر ربع ساعة ثم أعد المحاولة.', weak_password:'كلمة المرور قصيرة، اكتب ٦ أحرف أو أرقام على الأقل.',
+  wrong_password:'كلمة المرور غير صحيحة.', wrong_login:'رمز المدرسة أو كلمة المرور غير صحيحة.', bad_key:'مفتاح التفعيل غير صحيح لرمز المدرسة هذا. انسخه كاملًا كما وصلك.', bad_code:'رمز المدرسة غير صحيح.', already_registered:'هذا الرمز مسجّل لمدرسة من قبل. إن كانت مدرستك فادخل برمزها وكلمة مرورها، ولتسجيل مدرسة أخرى اضغط «رمز جديد لمدرسة أخرى» وأرسل الرمز الجديد للبائع.', expired:'انتهى اشتراك المدرسة. البيانات محفوظة للاطلاع والتنزيل، وللحفظ والإرسال يجدد المدير الاشتراك من الإعدادات.', too_many_attempts:'محاولات كثيرة خاطئة. انتظر ربع ساعة ثم أعد المحاولة.', weak_password:'كلمة المرور قصيرة، اكتب ٦ أحرف أو أرقام على الأقل.',
   forbidden:'ليست لديك صلاحية لهذا الإجراء. اطلبها من مدير المدرسة.', user_taken:'اسم المستخدم مستعمل لحساب آخر.', bad_user:'اسم المستخدم من ٣ إلى ٣٠ حرفًا إنجليزيًا أو رقمًا، مع الاسم الكامل.',
   unauthorized:'انتهت الجلسة. سجّل الدخول من جديد.', already_replied:'سبق إرسال الإفادة على هذه المساءلة.', already_signed:'سبق التوقيع على هذا النموذج.', receive_first:'وقّع على استلام الأسئلة أولًا.',
   too_large:'الملف أكبر من ١٠ ميجابايت. اضغطه أو صوّره بدقة أقل.', unsupported_type:'نوع الملف غير مدعوم. ارفع PDF أو صورة.', not_found:'الرابط غير صحيح أو حُذف النموذج.', locked:'اعتُمدت المبادرة، فلا يمكن تعديلها.', not_approved:'تنتظر المبادرة اعتماد الإدارة أولًا.', too_many:'وصلت إلى الحد الأقصى من المبادرات.'
@@ -638,7 +638,7 @@ function render(force){
   const m = $('#main');
   if (!force && UI.tab === 'settings' && document.getElementById('setForm')) return;
   const V = {dash:vDash, sched:vSched, duty:vDuty, inits:vInits, teachers:vTeachers, notices:vNotices, students:vStudents, control:vControl, parents:vParents, records:vRecords, guide:vGuide, tasks:vTasks, archive:vArchive, settings:vSettings}[UI.tab] || vDash;
-  m.innerHTML = V();
+  m.innerHTML = subBanner() + V();
 }
 const head = (title, sub, tools) => `<div class="head"><div><h2>${title}</h2>${sub ? `<p>${sub}</p>` : ''}</div>${tools ? `<div class="tools">${tools}</div>` : ''}</div>`;
 const loadingNote = () => S.loaded ? '' : '<div class="notice-bar info">جارٍ تحميل البيانات…</div>';
@@ -804,7 +804,7 @@ function vSettings(){
       <span class="hint">${ANDROID ? 'يعمل على جوالات أندرويد.' : /iPhone|iPad/.test(navigator.userAgent) ? 'في الآيفون لا تستطيع المواقع اختيار التطبيق، فيفتح واتساب العادي إن كان مثبتًا. أرسل من الكمبيوتر المربوط برقم المدرسة، أو انسخ الرسالة.' : 'على الكمبيوتر تُفتح الرسائل في واتساب المربوط بالكمبيوتر، فاربطه برقم المدرسة.'}</span></div></div></section>
     <section class="panel"><h3>الدخول للوحة المدير</h3><p class="sub">رمز المدرسة: <b class="phone">${esc(S.code || store.get('mdr.code') || '')}</b> — تحتاجه مع كلمة المرور للدخول من أي جهاز. من يعرفهما يدخل لوحة المدير كاملة، فشاركهما مع الوكيل أو رئيس الكنترول عند الحاجة فقط.</p>
       <p class="sub">يُفتح الحساب على ثلاثة أجهزة كحد أقصى من جوال وكمبيوتر. واحتفظ بمفتاح التفعيل، فهو طريقة استعادة كلمة المرور.</p>
-      <div class="tools"><button class="btn" data-act="changePw">تغيير كلمة المرور</button><button class="btn" data-act="devices">الأجهزة</button><button class="btn" data-act="showKey">مفتاح التفعيل</button></div></section>` + staffPanel() + backupPanel();
+      <div class="tools"><button class="btn" data-act="changePw">تغيير كلمة المرور</button><button class="btn" data-act="devices">الأجهزة</button><button class="btn" data-act="showKey">مفتاح التفعيل</button></div></section>` + subPanel() + staffPanel() + backupPanel();
 }
 
 /* ---------- forms ---------- */
@@ -2217,7 +2217,7 @@ function showRegister(){
   gate(`<h1>تفعيل منصة المدير لمدرستك</h1>
     ${lk ? `<p style="color:var(--ok,#0a7a4f)"><b>وصل مفتاح التفعيل ✓</b> أكمل بيانات المدرسة واختر كلمة المرور في الأسفل.</p>` : ''}
     <p><b>١)</b> أرسل رمز مدرستك للبائع بالواتساب، وبعد إتمام الاشتراك يصلك مفتاح التفعيل.</p>
-    <div class="f" style="margin:8px 0"><label>رمز المدرسة</label><div style="display:flex;gap:8px;align-items:center"><b class="phone" style="font-size:22px;letter-spacing:2px" dir="ltr">${esc(code)}</b><button class="btn sm" type="button" data-act="copy" data-v="${esc(code)}">نسخ</button></div></div>
+    <div class="f" style="margin:8px 0"><label>رمز المدرسة</label><div style="display:flex;gap:8px;align-items:center"><b class="phone" style="font-size:22px;letter-spacing:2px" dir="ltr">${esc(code)}</b><button class="btn sm" type="button" data-act="copy" data-v="${esc(code)}">نسخ</button></div><button class="btn sm" type="button" id="newCode" style="margin-top:6px">رمز جديد لمدرسة أخرى</button><span class="hint">الرمز محفوظ على هذا الجهاز. لتسجيل مدرسة ثانية من الجهاز نفسه اضغط هنا، وأرسل الرمز الجديد للبائع ليصدر له مفتاحًا جديدًا.</span></div>
     <a class="btn" href="${esc(wa)}" target="_blank" rel="noopener">إرسال الرمز بالواتساب</a>
     <p style="margin-top:16px"><b>٢)</b> عند وصول المفتاح الصقه هنا، واكتب بيانات المدرسة واختر كلمة مرور لوحة المدير.</p>
     <form id="gForm" class="fg" style="grid-template-columns:1fr">
@@ -2233,6 +2233,7 @@ function showRegister(){
     <p style="margin-top:14px">مدرستك مشتركة؟ <a href="#" id="toLogin">دخول المدير</a></p>`);
   if (!lk) { document.activeElement?.blur(); window.scrollTo(0, 0); }
   $('#toLogin').onclick = e => { e.preventDefault(); showLogin(); };
+  $('#newCode').onclick = () => confirmBox('رمز جديد لمدرسة أخرى', `يُستبدل الرمز ${code} برمز جديد على هذا الجهاز. المفتاح الذي صدر للرمز القديم لا يعمل مع الجديد، فاطلب من البائع مفتاحًا للرمز الجديد.`, 'إنشاء رمز جديد', () => { store.set('mdr.newcode', null); history.replaceState(null, '', location.pathname); setTimeout(showRegister, 0); });
   $('#gForm').onsubmit = async e => { e.preventDefault();
     if (!fval('r_key')) return toast('الصق مفتاح التفعيل', 'bad');
     if (!fval('r_school')) return toast('اكتب اسم المدرسة', 'bad');
@@ -2243,7 +2244,8 @@ function showRegister(){
 async function loadAll(manual){
   try {
     const d = await api('/all');
-    COLS.forEach(c => S[c] = d[c] || []); S.settings = d.settings || {}; S.code = d.code; S.syncedAt = Date.now(); me.staff = d.me || null;
+    COLS.forEach(c => S[c] = d[c] || []); S.settings = d.settings || {}; S.code = d.code; S.syncedAt = Date.now(); me.staff = d.me || null; S.sub = d.sub || null;
+    if (!S.loaded && store.get('mdr.renew') && !me.staff) setTimeout(() => { const k = store.get('mdr.renew'); store.set('mdr.renew', null); renewForm(k); }, 50);
     const first = !S.loaded; S.loaded = true; render(first || !UI.setDirty);
     if (manual) toast('تم التحديث');
   } catch(e){ if (e.code !== 'unauthorized') toast(errMsg(e), 'bad'); }
@@ -2304,6 +2306,7 @@ async function startPortal(){
 }
 
 function boot(){
+  const rk = MODE === 'admin' && (location.hash.match(/[#&]renew=([A-Za-z2-7-]{90,})/) || [])[1]; if (rk) { store.set('mdr.renew', rk); history.replaceState(null, '', location.pathname); }
   if (MODE !== 'admin') return startPortal();
   if (token) startAdmin(); else if (/[#&]key=/.test(location.hash) || store.get('mdr.newcode')) showRegister(); else showLogin();
 }
@@ -2958,6 +2961,25 @@ function itemName(col, id){ const x = (S[col] || []).find(y => y.id === id); if 
 async function auditView(){ try { const r = await api('/audit');
     modal('سجل العمليات', r.log.length ? `<p class="sub">آخر ${r.log.length} عملية حفظ أو تعديل أو حذف، ومن قام بها. يُحفظ السجل سنة.</p><div class="tablewrap"><table class="tbl"><thead><tr><th>الوقت</th><th>المستخدم</th><th>العملية</th><th>العنصر</th></tr></thead><tbody>${r.log.map(x => `<tr><td class="num">${esc(stamp(x.at))}</td><td>${esc(x.who)}</td><td>${esc(x.op)} ${esc(COL_LABEL[x.col] || x.col)}</td><td>${esc(itemName(x.col, x.id) || (/^\d+$/.test(x.id) ? x.id + ' عنصر' : ''))}</td></tr>`).join('')}</tbody></table></div>` : '<div class="empty">لا توجد عمليات مسجلة بعد. يبدأ التسجيل من هذا التحديث.</div>', '', true); }
   catch(e){ toast(errMsg(e), 'bad'); } }
+
+/* ===================== الاشتراك: عام دراسي كامل وأسبوع ===================== */
+const subDays = () => S.sub ? Math.round((parseD(S.sub.until) - parseD(today())) / 864e5) : null;
+const subWhen = () => `${hij(S.sub.until)} (${S.sub.until.split('-').reverse().join('/')}م)`;
+function subBanner(){ if (!S.sub) return ''; const n = subDays(), btn = me.staff ? '' : ' <button class="btn sm pri" data-act="renew">تجديد الاشتراك</button>';
+  if (S.sub.expired) return `<div class="notice-bar" role="alert"><b>انتهى اشتراك المدرسة في ${esc(subWhen())}.</b> البيانات محفوظة وتستطيع الاطلاع عليها وتنزيلها، ويتوقف الحفظ والإرسال والتوقيع حتى التجديد.${btn}</div>`;
+  if (n <= 30) return `<div class="notice-bar">ينتهي اشتراك المدرسة بعد ${n} يوم، في ${esc(subWhen())}.${btn}</div>`; return ''; }
+function subPanel(){ if (me.staff || !S.sub) return '';
+  return `<section class="panel"><h3>الاشتراك</h3><p class="sub">الاشتراك عام دراسي كامل وأسبوع بعده. ${S.sub.expired ? '<b>منتهٍ منذ</b>' : 'ساري حتى'} <b>${esc(subWhen())}</b> — العام الدراسي ${esc(S.sub.year)}هـ.</p>
+    <div class="tools"><button class="btn" data-act="renew">تجديد الاشتراك</button></div></section>`; }
+function renewForm(pre){ if (me.staff) return; const y = (S.sub?.year || 1448) + 1, wa = waLink(SELLER, `السلام عليكم، أرغب في تجديد اشتراك «منصة المدير» للعام الدراسي ${y}هـ.\nرمز المدرسة: ${S.code}\nالمدرسة: ${school()}`);
+  modal('تجديد الاشتراك', `<p class="sub">اطلب مفتاح التجديد من البائع برمز مدرستك، ثم الصقه هنا. يمتد الاشتراك إلى نهاية العام الدراسي الجديد وأسبوع بعده، دون أن تتأثر البيانات.</p>
+    <div class="tools"><b class="phone" dir="ltr">${esc(S.code || '')}</b>${wa ? `<a class="btn sm wa" href="${esc(wa)}" target="_blank" rel="noopener">طلب التجديد بالواتساب</a>` : ''}</div>
+    <div class="f full" style="margin-top:10px"><label for="rn_k">مفتاح التجديد</label><textarea id="rn_k" dir="ltr" rows="3" spellcheck="false" placeholder="الصق المفتاح كاملًا">${esc(pre || '')}</textarea></div>`,
+    `<button class="btn pri" id="ok">تجديد</button><button class="btn" data-act="close">إلغاء</button>`);
+  $('#ok').onclick = async () => { const k = fval('rn_k'); if (!k) return toast('الصق مفتاح التجديد', 'bad'); $('#ok').disabled = true;
+    try { const r = await api('/renew', {method:'POST', json:{key:k}}); S.sub = r.sub; closeModal(); render(true); toast('جُدّد الاشتراك حتى ' + hij(r.sub.until)); }
+    catch(e){ toast(e.code === 'bad_key' ? 'مفتاح التجديد غير صحيح لهذه المدرسة. انسخه كاملًا كما وصلك.' : errMsg(e), 'bad'); $('#ok').disabled = false; } }; }
+Object.assign(ACT, {renew:() => renewForm()});
 
 /* ===================== النسخة الاحتياطية ===================== */
 function backupPanel(){ if (me.staff) return '';
