@@ -344,7 +344,7 @@ const MODE = T_ARG ? 'teacher' : hashArg('p') ? 'parent' : 'admin';
 document.documentElement.classList.toggle('portal', MODE !== 'admin');
 const KEY = T_ARG || hashArg('p');
 let token = store.get('mdr.token');
-const APP_VER = '4.4'; // ارفعه مع site/version.json في كل نشر
+const APP_VER = '4.5'; // ارفعه مع site/version.json في كل نشر
 const DEV = store.get('mdr.dev') || [...crypto.getRandomValues(new Uint8Array(16))].map(b => b.toString(16).padStart(2, '0')).join(''); store.set('mdr.dev', DEV);
 const devInfo = () => { const u = navigator.userAgent; return {device:DEV, deviceName:`${/iPhone|iPad/.test(u) ? 'آيفون' : /Android/.test(u) ? 'أندرويد' : 'كمبيوتر'} · ${/Edg/.test(u) ? 'Edge' : /Chrome/.test(u) ? 'Chrome' : /Safari/.test(u) ? 'Safari' : /Firefox/.test(u) ? 'Firefox' : 'متصفح'}`}; };
 const ERR = {
@@ -605,7 +605,7 @@ function parentDoc(p){
   <div class="foot">${esc(school())}.</div></div>`;
 }
 function parentMsg(p){
-  return `السلام عليكم ورحمة الله وبركاته\nولي أمر الطالب: ${p.student}${p.grade ? ` (${p.grade})` : ''}\n\n${p.kind}\n${p.body}\n\n${p.noSign ? 'النسخة' : 'للاطلاع والتوقيع'}:\n${parentLink(p)}\n\n${school()}${set().phone ? ' — جوال المدير: ' + set().phone : ''}`;
+  return `السلام عليكم ورحمة الله وبركاته\nولي أمر الطالب: ${p.student}${p.grade ? ` (${p.grade})` : ''}\n\n${p.kind}\n${p.body}${p.textOnly ? '' : `\n\n${p.noSign ? 'النسخة' : 'للاطلاع والتوقيع'}:\n${parentLink(p)}`}\n\n${school()}${set().phone ? ' — جوال المدير: ' + set().phone : ''}`;
 }
 const teacherLink = t => t && t.key ? `${BASE}#t=${t.key}` : '';
 // SHA-256 متزامن، لأن الرسائل تُبنى دفعة واحدة؛ والخادم يتحقق بالحساب نفسه
@@ -808,6 +808,7 @@ function vSettings(){
       ${f('absLimit','حد غياب الطالب للإنذار المبكر (٪)', s.absLimit || 15, 'number')}
       ${f('incLimit','عدد المخالفات للإنذار المبكر', s.incLimit || 3, 'number')}
       ${f('emLimit','رصيد الإجازة الاضطرارية للمعلم (أيام في العام)', s.emLimit || 5, 'number')}
+      ${f('parentsGroup','رابط دعوة «مجتمع أولياء الأمور» في واتساب', s.parentsGroup || '', 'url', 'من واتساب: المجتمعات ← مجتمع جديد ← دعوة الأعضاء ← نسخ الرابط. ثم من «أولياء الأمور» اضغط «دعوة لمجتمع أولياء الأمور». الأعضاء لا يرون أرقام بعضهم، والإعلانات ترسلها المدرسة وحدها.')}
       ${f('yearDays','عدد أيام الدراسة في العام (لحساب نسبة الغياب ١٠٪)', s.yearDays || 180, 'number')}
     </div><h3 style="font-size:15px;margin-top:6px">حسم درجات السلوك والمواظبة</h3><p class="sub">القيم الافتراضية تقديرية؛ عدّلها حسب قواعد السلوك والمواظبة المعتمدة لديكم.</p><div class="fg">
       ${[1,2,3,4,5].map(d => f('behD' + d, `حسم مخالفة الدرجة ${['الأولى','الثانية','الثالثة','الرابعة','الخامسة'][d-1]} (من ١٠٠)`, s['behD' + d] || BEH_DEF[d], 'number')).join('')}
@@ -1156,7 +1157,7 @@ document.addEventListener('click', e => {
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('#modalRoot').innerHTML) closeModal(); });
 document.addEventListener('submit', async e => {
   if (e.target.id !== 'setForm') return; e.preventDefault();
-  const keys = ['school','region','year','principal','phone','deputy','deputyPhone','schoolWa','controlHead','controlPhone','counselor','health','safety','periods','sem1Start','sem2Start','missLimit','absLimit','incLimit','emLimit','yearDays','behD1','behD2','behD3','behD4','behD5','attAbs','attLate'];
+  const keys = ['school','region','year','principal','phone','deputy','deputyPhone','schoolWa','controlHead','controlPhone','counselor','health','safety','periods','sem1Start','sem2Start','missLimit','absLimit','incLimit','emLimit','yearDays','parentsGroup','behD1','behD2','behD3','behD4','behD5','attAbs','attLate'];
   const data = {}; keys.forEach(k => data[k] = fval('s_' + k));
   if (await put('settings/school', data)) { UI.setDirty = false; toast('حُفظت الإعدادات'); }
 });
@@ -1211,7 +1212,7 @@ function atRisk(){
 }
 function vStudents(){
   const tab = UI.sTab || 'list';
-  const seg = [['list','سجل الطلاب'],['att','الحضور اليومي'],['beh','السلوك'],['grades','درجات السلوك والمواظبة'],['abs10','متجاوزو الغياب ١٠٪'],['clinic','العيادة المدرسية']].map(([k,l]) => `<button data-act="sTab" data-id="${k}" aria-pressed="${tab===k}">${l}</button>`).join('');
+  const seg = [['list','سجل الطلاب'],['att','الحضور اليومي'],['beh','السلوك'],['grades','درجات السلوك والمواظبة'],['abs10','إجراءات الغياب'],['clinic','العيادة المدرسية']].map(([k,l]) => `<button data-act="sTab" data-id="${k}" aria-pressed="${tab===k}">${l}</button>`).join('');
   const tools = !isAdmin() ? '' : tab === 'list' ? '<button class="btn pri" data-act="importStudents">استيراد من Excel</button><button class="btn" data-act="exportStudents">تصدير Excel</button><button class="btn" data-act="addStudent">إضافة طالب</button><button class="btn" data-act="bulkStudents">إضافة مجموعة</button>'
     : tab === 'beh' ? '<button class="btn pri" data-act="addIncident">تسجيل مخالفة</button><button class="btn" data-act="meritAdd">تسجيل سلوك إيجابي</button>'
     : tab === 'grades' ? '<button class="btn pri" data-act="meritAdd">تسجيل سلوك إيجابي</button><button class="btn" data-act="gradesXlsx">تنزيل Excel</button>'
@@ -2161,7 +2162,7 @@ Object.assign(ACT, {
   addStudent: () => studentForm(), editStudent: studentForm, bulkStudents: bulkStudentsForm, studentFile,
   delStudent: id => confirmBox('حذف طالب', `سيُحذف «${sName(id)}» من السجل. تبقى مخالفاته ونماذج ولي أمره السابقة.`, 'حذف', () => del('students/' + id)),
   stuLetter: id => { closeModal(); UI.lSid = id; UI.rTab = 'letters'; UI.lKey = 'استدعاء ولي أمر'; go('records'); },
-  mark: (id, b) => { const date = UI.attDate || today(); const cur = (S.attendance.find(x => x.id === date) || {})[id]; save2('attendance', date, {[id]: cur === b.dataset.v ? null : b.dataset.v}); },
+  mark: (id, b) => { const date = UI.attDate || today(); const cur = (S.attendance.find(x => x.id === date) || {})[id]; save2('attendance', date, {[id]: cur === b.dataset.v ? null : b.dataset.v}).then(ok => { if (ok && cur !== b.dataset.v && b.dataset.v === 'غياب بدون عذر') lvAlert(id); }); },
   allPresent: markAll,
   addIncident: id => incidentForm(id), incParent,
   togIncident: id => { const i = S.incidents.find(x => x.id === id); if (i) put('incidents/' + id, {status: i.status === 'closed' ? 'open' : 'closed'}, true); },
@@ -2927,7 +2928,7 @@ function sendQueue(title, items, logId, note, group){
     document.querySelectorAll('[data-sqch]').forEach(b => b.setAttribute('aria-pressed', b.dataset.sqch === ch));
     $('#sqHint').textContent = W ? 'تُفتح كل محادثة في واتساب برسالتها الجاهزة، فاضغط إرسال فيه ثم عد هنا للتالي.' : 'تُفتح كل رسالة في تطبيق البريد بعنوانها ونصها، فاضغط إرسال فيه ثم عد هنا للتالي.';
     const mails = [...new Set(items.map(qMail).filter(okMail))];
-    $('#sqGroup').innerHTML = gm ? `<div class="notice-bar info"><b>رسالة واحدة تكفي الجميع:</b> ${W ? (gp ? 'أرسلها في مجموعات أولياء الأمور أو قائمة البث فتصلهم مرة واحدة.' : 'أرسلها في مجموعة المعلمين أو قائمة البث، ويفتح كل معلم رابطه الخاص الذي وصله من قبل.') : `تُفتح رسالة بريد واحدة إلى ${mails.length} عنوان في خانة «نسخة مخفية» فلا يرى أحدهم عناوين الآخرين.`} الرسالة عامة ولا تحمل اسمًا ولا رابطًا خاصًا.<div class="tools" style="margin-top:8px">${W ? `<a class="btn sm wa" href="${esc(waShare(gm))}" target="_blank" rel="noopener">إرسال للمجموعة</a>` : mails.length ? `<a class="btn sm" href="${esc(mailLink(mails, title, gm))}">بريد واحد للجميع (${mails.length})</a>` : '<span class="chip mute">لا توجد عناوين بريد محفوظة</span>'}<button type="button" class="btn sm" id="sqCopy">نسخ الرسالة</button></div></div><p class="sub" style="margin:0 0 8px">${gp ? 'أو أرسل لكل ولي أمر على حدة:' : 'أو أرسل لكل معلم على حدة:'}</p>` : '';
+    $('#sqGroup').innerHTML = gm ? `<div class="notice-bar info"><b>رسالة واحدة تكفي الجميع:</b> ${gp && group.hint ? esc(group.hint) : `${W ? (gp && group.parents ? (set().parentsGroup ? 'اضغط «إرسال للمجموعة» ثم اختر «مجتمع أولياء الأمور» من قائمة المحادثات، فتصلهم كلهم برسالة واحدة دون حفظ أرقامهم في جوالك.' : 'لإرسالها مرة واحدة دون حفظ أرقام أولياء الأمور في جوالك: أنشئ «مجتمعًا» في واتساب وادعهم إليه مرة واحدة (الإعدادات ← مجتمع أولياء الأمور)، ثم اضغط «إرسال للمجموعة» واختر المجتمع.') : 'أرسلها في مجموعة المعلمين أو قائمة البث، ويفتح كل معلم رابطه الخاص الذي وصله من قبل.') : `تُفتح رسالة بريد واحدة إلى ${mails.length} عنوان في خانة «نسخة مخفية» فلا يرى أحدهم عناوين الآخرين.`} الرسالة عامة ولا تحمل اسمًا ولا رابطًا خاصًا.`}<div class="tools" style="margin-top:8px">${W ? `<a class="btn sm wa" href="${esc(waShare(gm))}" target="_blank" rel="noopener">إرسال للمجموعة</a>` : mails.length ? `<a class="btn sm" href="${esc(mailLink(mails, title, gm))}">بريد واحد للجميع (${mails.length})</a>` : '<span class="chip mute">لا توجد عناوين بريد محفوظة</span>'}<button type="button" class="btn sm" id="sqCopy">نسخ الرسالة</button></div></div><p class="sub" style="margin:0 0 8px">${gp && group.parents ? 'أو أرسل لكل ولي أمر على حدة:' : 'أو أرسل لكل معلم على حدة:'}</p>` : '';
     const cp = $('#sqCopy'); if (cp) cp.onclick = async () => { try { await navigator.clipboard.writeText(gm); toast('نُسخت الرسالة'); } catch { toast('تعذّر النسخ', 'bad'); } };
     $('#sqBody').innerHTML = `<div class="tools"><span class="chip ok num">أُرسل ${done.length} من ${ok.length}</span>${noPh ? `<span class="chip warn num">${W ? 'بلا جوال' : 'بلا بريد'}: ${noPh}</span>` : ''}${next ? `<a class="btn pri" href="${esc(link(next))}"${tg} data-qid="${esc(next.id)}">إرسال التالي: ${esc(next.name)}</a>` : (ok.length ? '<span class="chip ok">اكتمل الإرسال</span>' : '')}</div>
       <div class="list">${items.map(i => { const w = link(i), m = qMail(i), own = W ? i.sid : owner(i); return `<div class="row"><div><div class="t">${esc(i.name)}</div><div class="m">${esc(i.sub || '')}${W ? (i.phone ? ' · <span class="phone">' + esc(i.phone) + '</span>' : '') : (m ? ' · <span dir="ltr">' + esc(m) + '</span>' : '')}</div></div><div class="tools">${sent(i.id) ? '<span class="chip ok">أُرسل</span>' : ''}${w ? `<a class="btn sm${W ? ' wa' : ''}" href="${esc(w)}"${tg} data-qid="${esc(i.id)}">${sent(i.id) ? 'إعادة' : 'إرسال'}</a>` : `<span class="chip mute">${W ? 'لا يوجد واتساب' : 'لا يوجد بريد'}</span>`}${own && !w ? `<input data-qph="${esc(i.id)}" dir="ltr" ${W ? 'inputmode="tel" placeholder="رقم واتساب"' : 'type="email" placeholder="البريد الإلكتروني"'} aria-label="${W ? 'رقم واتساب' : 'بريد'} ${esc(i.name)}" style="width:${W ? 125 : 190}px"><button type="button" class="btn sm" data-qsave="${esc(i.id)}">حفظ</button>` : ''}</div></div>`; }).join('')}</div>`; };
@@ -3035,9 +3036,9 @@ function subsPanel(date){ const ab = absentOn(date), need = subsNeed(date), m = 
   if (!ab.size) return `<section class="panel"><h3>حصص الانتظار</h3><p class="sub">لا يوجد معلم غائب في هذا اليوم. عند تسجيل غياب معلم أو رصده «غ» أو اعتماد إجازته تظهر حصصه هنا مع المقترحين لتغطيتها.</p>${month.length ? `<p class="sub">انتظار هذا الشهر: ${month.map(x => `${esc(x.t.name)} (${x.n})`).join('، ')}</p>` : ''}</section>`;
   const done = need.filter(e => subOf(date, e)).length;
   return `<section class="panel"><h3>حصص الانتظار ${need.length ? `(${done} من ${need.length})` : ''}</h3><p class="sub">الغائبون: ${[...ab].map(i => esc(tName(i))).join('، ')}. يظهر أولًا الأقل انتظارًا هذا الشهر، ثم الأقل حصصًا في اليوم، ثم الأقل نصابًا.</p>
-    ${isAdmin() && need.length ? `<div class="tools"><button class="btn pri" data-act="subAuto">توزيع تلقائي</button><button class="btn" data-act="subSend" ${done ? '' : 'disabled'}>إرسال التكليفات</button><button class="btn" data-act="subPrint">طباعة جدول الانتظار</button></div>` : ''}
+    ${isAdmin() && need.length ? `<div class="tools"><button class="btn pri" data-act="subAuto">توزيع تلقائي</button><button class="btn" data-act="subSend" ${done ? '' : 'disabled'}>إرسال التكليفات</button><button class="btn" data-act="subForm">نموذج حصص الانتظار</button><button class="btn" data-act="subPrint">طباعة جدول الانتظار</button></div>` : ''}
     ${need.length ? `<div class="tablewrap"><table class="tbl" style="min-width:600px"><thead><tr><th>الحصة</th><th>الفصل</th><th>الغائب</th><th>المكلّف بالانتظار</th><th></th></tr></thead><tbody>${need.map(e => { const x = subOf(date, e), c = subCands(date, e), cur = x && !c.some(y => y.t.id === x.subId) ? [{t:teacher(x.subId) || {id:x.subId, name:'—'}, subs:'', day:''}] : [];
-      return `<tr><td class="num"><b>${esc(e.p)}</b></td><td>${esc(String(e.cls || '—').split(' - ')[0])}</td><td>${esc(tName(e.tid))}</td><td><select data-subsel="${e.id}" aria-label="المكلف بالحصة ${esc(e.p)}" ${isAdmin() ? '' : 'disabled'}><option value="">— لم يُكلَّف أحد —</option>${[...cur, ...c].map(y => `<option value="${y.t.id}" ${x && x.subId === y.t.id ? 'selected' : ''}>${esc(y.t.name)}${y.subs !== '' ? ` · انتظار الشهر ${y.subs} · حصصه اليوم ${y.day}` : ''}</option>`).join('')}</select></td><td>${x ? (x.ack ? '<span class="chip ok">استلم</span>' : '<span class="chip warn">لم يستلم</span>') : ''}</td></tr>`; }).join('')}</tbody></table></div>`
+      return `<tr><td class="num"><b>${esc(e.p)}</b></td><td>${esc(String(e.cls || '—').split(' - ')[0])}</td><td>${esc(tName(e.tid))}</td><td><select data-subsel="${e.id}" aria-label="المكلف بالحصة ${esc(e.p)}" ${isAdmin() ? '' : 'disabled'}><option value="">— لم يُكلَّف أحد —</option>${[...cur, ...c].map(y => `<option value="${y.t.id}" ${x && x.subId === y.t.id ? 'selected' : ''}>${esc(y.t.name)}${y.subs !== '' ? ` · انتظار الشهر ${y.subs} · حصصه اليوم ${y.day}` : ''}</option>`).join('')}</select></td><td>${x ? (x.ack ? `<span class="chip ok">${x.ack.img ? 'وقّع' : 'استلم'}</span>` : '<span class="chip warn">لم يوقّع</span>') : ''}</td></tr>`; }).join('')}</tbody></table></div>`
       : '<div class="empty">الغائبون ليست لهم حصص في جدول هذا اليوم.</div>'}
     ${month.length ? `<p class="sub" style="margin-top:8px">انتظار هذا الشهر: ${month.map(x => `${esc(x.t.name)} (${x.n})`).join('، ')}</p>` : ''}</section>`; }
 const subDoc = (date, e, tid) => ({id:subKey(date, e.id), date, p:+e.p, entryId:e.id, cls:String(e.cls || '').split(' - ')[0], absentId:e.tid, absentName:tName(e.tid), subId:tid, subName:tName(tid), at:Date.now()});
@@ -3053,12 +3054,12 @@ async function subAuto(){ const date = UI.schDate || today(), docs = [];
 function subSend(){ const date = UI.schDate || today(), list = S.subs.filter(x => x.date === date), by = {};
   list.forEach(x => (by[x.subId] ||= []).push(x)); const ids = Object.keys(by).filter(teacher); if (!ids.length) return toast('لا توجد تكليفات', 'bad');
   sendQueue(`حصص الانتظار ${dayName(date)} ${hij(date)}`, ids.map(i => { const t = teacher(i), l = sortBy(by[i], 'p');
-    return {id:t.id, name:t.name, sub:l.map(x => 'الحصة ' + x.p).join('، '), phone:t.phone, msg:`المكرم الأستاذ/ ${t.name}\nالسلام عليكم ورحمة الله وبركاته\nكُلّفتم بحصص الانتظار يوم ${dayName(date)} ${hij(date)}:\n${l.map(x => `• الحصة ${x.p}${x.cls ? ' — فصل ' + x.cls : ''} (بدل الأستاذ ${x.absentName || tName(x.absentId)})`).join('\n')}\nنأمل التأكيد بالاستلام من رابطكم:\n${tLink(t, 'sub-' + date)}\n${principal()} — ${school()}`}; }), 'subs_' + date); }
+    return {id:t.id, name:t.name, sub:l.map(x => 'الحصة ' + x.p).join('، '), phone:t.phone, msg:`المكرم الأستاذ/ ${t.name}\nالسلام عليكم ورحمة الله وبركاته\nكُلّفتم بحصص الانتظار يوم ${dayName(date)} ${hij(date)}:\n${l.map(x => `• الحصة ${x.p}${x.cls ? ' — فصل ' + x.cls : ''} (بدل الأستاذ ${x.absentName || tName(x.absentId)})`).join('\n')}\nنأمل التوقيع بالاستلام من رابطكم:\n${tLink(t, 'sub-' + date)}\n${principal()} — ${school()}`}; }), 'subs_' + date, '', {msg:subGroupMsg(date, by), hint:'أرسل هذه الرسالة مرة واحدة في مجموعة المعلمين في واتساب: فيها تكليف كل معلم ورابط توقيعه الخاص، فيفتح كل معلم رابطه ويوقّع.'}); }
 function subSheet(){ const date = UI.schDate || today(), need = subsNeed(date);
-  return `<div class="paper">${docHead('جدول حصص الانتظار', `${dayName(date)} ${hij(date)}`, '', hij(date))}<table><tr><th style="width:8%">الحصة</th><th style="width:auto">الفصل</th><th style="width:auto">المعلم الغائب</th><th style="width:auto">المكلّف بالانتظار</th><th style="width:auto">التوقيع</th></tr>${need.map(e => { const x = subOf(date, e); return `<tr><td>${esc(e.p)}</td><td>${esc(String(e.cls || '').split(' - ')[0])}</td><td>${esc(tName(e.tid))}</td><td>${esc(x ? tName(x.subId) : '')}</td><td>${x?.ack ? 'استلم إلكترونيًا ' + esc(stamp(x.ack.at)) : ''}</td></tr>`; }).join('')}</table>
+  return `<div class="paper">${docHead('جدول حصص الانتظار', `${dayName(date)} ${hij(date)}`, '', hij(date))}<table><tr><th style="width:8%">الحصة</th><th style="width:auto">الفصل</th><th style="width:auto">المعلم الغائب</th><th style="width:auto">المكلّف بالانتظار</th><th style="width:auto">التوقيع</th></tr>${need.map(e => { const x = subOf(date, e); return `<tr><td>${esc(e.p)}</td><td>${esc(String(e.cls || '').split(' - ')[0])}</td><td>${esc(tName(e.tid))}</td><td>${esc(x ? tName(x.subId) : '')}</td><td>${x?.ack?.img ? sigImg(x.ack, 26) : x?.ack ? 'استلم إلكترونيًا ' + esc(stamp(x.ack.at)) : ''}</td></tr>`; }).join('')}</table>
     <div class="sigs"><div class="s"><b>وكيل الشؤون التعليمية</b><span>${esc(set().deputy || '')}</span><div></div></div><div class="s"><b>مدير المدرسة</b><span>${esc(principal())}</span><div></div></div></div></div>`; }
 function teacherSubsPanel(){ const l = sortBy(S.subs, 'date', -1); if (!l.length) return '';
-  return `<section class="panel"><h3>حصص الانتظار</h3><div class="list">${l.map(x => `<div class="row"><div><div class="t">${esc(dayName(x.date))} ${esc(hij(x.date))} · الحصة ${esc(x.p)}${x.cls ? ' · فصل ' + esc(x.cls) : ''}</div><div class="m">بدل الأستاذ ${esc(x.absentName || '')}</div></div><div class="tools">${x.ack ? '<span class="chip ok">استلمت</span>' : `<button class="btn sm pri" data-act="tSubAck" data-id="${x.id}">استلمت التكليف</button>`}</div></div>`).join('')}</div></section>`; }
+  return `<section class="panel"><h3>حصص الانتظار</h3><div class="list">${l.map(x => `<div class="row"><div><div class="t">${esc(dayName(x.date))} ${esc(hij(x.date))} · الحصة ${esc(x.p)}${x.cls ? ' · فصل ' + esc(x.cls) : ''}</div><div class="m">بدل الأستاذ ${esc(x.absentName || '')}</div></div><div class="tools">${x.ack?.img ? '<span class="chip ok">وقّعت بالاستلام</span>' : `<button class="btn sm pri" data-act="tSubSign" data-id="${x.id}">التوقيع بالاستلام</button>`}</div></div>`).join('')}</div></section>`; }
 async function tSubAck(id){ try { const r = await api(`/t/${KEY}/subs/${id}`, {method:'POST', json:{}}); const x = S.subs.find(y => y.id === id); if (x) x.ack = r.ack; render(); toast('شكرًا لك، سُجّل استلامك'); } catch(e){ toast(errMsg(e), 'bad'); } }
 
 /* ===================== الإجازات والاستئذان ===================== */
@@ -3157,7 +3158,7 @@ function vAbs10(){ const lim = apLimit(), list = apList(), over = list.filter(x 
       <td><span class="chip ${r === 100 ? 'ok' : r >= 50 ? 'warn' : 'bad'} num">${apDone(x.s.id)} من ٨ · ${r}٪</span></td><td>${r === 100 ? '<span class="chip ok">ملتزمة</span>' : x.over ? '<span class="chip bad">تحتاج إجراء إداري</span>' : '<span class="chip info">متابعة</span>'}</td>
       <td>${isAdmin() ? `<button class="btn sm pri" data-act="apOpen" data-id="${x.s.id}">الإجراءات والنماذج</button>` : ''}</td></tr>`; };
   const tbl = (t, l, empty) => `<section class="panel"><h3>${t}</h3>${l.length ? `<div class="tablewrap"><table class="tbl"><thead><tr><th>الطالب</th><th>غياب بلا عذر</th><th>غياب بعذر</th><th>النسبة من العام</th><th>الإجراءات المنفذة</th><th>الحالة</th><th></th></tr></thead><tbody>${l.map(row).join('')}</tbody></table></div>` : `<div class="empty">${empty}</div>`}</section>`;
-  return `<div class="notice-bar info">نسبة ١٠٪ من أيام العام الدراسي (${apDays()} يومًا) = <b>${lim} يومًا</b> غياب بلا عذر. لكل طالب متجاوز ثمانية إجراءات نظامية، تسجّل تنفيذها وتطبع نموذجها من «الإجراءات والنماذج». عدد أيام العام يُعدّل من الإعدادات.</div>
+  return lvPanel() + `<div class="notice-bar info">نسبة ١٠٪ من أيام العام الدراسي (${apDays()} يومًا) = <b>${lim} يومًا</b> غياب بلا عذر. لكل طالب متجاوز ثمانية إجراءات نظامية، تسجّل تنفيذها وتطبع نموذجها من «الإجراءات والنماذج». عدد أيام العام يُعدّل من الإعدادات.</div>
     ${tbl(`المتجاوزون لنسبة الغياب (${over.length})`, over, 'لا يوجد طالب تجاوز نسبة الغياب حتى الآن.')}
     ${tbl(`يقتربون من النسبة: ${Math.ceil(lim / 2)} أيام فأكثر (${near.length})`, near, 'لا يوجد.')}`; }
 function apForm(id){ const s = student(id); if (!s) return; const r = apRec(id), st = stuStat(id), wl = waLink(stuWa(s), waNote(s, 'إشعار بغياب الطالب', `بلغ غياب ابنكم بلا عذر ${st.abs} يومًا، وهذا يتجاوز نسبة ١٠٪ المسموح بها من أيام العام الدراسي. نأمل متابعة انتظامه، والتواصل مع المدرسة.`));
@@ -3170,7 +3171,7 @@ function apForm(id){ const s = student(id); if (!s) return; const r = apRec(id),
     `<button class="btn pri" id="ok">حفظ</button><button class="btn" data-act="close">إغلاق</button>`, true);
   AP_STEPS.forEach((_, i) => { const k = i + 1; $('#ap_c' + k).onchange = e => { if (e.target.checked && !$('#ap_d' + k).value) $('#ap_d' + k).value = today(); }; $('#ap_d' + k).onchange = e => { $('#ap_c' + k).checked = !!e.target.value; }; });
   $('#ok').onclick = async () => { const steps = {}; AP_STEPS.forEach((_, i) => { const k = i + 1; if ($('#ap_c' + k).checked) steps[k] = $('#ap_d' + k).value || today(); });
-    if (await put('absproc/' + id, {steps, note:fval('ap_n'), updatedAt:Date.now(), by:me.staff?.name || principal()})) { closeModal(); toast('حُفظت الإجراءات'); } }; }
+    if (await put('absproc/' + id, {steps, levels:apRec(id).levels || {}, note:fval('ap_n'), updatedAt:Date.now(), by:me.staff?.name || principal()})) { closeModal(); toast('حُفظت الإجراءات'); } }; }
 const apLn = v => v ? `<b>${esc(v)}</b>` : '..............................';
 const apAbs = s => stuStat(s.id).abs;
 const apSig = roles => `<div class="sigs">${roles.map(([r, n]) => `<div class="s"><b>${esc(r)}</b><span>${n ? esc(n) : 'الاسم: ....................'}</span><span>التوقيع:</span><div></div><span>التاريخ: ..../..../١٤ هـ</span></div>`).join('')}</div>`;
@@ -3206,6 +3207,75 @@ function apXlsx(){ const rows = [['اسم الطالب','الصف','غياب ب�
   if (rows.length === 1) return toast('لا يوجد طالب متجاوز لنسبة الغياب', 'bad');
   saveXlsx('قياس الالتزام بإجراءات متجاوزي الغياب', [{name:'الالتزام', rows}]); }
 Object.assign(ACT, {apOpen:apForm, apXlsx, apPrint:(id, el) => { const s = student(id), k = el?.dataset.k; if (s && AP_DOC[k]) printDoc(`<div class="paper">${AP_DOC[k](s)}</div>`); }});
+
+/* ===================== مستويات الغياب بدون عذر وإجراءاتها ===================== */
+// التدرج من «إجراءات الغياب» في قواعد السلوك والمواظبة: ٣ أيام، ثم ٥٪ و١٠٪ و١٥٪ و٢٠٪ من أيام العام الدراسي
+const ABS_LV = [
+  {k:1, d:() => 3, t:'المستوى الأول: ٣ أيام', acts:['إشعار ولي الأمر بالغياب والتعرف على أسبابه','حسم درجة من المواظبة عن كل يوم غياب بدون عذر','إحالة الطالب إلى الموجه الطلابي لدراسة حالته'], docs:[['abs','نموذج إجراءات الغياب'],['3','نموذج الإحالة للموجه']],
+    msg:n => `نفيدكم بأن غياب ابنكم بدون عذر بلغ ${n} أيام، ويُحسم من درجة المواظبة درجة عن كل يوم غياب بدون عذر. نأمل الحرص على انتظامه وإفادتنا بسبب الغياب.`},
+  {k:2, d:() => Math.max(4, Math.ceil(apDays() * 0.05)), t:'المستوى الثاني: ٥٪ من أيام العام', acts:['استدعاء ولي الأمر','أخذ التعهد الخطي من الطالب وولي الأمر بانتظام الطالب'], docs:[['4','خطاب استدعاء ولي الأمر'],['5','نموذج التعهد']],
+    msg:n => `نفيدكم بأن غياب ابنكم بدون عذر بلغ ${n} أيام، أي ٥٪ من أيام العام الدراسي. نأمل حضوركم إلى المدرسة لمقابلة وكيل شؤون الطلاب، وتوقيع تعهد بانتظام الطالب.`},
+  {k:3, d:() => Math.max(5, apLimit()), t:'المستوى الثالث: ١٠٪ من أيام العام', acts:['إنذار الطالب واستدعاء ولي الأمر','عقد اجتماع لجنة التوجيه الطلابي','تطبيق الإجراءات النظامية الثمانية لمتجاوزي نسبة الغياب ١٠٪'], docs:[['4','خطاب استدعاء ولي الأمر'],['6','محضر لجنة التوجيه'],['1','نموذج الالتزام المدرسي']], eight:true,
+    msg:n => `نفيدكم بأن غياب ابنكم بدون عذر بلغ ${n} يومًا، متجاوزًا نسبة ١٠٪ من أيام العام الدراسي، وعليه يُنذر الطالب. نأمل حضوركم إلى المدرسة لمناقشة حالته مع لجنة التوجيه الطلابي، وتنبيهكم بالإجراءات المترتبة على استمرار الغياب.`},
+  {k:4, d:() => Math.max(6, Math.ceil(apDays() * 0.15)), t:'المستوى الرابع: ١٥٪ من أيام العام', acts:['إحالة الطالب إلى وحدة الخدمات الإرشادية (التوجيه)','استدعاء ولي الأمر'], docs:[['8','نموذج الإحالة'],['4','خطاب استدعاء ولي الأمر']],
+    msg:n => `نفيدكم بأن غياب ابنكم بدون عذر بلغ ${n} يومًا، أي ١٥٪ من أيام العام الدراسي، وقد أُحيل إلى وحدة الخدمات الإرشادية. نأمل حضوركم إلى المدرسة.`},
+  {k:5, d:() => Math.max(7, Math.ceil(apDays() * 0.2)), t:'المستوى الخامس: ٢٠٪ من أيام العام', acts:['اجتماع لجنة التوجيه الطلابي ودراسة جميع الشواهد والوثائق','استكمال الإجراءات النظامية، وإحالة الحالة للجهات المختصة وفق نظام حماية الطفل (١٩١٩)','إشعار ولي الأمر بالإجراءات المتخذة'], docs:[['6','محضر لجنة التوجيه'],['7','مخاطبة حماية الطفل']],
+    msg:n => `نفيدكم بأن غياب ابنكم بدون عذر بلغ ${n} يومًا، أي ٢٠٪ من أيام العام الدراسي، وعليه تُستكمل الإجراءات النظامية ومنها الإحالة للجهات المختصة وفق نظام حماية الطفل. نأمل حضوركم إلى المدرسة عاجلًا.`}];
+const lvDone = (id, k) => apRec(id).levels?.[k];
+const lvDue = id => { const n = stuStat(id).abs; return ABS_LV.filter(l => n >= l.d() && !lvDone(id, l.k)); };
+function lvCard(s){ const n = stuStat(s.id).abs, due = lvDue(s.id); if (!due.length) return '';
+  return `<div class="panel" style="border-inline-start:4px solid var(--bad,#b42318)"><div class="t"><b>${esc(s.name)}</b> <span class="m">${esc(sClass(s))}</span> · <span class="chip bad num">غياب بدون عذر ${n} يومًا</span></div>
+    ${due.map(l => { const wl = waLink(stuWa(s), waNote(s, 'إشعار بغياب الطالب', l.msg(n)));
+      return `<div style="margin-top:8px"><b>${esc(l.t)}</b> — الإجراء النظامي:<ul style="margin:4px 0">${l.acts.map(a => `<li>${esc(a)}</li>`).join('')}</ul>
+        <div class="tools">${wl ? `<a class="btn sm wa" href="${esc(wl)}" target="_blank" rel="noopener">إشعار ولي الأمر</a>` : '<span class="chip warn">لا يوجد جوال لولي الأمر</span>'}${l.docs.map(([k, t]) => `<button class="btn sm" data-act="apPrint" data-id="${s.id}" data-k="${k}">${esc(t)}</button>`).join('')}${l.eight ? `<button class="btn sm" data-act="apOpen" data-id="${s.id}">الإجراءات الثمانية</button>` : ''}<button class="btn sm pri" data-act="lvDone" data-id="${s.id}" data-k="${l.k}">تم تنفيذ الإجراء</button></div></div>`; }).join('')}</div>`; }
+function lvPanel(){ const l = sortBy(S.students, 'name').filter(s => lvDue(s.id).length).sort((a, b) => stuStat(b.id).abs - stuStat(a.id).abs);
+  return `<section class="panel"><h3>إجراءات مستحقة الآن (${l.length})</h3><p class="sub">الحدود: ${ABS_LV.map(x => `${x.t.split(':')[0].replace('المستوى ', '')} ${x.d()} يومًا`).join(' · ')}. يظهر هنا كل طالب بلغ حدًّا لم يُنفذ إجراؤه، فيختفي بعد «تم تنفيذ الإجراء».</p>${l.length ? l.map(lvCard).join('') : '<div class="empty">لا توجد إجراءات مستحقة.</div>'}</section>`; }
+async function lvMark(id, el){ const k = el?.dataset.k, r = apRec(id); if (!k) return;
+  if (await put('absproc/' + id, {steps:r.steps || {}, note:r.note || '', levels:{...(r.levels || {}), [k]:today()}, updatedAt:Date.now(), by:me.staff?.name || principal()})) { toast('سُجّل تنفيذ الإجراء'); if ($('#lvAlert')) { const s = student(id), c = lvCard(s); c ? $('#lvAlert').innerHTML = c : closeModal(); } } }
+// يظهر التنبيه فور رصد غياب يُبلغ الطالب حدًّا نظاميًا جديدًا
+function lvAlert(id){ const s = student(id); if (!s || !lvDue(id).length) return; UI.lvSeen ||= {}; const key = id + ':' + lvDue(id).map(l => l.k).join(',');
+  if (UI.lvSeen[key]) return; UI.lvSeen[key] = 1;
+  modal('تنبيه: الطالب بلغ حدًّا نظاميًا في الغياب', `<div id="lvAlert">${lvCard(s)}</div>`, `<button class="btn" data-act="close">لاحقًا</button>`, true); }
+
+/* ===================== نموذج حصص الانتظار وتوقيع المنتظرين ===================== */
+const P_NAMES = ['الأولى','الثانية','الثالثة','الرابعة','الخامسة','السادسة','السابعة','الثامنة'];
+function absWhy(tid, date){ const a = S.absences.find(x => x.teacherId === tid && x.date === date && x.type === 'غياب'), l = S.leaves.find(x => x.teacherId === tid && x.status === 'approved' && x.from <= date && (x.to || x.from) >= date);
+  return l ? (l.kind === 'استئذان' ? 'استئذان' : 'إجازة') : a ? 'غياب' : ''; }
+function subForm(date){ const need = subsNeed(date), ids = [...new Set(need.map(e => e.tid))], n = Math.max(7, Math.min(8, cfg().periods));
+  const box = (on, t) => `<span style="white-space:nowrap">${on ? '☑' : '☐'} ${t}</span>`;
+  return ids.map(tid => { const t = teacher(tid) || {}, why = absWhy(tid, date), mine = need.filter(e => e.tid === tid);
+    return `<div class="paper" style="break-after:page">${docHead('نموذج حصص الانتظار', '', '', hij(date))}
+      <p style="text-align:center;margin:0 0 8px;color:#0f6e56"><b>« حصة الانتظار ليست وقتًا يُملأ… بل أمانة تحفظ وقت أبنائنا، وعطاء لا يضيع أجره »</b></p>
+      <h4>بيانات المعلم الغائب</h4><table><tr><th>اسم المعلم</th><td>${esc(t.name || tName(tid))}</td><th>التخصص</th><td>${esc(t.specialty || '')}</td></tr>
+      <tr><th>اليوم</th><td>${esc(dayName(date))}</td><th>التاريخ</th><td>${esc(hij(date))}</td></tr>
+      <tr><th>سبب الغياب</th><td colspan="3">${['غياب','إجازة','استئذان','تكليف رسمي','تدريب'].map(x => box(why === x, x)).join(' &nbsp; ')}</td></tr>
+      <tr><th>خطة الدرس</th><td colspan="3">${box(false, 'سُلّمت خطة الدرس / أوراق العمل للمنتظر')} &nbsp; ${box(false, 'لم تُسلّم')}</td></tr></table>
+      <h4>توزيع حصص المعلم الغائب</h4><table><tr><th style="width:12%">الحصة</th><th style="width:auto">الفصل</th><th style="width:auto">المادة</th><th style="width:auto">المعلم المنتظر</th><th style="width:auto">توقيع المنتظر</th><th style="width:auto">ملاحظات</th></tr>
+      ${P_NAMES.slice(0, n).map((pn, i) => { const e = mine.find(y => +y.p === i + 1), x = e && subOf(date, e), [c, sb] = e ? String(e.cls || '').split(' - ') : [];
+        return `<tr style="height:40px"><th>${pn}</th><td>${esc(c || '')}</td><td>${esc(sb || '')}</td><td>${esc(x ? tName(x.subId) : '')}</td><td>${x?.ack?.img ? sigImg(x.ack, 30) : ''}</td><td>${x?.ack?.img ? 'وقّع ' + esc(stamp(x.ack.at)) : ''}</td></tr>`; }).join('')}</table>
+      <p style="font-size:12px"><b>تعليمات:</b> يُبلَّغ المعلم المنتظر قبل بداية الحصة ويوقّع بالعلم، ويُنفّذ الحصة وفق خطة الدرس أو أوراق العمل المسلّمة، ويُراعى العدل في توزيع حصص الانتظار بين المعلمين.</p>
+      <p style="text-align:center;color:#0f6e56;font-size:13px">شكرًا لكل معلم يسدّ الغياب بحضوره، ويجعل من الحصة الفارغة فرصةً للتعلّم… فبكم تكتمل المدرسة.</p>
+      <div class="sigs"><div class="s"><b>وكيل الشؤون التعليمية</b><span>${esc(set().deputy || '')}</span><span>التوقيع:</span><div></div></div><div class="s"><b>مدير المدرسة</b><span>${esc(principal())}</span><span>التوقيع:</span><div></div></div><div class="s"><b>الختم</b><span>&nbsp;</span><span>&nbsp;</span><div></div></div></div></div>`; }).join(''); }
+function subFormPrint(){ const date = UI.schDate || today(); if (!subsNeed(date).length) return toast('لا توجد حصص انتظار في هذا اليوم', 'bad'); printDoc(subForm(date)); }
+// رسالة واحدة لمجموعة المعلمين فيها تكليف كل معلم ورابط توقيعه
+function subGroupMsg(date, by){ return `السلام عليكم ورحمة الله وبركاته\nتكليفات حصص الانتظار يوم ${dayName(date)} ${hij(date)}:\n\n${Object.keys(by).filter(teacher).map(i => { const t = teacher(i), l = sortBy(by[i], 'p');
+  return `▪️ الأستاذ/ ${t.name}: ${l.map(x => `الحصة ${x.p}${x.cls ? ' (' + x.cls + ')' : ''}`).join('، ')}\nالتوقيع بالاستلام: ${tLink(t, 'sub-' + date)}`; }).join('\n\n')}\n\nنأمل من كل معلم فتح رابطه والتوقيع بالاستلام قبل بداية الحصة.\n${principal()} — ${school()}`; }
+function tSubSign(id){ const x = S.subs.find(y => y.id === id), t = S.teachers[0]; if (!x || !t) return; const l = sortBy(S.subs.filter(y => y.date === x.date && !y.ack?.img), 'p');
+  modal('التوقيع بالاستلام — حصص الانتظار', `<p style="margin:0">أقر أنا <b>${esc(t.name)}</b> باستلام تكليف حصص الانتظار يوم ${esc(dayName(x.date))} ${esc(hij(x.date))}:</p><ul>${l.map(y => `<li>الحصة ${esc(y.p)}${y.cls ? ' — فصل ' + esc(y.cls) : ''} بدل الأستاذ ${esc(y.absentName || '')}</li>`).join('')}</ul>${sigField('sig_s', 'التوقيع', t.name)}`,
+    `<button class="btn pri" id="ok">توقيع الاستلام</button><button class="btn" data-act="close">إلغاء</button>`);
+  requestAnimationFrame(() => mountSig('sig_s'));
+  $('#ok').onclick = async () => { const img = pads.sig_s?.data(); if (!img) return toast('وقّع في المربع', 'bad'); $('#ok').disabled = true;
+    try { for (const y of l) { const r = await api(`/t/${KEY}/subs/${y.id}`, {method:'POST', json:{sig:{img, name:t.name}}}); y.ack = r.ack; } closeModal(); render(); toast('شكرًا لك، سُجّل توقيعك'); }
+    catch(e){ toast(errMsg(e), 'bad'); $('#ok').disabled = false; } }; }
+
+/* ===================== مجتمع أولياء الأمور في واتساب ===================== */
+// الإرسال لكل أولياء الأمور برسالة واحدة دون حفظ أرقامهم: ينضمون مرة واحدة لمجتمع المدرسة، ثم تُرسل الرسالة في مجموعة الإعلانات
+function pgInvite(){ const link = (set().parentsGroup || '').trim(); if (!/^https:\/\/chat\.whatsapp\.com\//.test(link)) return toast('أضف رابط دعوة مجتمع أولياء الأمور من «الإعدادات» أولًا', 'bad');
+  const homes = new Map(); S.students.forEach(s => { const k = stuWa(s) ? 'w' + cleanPhone(stuWa(s)) : 's' + s.id; (homes.get(k) || homes.set(k, []).get(k)).push(s); });
+  const msg = names => `السلام عليكم ورحمة الله وبركاته\nولي أمر الطالب: ${names}\n\nيسرّ ${school()} دعوتكم للانضمام إلى مجتمع أولياء الأمور في واتساب، لتصلكم إشعارات المدرسة وتعاميمها أولًا بأول. لا تظهر أرقامكم لبقية الأعضاء، والإرسال فيه للمدرسة فقط.\n\nرابط الانضمام:\n${link}\n\n${school()}`;
+  const items = [...homes.entries()].map(([k, l]) => { const names = sortBy(l, 'name').map(s => s.name).join('، '); return {id:k, sid:l[0].id, name:names, sub:[...new Set(l.map(clsOf))].join('، '), phone:stuWa(l[0]), msg:msg(names)}; });
+  sendQueue('دعوة أولياء الأمور لمجتمع المدرسة', sortBy(items, 'name'), 'pgjoin', 'تُرسل الدعوة مرة واحدة فقط لكل ولي أمر. بعد انضمامهم ترسل أي إشعار عام برسالة واحدة في المجتمع.'); }
+Object.assign(ACT, {lvDone:lvMark, subForm:subFormPrint, tSubSign, pgInvite});
 
 /* ===================== العيادة المدرسية ===================== */
 const CLINIC_WHY = ['صداع','ألم في البطن','ارتفاع في الحرارة','دوخة أو إغماء','إصابة أثناء اللعب','نزيف أنف','حساسية','أخرى'];
@@ -3891,6 +3961,7 @@ function noticeForm(sid, pre){
   const first = sid && student(sid); const q = {cls:first ? clsOf(first) : classList()[0], sel:new Set(first ? [sid] : []), type:'absDay', d:{date:today(), time:'', subject:SUBJECTS[0], reason:CALL_WHY[0]}, text:null};
   if (pre) { q.type = pre.type; q.d.date = pre.date || today(); lateOn(q.d.date).forEach(i => q.sel.add(i)); const f0 = student([...q.sel][0]); if (f0) q.cls = clsOf(f0); }
   const tp = () => NOTICES.find(n => n.id === q.type);
+  const md = () => q.mode || (tp().noSign ? 'text' : 'sign');
   const ok_ = s => !tp().need || tp().need(stuStat(s.id));
   const chosen = () => S.students.filter(s => q.sel.has(s.id) && ok_(s));
   const missing = () => (tp().f || []).some(k => !q.d[k]);
@@ -3904,18 +3975,22 @@ function noticeForm(sid, pre){
         <div class="f"><label for="nf_cls">الفصل</label><select id="nf_cls">${selOpts(classList(), q.cls)}</select></div>${n.form ? byField('nf_by', 'المُصدر') : ''}${[...(n.f || []), ...(n.o || [])].map(k => FLD[k](n)).join('')}</div>
       <div class="tools"><span class="lb">الطلاب</span><button type="button" class="btn sm" id="nf_all">تحديد الفصل كله</button><button type="button" class="btn sm" id="nf_none">إلغاء التحديد</button><span class="chip info num">المحدد: ${ch.length}</span>${skip ? `<span class="chip mute num">لا ينطبق على ${skip}</span>` : ''}</div>
       <div class="pick" style="margin:8px 0 12px">${list.map(s => `<label class="check"><input type="checkbox" data-nf="${s.id}" ${q.sel.has(s.id) ? 'checked' : ''} ${ok_(s) ? '' : 'disabled'}> ${esc(s.name)}</label>`).join('')}</div>
+      <div class="tools"><span class="lb">طريقة الإرسال</span><div class="seg" role="group" aria-label="طريقة الإرسال">${[['text','نص رسالة فقط'],['sign','للتوقيع الإلكتروني'],['pdf','ملف PDF للتوقيع']].map(([k, l]) => `<button type="button" data-nfm="${k}" aria-pressed="${md() === k}">${l}</button>`).join('')}</div></div>
+      <p class="sub" style="margin:4px 0 8px">${{text:'تصل الرسالة نصًا في واتساب دون رابط ولا توقيع.', sign:'تصل الرسالة مع رابط يفتح الإشعار، فيوقّع ولي الأمر عليه إلكترونيًا.', pdf:'ارفع ملف PDF أسفل النافذة، فيفتحه ولي الأمر من الرابط ويوقّع أسفله.'}[md()]}</p>
       ${ch.length ? `<span class="lb">نص الإشعار${one ? '' : ' (يتكيف مع كل طالب)'}</span>${one ? `<textarea id="nf_text" style="min-height:90px">${esc(q.text ?? body(ch[0]))}</textarea>` : `<div class="notice-bar info">${esc(body(ch[0]) || 'أكمل الحقول أعلاه')}</div>`}` : '<div class="empty">حدد طالبًا واحدًا على الأقل.</div>'}`;
     const ok = $('#ok'); ok.disabled = !ch.length || missing(); ok.textContent = ch.length ? `إنشاء وإرسال (${ch.length})` : 'إنشاء وإرسال';
     $('#nf_type').onchange = e => { q.type = e.target.value; q.text = null; if (q.type === 'lineLate' && !q.sel.size) lateOn(q.d.date).forEach(i => q.sel.add(i)); draw(); }; $('#nf_cls').onchange = e => { q.cls = e.target.value; draw(); };
     ['date','time','subject','reason'].forEach(k => { const el = document.getElementById('nf_' + k); if (el) el.onchange = () => { q.d[k] = el.value; q.text = null; draw(); }; });
     $('#nf_all').onclick = () => { list.filter(ok_).forEach(s => q.sel.add(s.id)); draw(); }; $('#nf_none').onclick = () => { q.sel.clear(); q.text = null; draw(); };
     document.querySelectorAll('[data-nf]').forEach(c => c.onchange = () => { c.checked ? q.sel.add(c.dataset.nf) : q.sel.delete(c.dataset.nf); q.text = null; draw(); });
-    const tx = $('#nf_text'); if (tx) tx.oninput = () => { q.text = tx.value; }; };
-  modal('إشعار لولي الأمر', '<div id="nfBody"></div>', `<button class="btn pri" id="ok">إنشاء وإرسال</button><button class="btn" data-act="close">إلغاء</button>`, true);
+    const tx = $('#nf_text'); if (tx) tx.oninput = () => { q.text = tx.value; };
+    document.querySelectorAll('[data-nfm]').forEach(b => b.onclick = () => { q.mode = b.dataset.nfm; draw(); }); $('#nfPdf').hidden = md() !== 'pdf'; };
+  modal('إشعار لولي الأمر', '<div id="nfBody"></div><div id="nfPdf" class="f full" hidden><label for="nf_pdf">ملف PDF</label><input id="nf_pdf" type="file" accept="application/pdf,.pdf"><span class="hint">من الجوال أو الكمبيوتر حتى ١٠ ميجابايت، ويوقّع ولي الأمر أسفله.</span></div>', `<button class="btn pri" id="ok">إنشاء وإرسال</button><button class="btn" data-act="close">إلغاء</button>`, true);
   draw();
-  $('#ok').onclick = async () => { const ch = chosen(), n = tp(); if (!ch.length || missing()) return; const who = n.form ? byPick('nf_by') : null; if (n.form && !who) return; $('#ok').disabled = true; const made = [];
+  $('#ok').onclick = async () => { const ch = chosen(), n = tp(); if (!ch.length || missing()) return; const who = n.form ? byPick('nf_by') : null; if (n.form && !who) return; $('#ok').disabled = true; const made = [], mode = md(); let att = null;
+    if (mode === 'pdf') { const f = $('#nf_pdf').files[0]; if (!f || guessType(f) !== 'application/pdf') { toast('اختر ملف PDF', 'bad'); $('#ok').disabled = false; return; } att = await uploadFrom('nf_pdf'); if (!att) { $('#ok').disabled = false; return; } }
     const days = sid_ => sortBy(S.attendance, 'id').filter(d => d[sid_] === 'غياب بدون عذر').map(d => d.id);
-    ch.forEach(s => made.push({id:newId(), ...(n.form ? {form:n.form, byRole:who.role, byName:who.name, nid:s.nid || '', absDays:days(s.id).slice(-10), absTotal:days(s.id).length, relation:''} : {}), kind:n.t, student:s.name, studentId:s.id, grade:sClass(s), date:q.d.date || today(), parentName:s.guard || '', parentPhone:stuWa(s), body:ch.length === 1 && q.text ? q.text.trim() : body(s), attachments:[], createdAt:Date.now(), no:nextNo([...S.parents, ...made]), key:rnd(16), noSign:!!n.noSign}));
+    ch.forEach(s => made.push({id:newId(), ...(n.form ? {form:n.form, byRole:who.role, byName:who.name, nid:s.nid || '', absDays:days(s.id).slice(-10), absTotal:days(s.id).length, relation:''} : {}), kind:n.t, student:s.name, studentId:s.id, grade:sClass(s), date:q.d.date || today(), parentName:s.guard || '', parentPhone:stuWa(s), body:ch.length === 1 && q.text ? q.text.trim() : body(s), attachments:[], createdAt:Date.now(), no:nextNo([...S.parents, ...made]), key:rnd(16), noSign:mode === 'text', ...(mode === 'text' ? {textOnly:true} : {}), ...(att ? {pdf:att, sigPos:'sheet'} : {})}));
     try { await bulkPut('parents', made); } catch(e){ toast(errMsg(e), 'bad'); $('#ok').disabled = false; return; }
     if (n.id === 'lineLate') { const D = S.attendance.find(x => x.id === q.d.date) || {}, upd = {}; ch.forEach(s => { if (!D[s.id] || D[s.id] === 'حاضر') upd[s.id] = 'متأخر'; }); if (Object.keys(upd).length) await save2('attendance', q.d.date, upd); }
     sendQueue(n.t, made.map(p => ({id:p.id, sid:p.studentId, pid:p.id, name:p.student, sub:p.grade, phone:p.parentPhone, msg:parentMsg(p)})), 'par_' + made[0].id); };
@@ -3925,7 +4000,7 @@ function vParents(){
   const list = sortBy(S.parents, 'createdAt', -1).filter(p => (f === 'all' || (f === 'pending' ? pending(p) : !pending(p))) && (!c || p.grade === c));
   const seg = [['pending','بانتظار التوقيع'],['signed','مكتملة'],['all','الكل']].map(([k,l]) => `<button data-act="pFilter" data-id="${k}" aria-pressed="${f===k}">${l}</button>`).join('');
   const classes = [...new Set(S.parents.map(p => p.grade).filter(Boolean))];
-  return head('أولياء الأمور', 'إشعارات جاهزة: اختر النوع والفصل والطلاب، وتُرسل بالواتساب.', '<button class="btn pri" data-act="addParent">إشعار جديد</button><button class="btn" data-act="bcast">إعلان عام (الخروج والدوام)</button><button class="btn" data-act="pdfNew" data-id="parents">PDF للتوقيع</button>') + loadingNote() +
+  return head('أولياء الأمور', 'إشعارات جاهزة: اختر النوع والفصل والطلاب، وتُرسل بالواتساب.', '<button class="btn" data-act="pgInvite">دعوة لمجتمع أولياء الأمور</button><button class="btn pri" data-act="addParent">إشعار جديد</button><button class="btn" data-act="bcast">إعلان عام (الخروج والدوام)</button><button class="btn" data-act="pdfNew" data-id="parents">PDF للتوقيع</button>') + loadingNote() +
     `<div class="tools"><div class="seg" role="group" aria-label="تصفية">${seg}</div>${classes.length > 1 ? `<select id="pCls" aria-label="الفصل" style="width:auto"><option value="">كل الفصول</option>${selOpts(classes, c)}</select>` : ''}</div>` +
     (list.length ? `<div class="tablewrap" style="margin-top:10px"><table class="tbl"><thead><tr><th>الطالب</th><th>الإشعار</th><th>الحالة</th><th></th></tr></thead><tbody>${list.map(p => { const wa = waLink(p.parentPhone, parentMsg(p));
       return `<tr><td><b>${esc(p.student)}</b><div style="font-size:12px;color:var(--muted)">${esc(p.grade || '')}</div></td><td>${esc(p.kind)}<div style="font-size:12px;color:var(--muted)">${esc(stamp(p.createdAt))}</div></td><td>${p.form && p.parentSig && !p.action ? '<span class="chip warn">بانتظار إجراء المدرسة</span>' : p.parentSig ? '<span class="chip ok">موقّع</span>' : p.noSign ? '<span class="chip info">للاطلاع</span>' : '<span class="chip warn">بانتظار التوقيع</span>'}</td><td class="acts"><button class="btn sm pri" data-act="viewParent" data-id="${p.id}">عرض</button>${wa ? `<a class="btn sm wa" href="${esc(wa)}" target="_blank" rel="noopener">واتساب</a>` : ''}</td></tr>`; }).join('')}</tbody></table></div>`
