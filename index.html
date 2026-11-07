@@ -344,13 +344,13 @@ const MODE = T_ARG ? 'teacher' : hashArg('p') ? 'parent' : 'admin';
 document.documentElement.classList.toggle('portal', MODE !== 'admin');
 const KEY = T_ARG || hashArg('p');
 let token = store.get('mdr.token');
-const APP_VER = '4.6'; // ارفعه مع site/version.json في كل نشر
+const APP_VER = '4.7'; // ارفعه مع site/version.json في كل نشر
 const DEV = store.get('mdr.dev') || [...crypto.getRandomValues(new Uint8Array(16))].map(b => b.toString(16).padStart(2, '0')).join(''); store.set('mdr.dev', DEV);
 const devInfo = () => { const u = navigator.userAgent; return {device:DEV, deviceName:`${/iPhone|iPad/.test(u) ? 'آيفون' : /Android/.test(u) ? 'أندرويد' : 'كمبيوتر'} · ${/Edg/.test(u) ? 'Edge' : /Chrome/.test(u) ? 'Chrome' : /Safari/.test(u) ? 'Safari' : /Firefox/.test(u) ? 'Firefox' : 'متصفح'}`}; };
 const ERR = {
   too_many_devices:'الحساب مفتوح على ثلاثة أجهزة.', too_many_moves:'استُبدلت الأجهزة كثيرًا هذا الشهر. أخرج جهازًا من الإعدادات أو تواصل مع البائع.',
   wrong_password:'كلمة المرور غير صحيحة.', wrong_login:'رمز المدرسة أو كلمة المرور غير صحيحة.', bad_key:'مفتاح التفعيل غير صحيح لرمز المدرسة هذا. انسخه كاملًا كما وصلك.', bad_code:'رمز المدرسة غير صحيح.', already_registered:'هذا الرمز مسجّل لمدرسة من قبل. إن كانت مدرستك فادخل برمزها وكلمة مرورها، ولتسجيل مدرسة أخرى اضغط «رمز جديد لمدرسة أخرى» وأرسل الرمز الجديد للبائع.', expired:'انتهى اشتراك المدرسة. البيانات محفوظة للاطلاع والتنزيل، وللحفظ والإرسال يجدد المدير الاشتراك من الإعدادات.', too_many_attempts:'محاولات كثيرة خاطئة. انتظر ربع ساعة ثم أعد المحاولة.', weak_password:'كلمة المرور قصيرة، اكتب ٦ أحرف أو أرقام على الأقل.',
-  forbidden:'ليست لديك صلاحية لهذا الإجراء. اطلبها من مدير المدرسة.', user_taken:'اسم المستخدم مستعمل لحساب آخر.', bad_user:'اسم المستخدم من ٣ إلى ٣٠ حرفًا إنجليزيًا أو رقمًا، مع الاسم الكامل.',
+  forbidden:'ليست لديك صلاحية لهذا الإجراء. اطلبها من مدير المدرسة.', user_taken:'اسم المستخدم مستعمل لحساب آخر.', bad_user:'اكتب البريد الإلكتروني (أو اسم مستخدم إنجليزي من ٣ أحرف فأكثر) مع الاسم الكامل.',
   unauthorized:'انتهت الجلسة. سجّل الدخول من جديد.', already_replied:'سبق إرسال الإفادة على هذه المساءلة.', already_signed:'سبق التوقيع على هذا النموذج.', receive_first:'وقّع على استلام الأسئلة أولًا.',
   too_large:'الملف أكبر من ١٠ ميجابايت. اضغطه أو صوّره بدقة أقل.', unsupported_type:'نوع الملف غير مدعوم. ارفع PDF أو صورة.', not_found:'الرابط غير صحيح أو حُذف النموذج.', locked:'اعتُمدت المبادرة، فلا يمكن تعديلها.', not_approved:'تنتظر المبادرة اعتماد الإدارة أولًا.', too_many:'وصلت إلى الحد الأقصى من المبادرات.'
 };
@@ -486,7 +486,7 @@ function printDoc(inner){
   const imgs = [...pa.querySelectorAll('img')].filter(i => !i.complete);
   Promise.all(imgs.map(i => new Promise(r => { i.onload = i.onerror = r; }))).then(() => setTimeout(() => window.print(), 120));
 }
-async function copyText(v){ try { await navigator.clipboard.writeText(v); toast('تم النسخ: ' + v); } catch { toast('حدّد الرقم وانسخه يدويًا: ' + v); } }
+async function copyText(v){ try { await navigator.clipboard.writeText(v); toast('تم النسخ: ' + (String(v).length > 60 ? String(v).slice(0, 60) + '…' : v)); } catch { toast('حدّد الرقم وانسخه يدويًا: ' + v); } }
 
 /* ---------- document header ---------- */
 const docHead = (title, sub, no, date) => `<div class="dh">
@@ -1213,7 +1213,7 @@ function atRisk(){
 function vStudents(){
   const tab = UI.sTab || 'list';
   const seg = [['list','سجل الطلاب'],['att','الحضور اليومي'],['beh','السلوك'],['grades','درجات السلوك والمواظبة'],['abs10','إجراءات الغياب'],['clinic','العيادة المدرسية']].map(([k,l]) => `<button data-act="sTab" data-id="${k}" aria-pressed="${tab===k}">${l}</button>`).join('');
-  const tools = !isAdmin() ? '' : tab === 'list' ? '<button class="btn pri" data-act="importStudents">استيراد من Excel</button><button class="btn" data-act="exportStudents">تصدير Excel</button><button class="btn" data-act="addStudent">إضافة طالب</button><button class="btn" data-act="bulkStudents">إضافة مجموعة</button>'
+  const tools = !isAdmin() ? '' : tab === 'list' ? '<button class="btn pri" data-act="importStudents">استيراد من Excel</button><button class="btn" data-act="exportStudents">تصدير Excel</button><button class="btn" data-act="parentContacts">جهات اتصال أولياء الأمور</button><button class="btn" data-act="addStudent">إضافة طالب</button><button class="btn" data-act="bulkStudents">إضافة مجموعة</button>'
     : tab === 'beh' ? '<button class="btn pri" data-act="addIncident">تسجيل مخالفة</button><button class="btn" data-act="meritAdd">تسجيل سلوك إيجابي</button>'
     : tab === 'grades' ? '<button class="btn pri" data-act="meritAdd">تسجيل سلوك إيجابي</button><button class="btn" data-act="gradesXlsx">تنزيل Excel</button>'
     : tab === 'abs10' ? '<button class="btn" data-act="apXlsx">قياس الالتزام Excel</button>'
@@ -2212,6 +2212,20 @@ function showLogin(){
     try { signedIn(await api('/login', {method:'POST', json:body})); } catch(err){ if (err.code !== 'too_many_devices') return toast(errMsg(err), 'bad');
       confirmBox('الحساب مفتوح على ثلاثة أجهزة', `الأجهزة الحالية: ${err.data.devices.map(d => d.name || 'جهاز').join('، ')}. للدخول من هذا الجهاز يخرج أقدم جهاز منها.`, 'إخراج الأقدم والدخول', async () => { try { signedIn(await api('/login', {method:'POST', json:{...body, replace:true}})); } catch(e){ toast(errMsg(e), 'bad'); } }); } };
 }
+const staffLink = u => BASE + '#staff=' + S.code + (u ? '&u=' + encodeURIComponent(u) : '');
+const staffMsg = (x, pw) => `السلام عليكم ورحمة الله وبركاته\nأُنشئ لكم حساب في منصة المدير${x && x.name ? ' باسم: ' + x.name : ''}.\nرابط الدخول: ${staffLink(x && x.user)}\nادخل بالبريد الإلكتروني${x && x.user ? ' (' + x.user + ')' : ''} وكلمة المرور${pw ? ': ' + pw : ' التي أعطاك إياها المدير'}.`;
+function showStaffLogin(code, u){
+  gate(`<h1>دخول فريق العمل</h1><p>اكتب بريدك الإلكتروني وكلمة المرور التي أعطاك إياها مدير المدرسة.</p>
+    <form id="gForm" class="fg" style="grid-template-columns:1fr">
+      <div class="f"><label for="g_user">البريد الإلكتروني أو اسم المستخدم</label><input id="g_user" dir="ltr" type="email" autocomplete="username" autocapitalize="none" value="${esc(u || store.get('mdr.user') || '')}"></div>
+      <div class="f"><label for="g_pw">كلمة المرور</label><input id="g_pw" type="password" autocomplete="current-password"></div>
+      <button class="btn pri" type="submit">دخول</button></form>
+    <p style="margin-top:14px" class="hint">نسيت كلمة المرور؟ اطلب من مدير المدرسة تعيينها من جديد.</p>`);
+  $('#g_user').type = 'text'; (u ? $('#g_pw') : $('#g_user')).focus();
+  $('#gForm').onsubmit = async e => { e.preventDefault(); if (!fval('g_user')) return toast('اكتب البريد الإلكتروني', 'bad');
+    store.set('mdr.user', fval('g_user')); store.set('mdr.code', code);
+    try { const r = await api('/login', {method:'POST', json:{code, user:fval('g_user'), password:fval('g_pw'), ...devInfo()}}); history.replaceState(null, '', location.pathname); signedIn(r); } catch(err){ toast(errMsg(err), 'bad'); } };
+}
 function showReset(){
   const code = store.get('mdr.code') || ''; const wa = () => waLink(SELLER, `السلام عليكم، أحتاج استعادة مفتاح تفعيل منصة المدير.\nرمز المدرسة: ${fval('x_code') || '—'}`);
   gate(`<h1>استعادة كلمة المرور</h1><p>اكتب رمز مدرستك ومفتاح التفعيل الذي وصلك عند الاشتراك، ثم اختر كلمة مرور جديدة.</p>
@@ -2327,7 +2341,8 @@ async function startPortal(){
 function boot(){
   const rk = MODE === 'admin' && (location.hash.match(/[#&]renew=([A-Za-z2-7-]{90,})/) || [])[1]; if (rk) { store.set('mdr.renew', rk); history.replaceState(null, '', location.pathname); }
   if (MODE !== 'admin') return startPortal();
-  if (token) startAdmin(); else if (/[#&]key=/.test(location.hash) || store.get('mdr.newcode')) showRegister(); else showLogin();
+  const stc = (location.hash.match(/[#&]staff=([A-Za-z0-9]{4}-[A-Za-z0-9]{4})/) || [])[1], stu = decodeURIComponent((location.hash.match(/[#&]u=([^&]+)/) || [])[1] || '');
+  if (token) startAdmin(); else if (stc) showStaffLogin(stc.toUpperCase(), stu); else if (/[#&]key=/.test(location.hash) || store.get('mdr.newcode')) showRegister(); else showLogin();
 }
 /* ===================== الدليل التنظيمي لمدارس التعليم العام (وزارة التعليم، إصدار ١٤٤٢هـ) ===================== */
 // النصوص مأخوذة من الدليل الرسمي بصياغة مختصرة؛ والملف الكامل مرفق في dalil-tanzimi.pdf
@@ -2956,25 +2971,26 @@ function staffPanel(){ if (me.staff) return '';
   if (UI.staffList === undefined) { UI.staffList = null; api('/staff').then(r => { UI.staffList = Array.isArray(r.staff) ? r.staff : []; if (UI.tab === 'settings') render(true); }).catch(() => { UI.staffList = []; }); }
   const l = UI.staffList || [];
   return `<section class="panel"><h3>حسابات فريق العمل</h3><p class="sub">أنشئ حسابًا للوكيل والمرشد ورائد النشاط وغيرهم باسم مستخدم وكلمة مرور، وحدد الأقسام التي يعمل فيها؛ فلا يرى في القائمة غيرها ولا يستطيع الحفظ خارجها، ولا يدخل الإعدادات. حسابات الفريق لا تُحسب من الأجهزة الثلاثة.</p>
-    ${UI.staffList === null ? '<p class="sub">جارٍ التحميل…</p>' : l.length ? `<div class="list">${l.map(x => `<div class="row"><div><div class="t">${esc(x.name)} <span class="chip ${x.off ? 'mute' : 'info'}">${x.off ? 'موقوف' : esc(x.role || '')}</span></div><div class="m"><span dir="ltr">${esc(x.user)}</span> · ${esc((x.tabs || []).map(tabName).join('، ') || 'بلا أقسام')}</div></div><div class="tools"><button class="btn sm" data-act="staffEdit" data-id="${x.id}">تعديل</button><button class="btn sm danger" data-act="staffDel" data-id="${x.id}">حذف</button></div></div>`).join('')}</div>` : '<div class="empty">لا توجد حسابات بعد.</div>'}
+    ${UI.staffList === null ? '<p class="sub">جارٍ التحميل…</p>' : l.length ? `<div class="list">${l.map(x => `<div class="row"><div><div class="t">${esc(x.name)} <span class="chip ${x.off ? 'mute' : 'info'}">${x.off ? 'موقوف' : esc(x.role || '')}</span></div><div class="m"><span dir="ltr">${esc(x.user)}</span> · ${esc((x.tabs || []).map(tabName).join('، ') || 'بلا أقسام')}</div></div><div class="tools"><button class="btn sm" data-act="staffSend" data-id="${x.id}">إرسال الرابط</button><button class="btn sm" data-act="staffEdit" data-id="${x.id}">تعديل</button><button class="btn sm danger" data-act="staffDel" data-id="${x.id}">حذف</button></div></div>`).join('')}</div>` : '<div class="empty">لا توجد حسابات بعد.</div>'}
+    <div class="f" style="margin-top:10px"><label>رابط دخول الفريق</label><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span class="phone" dir="ltr" style="word-break:break-all">${esc(staffLink(''))}</span><button class="btn sm" type="button" data-act="copy" data-v="${esc(staffLink(''))}">نسخ</button></div><span class="hint">يفتح شاشة يكتب فيها صاحب الحساب بريده الإلكتروني وكلمة المرور فقط، دون رمز المدرسة. زر «إرسال الرابط» بجانب كل حساب يرسل له رابطه ببريده جاهزًا.</span></div>
     <div class="tools" style="margin-top:8px"><button class="btn pri" data-act="staffEdit">إضافة حساب</button><button class="btn" data-act="auditLog">سجل العمليات</button></div></section>`; }
 function staffForm(id){ const x = (UI.staffList || []).find(y => y.id === id) || {tabs:[]};
   modal(id ? 'تعديل حساب' : 'حساب جديد لفريق العمل', `<div class="fg">
     <div class="f"><label for="sf_n">الاسم</label><input id="sf_n" value="${esc(x.name || '')}"></div>
     <div class="f"><label for="sf_r">العمل</label><select id="sf_r">${Object.keys(STAFF_ROLES).map(r => `<option ${r === (x.role || '') ? 'selected' : ''}>${esc(r)}</option>`).join('')}</select></div>
-    <div class="f"><label for="sf_u">اسم المستخدم (إنجليزي)</label><input id="sf_u" dir="ltr" autocapitalize="none" value="${esc(x.user || '')}" placeholder="wakeel"></div>
+    <div class="f"><label for="sf_u">البريد الإلكتروني</label><input id="sf_u" dir="ltr" autocapitalize="none" inputmode="email" value="${esc(x.user || '')}" placeholder="name@example.com"></div>
     <div class="f"><label for="sf_p">كلمة المرور</label><input id="sf_p" type="text" dir="ltr" autocomplete="off" placeholder="${id ? 'اتركها فارغة لتبقى كما هي' : '٦ أحرف أو أرقام على الأقل'}"></div></div>
     <span class="lb">الأقسام المتاحة له</span><div class="pick" style="margin:6px 0 10px">${STAFF_TABS.map(k => `<label class="check"><input type="checkbox" data-sft="${k}" ${(x.tabs || []).includes(k) ? 'checked' : ''}> ${esc(tabName(k))}</label>`).join('')}</div>
     ${id ? `<label class="check"><input type="checkbox" id="sf_off" ${x.off ? 'checked' : ''}> إيقاف الحساب مؤقتًا</label>` : ''}`,
     `<button class="btn pri" id="ok">حفظ</button><button class="btn" data-act="close">إلغاء</button>`);
   if (!id) { const pre = () => document.querySelectorAll('[data-sft]').forEach(c => c.checked = STAFF_ROLES[fval('sf_r')].includes(c.dataset.sft)); $('#sf_r').onchange = pre; pre(); }
   $('#ok').onclick = async () => { const tabs = [...document.querySelectorAll('[data-sft]')].filter(c => c.checked).map(c => c.dataset.sft), pw = fval('sf_p');
-    if (!fval('sf_n')) return toast('اكتب الاسم', 'bad'); if (!/^[A-Za-z0-9._-]{3,30}$/.test(fval('sf_u'))) return toast(ERR.bad_user, 'bad'); if ((!id || pw) && pw.length < 6) return toast('كلمة المرور ٦ أحرف على الأقل', 'bad');
+    if (!fval('sf_n')) return toast('اكتب الاسم', 'bad'); if (!/^[A-Za-z0-9._@+-]{3,60}$/.test(fval('sf_u'))) return toast(ERR.bad_user, 'bad'); if ((!id || pw) && pw.length < 6) return toast('كلمة المرور ٦ أحرف على الأقل', 'bad');
     $('#ok').disabled = true;
     try { const r = await api('/staff', {method:'POST', json:{id, name:fval('sf_n'), role:fval('sf_r'), user:fval('sf_u'), password:pw, tabs, off:!!document.getElementById('sf_off')?.checked}});
       UI.staffList = [...(UI.staffList || []).filter(y => y.id !== r.staff.id), r.staff]; render(true);
-      if (pw) { const msg = `السلام عليكم ورحمة الله وبركاته\nأُنشئ لكم حساب في منصة المدير — ${school()}\nالرابط: ${BASE}\nرمز المدرسة: ${S.code}\nاسم المستخدم: ${r.staff.user}\nكلمة المرور: ${pw}\nالأقسام: ${tabs.map(tabName).join('، ')}`;
-        modal('بيانات الدخول', `<p class="sub">أرسلها لصاحب الحساب، ويستطيع الدخول من جواله أو الكمبيوتر.</p><div class="notice-bar info" style="white-space:pre-wrap">${esc(msg)}</div>`, `<button class="btn pri" id="sfc">نسخ</button><button class="btn" data-act="close">إغلاق</button>`);
+      if (pw) { const msg = staffMsg(r.staff, pw);
+        modal('بيانات الدخول', `<p class="sub">أرسلها لصاحب الحساب، ويستطيع الدخول من جواله أو الكمبيوتر.</p><div class="notice-bar info" style="white-space:pre-wrap">${esc(msg)}</div>`, `<a class="btn pri" href="${esc('https://wa.me/?text=' + encodeURIComponent(msg))}" target="_blank" rel="noopener">إرسال بالواتساب</a><button class="btn" id="sfc">نسخ</button><button class="btn" data-act="close">إغلاق</button>`);
         $('#sfc').onclick = () => copyText(msg); } else { closeModal(); toast('حُفظ الحساب'); } }
     catch(e){ toast(errMsg(e), 'bad'); $('#ok').disabled = false; } }; }
 const COL_LABEL = {teachers:'معلم', absences:'غياب معلم', notices:'مساءلة', committees:'لجنة', exams:'اختبار', parents:'إشعار ولي أمر', students:'طالب', incidents:'مخالفة سلوكية', schedule:'الجدول', visits:'زيارة صفية', tasks:'مهمة', grading:'التصحيح', records:'محضر أو خطاب', recsigns:'توقيع محضر', settings:'الإعدادات', plan:'الخطة والمبادرات', bcasts:'إعلان', subs:'حصة انتظار', leaves:'إجازة', merits:'سلوك إيجابي', clinic:'زيارة العيادة', staff:'حسابات الفريق', duty:'المناوبة', ctrlissue:'إصدار المراقبة', ctrlsigns:'توقيع الكنترول', docs:'مستند'};
@@ -3319,7 +3335,10 @@ function monthDoc(m){ const inM = d => (d || '').startsWith(m), days = S.attenda
     ${late.length ? `<h4>برامج الخطة المتأخرة</h4><table><tr><th style="width:auto">البرنامج</th><th style="width:auto">المسؤول</th></tr>${late.slice(0, 15).map(p => `<tr><td>${esc(p.name)}</td><td>${esc(p.owner || '')}</td></tr>`).join('')}</table>` : ''}
     <div class="sigs"><div class="s"><b>وكيل المدرسة</b><span>${esc(set().deputy || '')}</span><div></div></div><div class="s"><b>مدير المدرسة</b><span>${esc(principal())}</span><div></div></div></div></div>`; }
 
-Object.assign(ACT, {staffEdit:id => staffForm(id), staffDel:id => confirmBox('حذف الحساب', 'يخرج صاحب الحساب فورًا ولا يستطيع الدخول.', 'حذف', async () => { try { await api('/staff/' + id, {method:'DELETE'}); UI.staffList = (UI.staffList || []).filter(x => x.id !== id); render(true); toast('حُذف الحساب'); } catch(e){ toast(errMsg(e), 'bad'); } }),
+Object.assign(ACT, {staffSend:id => { const x = (UI.staffList || []).find(y => y.id === id); if (!x) return; const msg = staffMsg(x);
+    modal('إرسال رابط الدخول إلى ' + x.name, `<p class="sub">الرسالة لا تحتوي رمز المدرسة. كلمة المرور لا تظهر هنا لأنها محفوظة مشفرة؛ إن نسيها فعيّن له كلمة جديدة من «تعديل».</p><div class="notice-bar info" style="white-space:pre-wrap">${esc(msg)}</div>`,
+      `<a class="btn pri" href="${esc('https://wa.me/?text=' + encodeURIComponent(msg))}" target="_blank" rel="noopener">إرسال بالواتساب</a><button class="btn" id="sfc">نسخ</button><button class="btn" data-act="close">إغلاق</button>`); $('#sfc').onclick = () => copyText(msg); },
+  staffEdit:id => staffForm(id), staffDel:id => confirmBox('حذف الحساب', 'يخرج صاحب الحساب فورًا ولا يستطيع الدخول.', 'حذف', async () => { try { await api('/staff/' + id, {method:'DELETE'}); UI.staffList = (UI.staffList || []).filter(x => x.id !== id); render(true); toast('حُذف الحساب'); } catch(e){ toast(errMsg(e), 'bad'); } }),
   auditLog:auditView, backupDl, backupRestore:backupRestoreForm, subAuto, subSend, subPrint:() => printDoc(subSheet()), tSubAck,
   leaveDecide:leaveDecideForm, leaveAdd:leaveAddForm, leaveDel:id => confirmBox('حذف الطلب', 'سيُحذف من السجل.', 'حذف', () => del('leaves/' + id)), tLeaveNew:tLeaveForm, tLeaveCancel,
   meritAdd:meritForm, meritDel:id => confirmBox('حذف السلوك الإيجابي', 'تُلغى الدرجات المعوّضة.', 'حذف', () => del('merits/' + id)), gradesXlsx,
@@ -3911,6 +3930,23 @@ const clsOf = s => sClass(s) || 'بدون فصل';
 const gradeRank = g => { const i = GRADES.indexOf(String(g || '').split(' ')[0]); return i < 0 ? 99 : i; };
 function classList(){ const m = new Map(); S.students.forEach(s => m.set(clsOf(s), s));
   return [...m.entries()].sort(([a, x], [b, y]) => gradeRank(x.grade) - gradeRank(y.grade) || a.localeCompare(b, 'ar')).map(([c]) => c); }
+function parentContactsForm(){
+  const has = s => intl(stuWa(s)); if (!S.students.some(has)) return toast('لا توجد أرقام أولياء أمور. أضفها من «استيراد من Excel» أو «إضافة مجموعة».', 'bad');
+  const cl = classList(), start = new Set(UI.stuCls ? [UI.stuCls] : cl);
+  modal('جهات اتصال أولياء الأمور دفعة واحدة', `<p class="sub">يُنزَّل ملف واحد فيه كل أولياء الأمور المختارين باسم «ولي أمر الطالب - الفصل». افتحه في الجوال فيعرض «إضافة كل جهات الاتصال» مرة واحدة، ثم في الواتساب: قائمة بث جديدة أو مجتمع ← إضافة أعضاء، وابحث بكلمة «ولي أمر» فتظهر كلها لتحديدها.</p>
+    <div class="tools"><button type="button" class="btn sm" id="vc_all">تحديد الكل</button><button type="button" class="btn sm" id="vc_none">إلغاء التحديد</button></div>
+    <div class="pick" style="margin-top:8px">${cl.map(c => `<label class="check"><input type="checkbox" data-cls="${esc(c)}" ${start.has(c) ? 'checked' : ''}> ${esc(c)} <span class="m num">(${S.students.filter(s => clsOf(s) === c && has(s)).length})</span></label>`).join('')}</div>`,
+    `<button class="btn pri" id="vc_ok">تنزيل ملف جهات الاتصال</button><button class="btn" id="vc_cp">نسخ الأرقام</button><button class="btn" data-act="close">إلغاء</button>`);
+  const boxes = () => [...document.querySelectorAll('[data-cls]')];
+  const pick = () => { const set_ = new Set(boxes().filter(b => b.checked).map(b => b.dataset.cls)); const seen = new Set();
+    return S.students.filter(s => set_.has(clsOf(s)) && has(s)).sort((a,b) => String(a.name).localeCompare(String(b.name),'ar')).filter(s => { const p = intl(stuWa(s)); if (seen.has(p)) return false; seen.add(p); return true; }); };
+  $('#vc_all').onclick = () => boxes().forEach(b => b.checked = true); $('#vc_none').onclick = () => boxes().forEach(b => b.checked = false);
+  const vesc = v => String(v || '').replace(/([\\,;])/g, '\\$1').replace(/\n/g, ' ');
+  $('#vc_ok').onclick = () => { const l = pick(); if (!l.length) return toast('اختر فصلًا فيه أرقام', 'bad');
+    const v = l.map(s => { const n = 'ولي أمر ' + s.name + (clsOf(s) ? ' - ' + clsOf(s) : ''); return ['BEGIN:VCARD','VERSION:3.0','FN:' + vesc(n),'N:' + vesc(n) + ';;;;','ORG:' + vesc(school()),'TEL;TYPE=CELL:+' + intl(stuWa(s)),'NOTE:' + vesc((s.guard ? s.guard + ' - ' : '') + 'منصة المدير'),'END:VCARD'].join('\r\n'); }).join('\r\n') + '\r\n';
+    saveBlob('أولياء الأمور - ' + school() + '.vcf', v, 'text/vcard;charset=utf-8'); closeModal(); };
+  $('#vc_cp').onclick = () => { const l = pick(); if (!l.length) return toast('اختر فصلًا فيه أرقام', 'bad'); copyText(l.map(s => '+' + intl(stuWa(s))).join('\n')); };
+}
 function exportStudentsForm(){
   if (!S.students.length) return toast('لا يوجد طلاب للتصدير', 'bad');
   const cl = classList(), start = new Set(UI.stuCls ? [UI.stuCls] : cl);
@@ -4014,7 +4050,7 @@ async function showKey(){ try { const r = await api('/licence'); const wa = waLi
     const c = $('#kc'); if (c) c.onclick = () => copyText(r.key); } catch(e){ toast(errMsg(e), 'bad'); } }
 async function devicesForm(){ try { const r = await api('/devices');
     modal(`الأجهزة (${r.devices.length} من ${r.max})`, r.devices.length ? `<div class="list">${r.devices.map(d => `<div class="row"><div><div class="t">${esc(d.name || 'جهاز')}</div><div class="m">${d.id === r.current ? 'هذا الجهاز · ' : ''}آخر دخول: ${esc(stamp(d.at))}</div></div>${d.id === r.current ? '' : `<button class="btn sm danger" data-act="devDel" data-id="${esc(d.id)}">إخراج</button>`}</div>`).join('')}</div>` : '<div class="empty">لا توجد أجهزة مسجلة بعد. تُسجَّل عند تسجيل الدخول.</div>'); } catch(e){ toast(errMsg(e), 'bad'); } }
-Object.assign(ACT, {parAct:parActForm, sendLetter:sendLetterForm, devices:devicesForm, devDel:async id => { try { await api('/devices/' + id, {method:'DELETE'}); toast('خرج الجهاز'); devicesForm(); } catch(e){ toast(errMsg(e), 'bad'); } }, showKey, addParent:() => noticeForm(), stuParent:noticeForm, exportStudents:exportStudentsForm});
+Object.assign(ACT, {parAct:parActForm, sendLetter:sendLetterForm, devices:devicesForm, devDel:async id => { try { await api('/devices/' + id, {method:'DELETE'}); toast('خرج الجهاز'); devicesForm(); } catch(e){ toast(errMsg(e), 'bad'); } }, showKey, addParent:() => noticeForm(), stuParent:noticeForm, exportStudents:exportStudentsForm, parentContacts:parentContactsForm});
 
 /* ===================== إصدار المراقبة ونسخة المعلم الموقعة ===================== */
 const issue = () => S.ctrlissue.find(x => x.id === 'current');
