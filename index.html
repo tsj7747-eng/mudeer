@@ -344,7 +344,7 @@ const MODE = T_ARG ? 'teacher' : hashArg('p') ? 'parent' : 'admin';
 document.documentElement.classList.toggle('portal', MODE !== 'admin');
 const KEY = T_ARG || hashArg('p');
 let token = store.get('mdr.token');
-const APP_VER = '4.7'; // ارفعه مع site/version.json في كل نشر
+const APP_VER = '4.8'; // ارفعه مع site/version.json في كل نشر
 const DEV = store.get('mdr.dev') || [...crypto.getRandomValues(new Uint8Array(16))].map(b => b.toString(16).padStart(2, '0')).join(''); store.set('mdr.dev', DEV);
 const devInfo = () => { const u = navigator.userAgent; return {device:DEV, deviceName:`${/iPhone|iPad/.test(u) ? 'آيفون' : /Android/.test(u) ? 'أندرويد' : 'كمبيوتر'} · ${/Edg/.test(u) ? 'Edge' : /Chrome/.test(u) ? 'Chrome' : /Safari/.test(u) ? 'Safari' : /Firefox/.test(u) ? 'Firefox' : 'متصفح'}`}; };
 const ERR = {
@@ -524,7 +524,7 @@ function exitDoc(n){ const t = teacher(n.teacherId) || {name:n.teacherName}; con
   ${n.reply ? `<p style="white-space:pre-wrap">${esc(n.reply)}</p>` : '<p class="pend">لم يرد المعلم بعد.</p>'}
   <div style="display:flex;gap:18px;flex-wrap:wrap"><b>المرفقات:</b>${optBox(has, 'يوجد (مشهد مراجعة / تقرير طبي / غير ذلك)')}${optBox(n.reply && !has, 'لا يوجد')}</div>${has ? `<p>${attLinks(n.attachments)}</p>` : ''}
   ${sigRow('المعلم', n.teacherSig?.name || t.name, n.teacherSig)}
-  <h4>رابعًا: رأي ${esc(n.decRole || 'مدير المدرسة')}</h4>${Object.entries(EXIT_DEC).map(([k,v]) => optBox(n.decision === k, v)).join('')}${n.decisionNote ? `<p>ملاحظة: ${esc(n.decisionNote)}</p>` : ''}
+  <h4>رابعًا: رأي ${esc(n.decRole || 'مدير المدرسة')}</h4>${Object.entries(EXIT_DEC).map(([k,v]) => optBox(n.decision === k, v)).join('')}${escSec(n)}${n.decisionNote ? `<p>ملاحظة: ${esc(n.decisionNote)}</p>` : ''}
   ${sigRow(n.decRole || 'مدير المدرسة', n.decName || principal(), n.decisionSig)}
   <div class="foot">يُحفظ أصل المساءلة في ملف المعلم، ويُسلَّم له صورة منها.</div></div>`; }
 // مساءلة ولي الأمر عن غياب طالب
@@ -556,7 +556,12 @@ function kindSentence(n){
   if (n.kind === 'مخالفة إدارية أخرى') return `لوحظ عليكم ${n.note || 'مخالفة إدارية'}`;
   return `تبيّن عدم دخولكم ${n.period ? 'الحصة ' + n.period : 'الحصة المقررة'}`;
 }
-const nStatus = n => n.status === 'closed' ? ['ok','مغلقة · صدر القرار'] : n.status === 'replied' ? ['info','بانتظار قرار المدير'] : ['warn','بانتظار رد المعلم'];
+const ACC_DAYS = 3;
+function workDays(from, to){ if (!from) return 0; let n = 0; const d = new Date(from + 'T12:00:00'), e = new Date((to || today()) + 'T12:00:00'); d.setDate(d.getDate() + 1); while (d <= e) { const w = d.getDay(); if (w !== 5 && w !== 6) n++; d.setDate(d.getDate() + 1); } return n; }
+const nOverdue = n => n.status === 'issued' && workDays(n.issued || n.date, today()) >= ACC_DAYS;
+const NOREPLY = 'لم يقدّم المعلم إفادته خلال المهلة النظامية (ثلاثة أيام عمل)، فيُعدّ ذلك إقرارًا بعدم وجود عذر، ويُحسم عليه وفق النظام.';
+const escSec = n => n.decision !== 'noreply' ? '' : `${optBox(true, NOREPLY)}${n.warn ? `<h4>لفت نظر</h4><p>المكرم الأستاذ/ <b>${esc(teacher(n.teacherId)?.name || n.teacherName || '')}</b> وفقه الله، نظرًا لـ${esc(n.kind)} يوم ${esc(dayName(n.date))} ${esc(hij(n.date))} وعدم تقديمكم إفادة خلال المهلة النظامية، نلفت نظركم إلى ضرورة الالتزام بالأنظمة والتعليمات، وسيُودع هذا اللفت في ملفكم، ونأمل عدم تكراره.</p>` : ''}`;
+const nStatus = n => n.status === 'closed' ? ['ok', n.decision === 'noreply' ? 'مغلقة · انتهت المهلة دون رد' : 'مغلقة · صدر القرار'] : nOverdue(n) ? ['bad','انتهت المهلة دون رد'] : n.status === 'replied' ? ['info','بانتظار قرار المدير'] : ['warn','بانتظار رد المعلم'];
 function noticeDoc(n){
   if (n.kind === EXIT_KIND) return exitDoc(n);
   const t = teacher(n.teacherId) || {name:n.teacherName};
@@ -574,7 +579,7 @@ function noticeDoc(n){
   ${sigRow('المعلم', n.teacherSig?.name || t.name, n.teacherSig)}
   <h4>رابعًا: قرار ${esc(n.decRole || 'مدير المدرسة')}</h4>
   ${Object.entries(DECISIONS).map(([k,v]) => `<div class="opt"><span class="box">${n.decision === k ? '✓' : ''}</span><span>${esc(v)}</span></div>`).join('')}
-  ${n.decisionNote ? `<p>ملاحظة: ${esc(n.decisionNote)}</p>` : ''}
+  ${escSec(n)}${n.decisionNote ? `<p>ملاحظة: ${esc(n.decisionNote)}</p>` : ''}
   ${sigRow(n.decRole || 'مدير المدرسة', n.decName || principal(), n.decisionSig)}
   ${(n.attachments||[]).length ? `<h4>المرفقات</h4><p>${attLinks(n.attachments)}</p>` : ''}
   <div class="foot">نموذج موقّع إلكترونيًا عبر منصة المدير — ${esc(school())}. أُصدر في ${esc(stamp(n.createdAt))}${n.teacherSig ? '، ورد المعلم في ' + esc(stamp(n.teacherSig.at)) : ''}${n.decisionSig ? '، وصدر القرار في ' + esc(stamp(n.decisionSig.at)) : ''}.</div></div>`;
@@ -666,8 +671,9 @@ function vDash(){
   const cnt = {}; S.absences.forEach(a => { cnt[a.teacherId] = (cnt[a.teacherId]||0) + 1; });
   const top = Object.entries(cnt).sort((a,b) => b[1]-a[1]).slice(0,7); const mx = top[0]?.[1] || 1;
   const actions = [
+    ...waitT.filter(nOverdue).map(n => ({t:`مساءلة ${n.no} — ${tName(n.teacherId)}`, m:`انتهت مهلة الرد (${ACC_DAYS} أيام عمل) دون إفادة · اتخذ الإجراء التالي`, c:['bad','انتهت المهلة'], act:'escalate', id:n.id})),
     ...waitP.map(n => ({t:`مساءلة ${n.no} — ${tName(n.teacherId)}`, m:'ردّ المعلم، وتنتظر قرارك وتوقيعك', c:['info','قرار المدير'], act:'viewNotice', id:n.id})),
-    ...waitT.map(n => ({t:`مساءلة ${n.no} — ${tName(n.teacherId)}`, m:`${n.kind} · ${hij(n.date)}`, c:['warn','رد المعلم'], act:'viewNotice', id:n.id})),
+    ...waitT.filter(n => !nOverdue(n)).map(n => ({t:`مساءلة ${n.no} — ${tName(n.teacherId)}`, m:`${n.kind} · ${hij(n.date)} · باقي ${Math.max(0, ACC_DAYS - workDays(n.issued || n.date, today))} يوم عمل`, c:['warn','رد المعلم'], act:'viewNotice', id:n.id})),
     ...(() => { const m = S.plan.filter(myPart), n = planNow(m); return [...n.map(p => ({t:p.name, m:`${kindN(p)} · ${myPart(p)}: ${p.owner || ''}`, c:['info','هذا الأسبوع'], act:'planFollow', id:p.id})), ...planLate(m).filter(p => !n.includes(p)).slice(0,4).map(p => ({t:p.name, m:`${kindN(p)} · ${pWhen(p)}`, c:['bad','متأخر'], act:'planFollow', id:p.id}))]; })(),
     ...S.plan.filter(p => p.src === 'teacher' && p.status === 'proposed').map(p => ({t:'مبادرة: ' + p.name, m:'من المعلم: ' + (p.owner || ''), c:['warn','اعتماد المدير'], act:'tInitDecide', id:p.id})),
     ...parPend.slice(0,6).map(p => ({t:`${p.kind} — ${p.student}`, m:`ولي الأمر: ${p.parentName||'—'}`, c:['warn','توقيع ولي الأمر'], act:'viewParent', id:p.id}))
@@ -702,7 +708,7 @@ function vDash(){
   </div>
   <div class="grid2">
     <section class="panel"><h3>الإنذار المبكر للطلاب</h3><p class="sub">يُحدَّث تلقائيًا من الحضور والسلوك حسب الحدود في الإعدادات.</p>
-      ${(() => { const r = atRisk(); return r.length ? `<div class="list">${r.slice(0,8).map(x => `<div class="row"><div><div class="t">${esc(x.s.name)}</div><div class="m">${esc(sClass(x.s))} — ${esc(x.r.join(' · '))}</div></div><button class="btn sm" data-act="studentFile" data-id="${x.s.id}">الملف</button></div>`).join('')}</div>` : `<div class="empty">${S.students.length ? 'لا توجد حالات تستدعي التدخل.' : 'أضف الطلاب من قسم «الطلاب» ليعمل الإنذار المبكر.'}</div>`; })()}</section>
+      ${(() => { const r = atRisk(); return r.length ? `<div class="list">${r.slice(0,8).map(x => `<div class="row"><div><div class="t">${esc(x.s.name)}</div><div class="m">${esc(sClass(x.s))} — ${esc(x.r.join(' · '))}</div></div><div class="tools">${isAdmin() && x.st.abs ? `<button class="btn sm pri" data-act="stuAbsAsk" data-id="${x.s.id}">مساءلة غياب</button>` : ''}${isAdmin() ? `<button class="btn sm" data-act="stuParent" data-id="${x.s.id}">إشعار</button>` : ''}<button class="btn sm" data-act="studentFile" data-id="${x.s.id}">الملف</button></div></div>`).join('')}${r.length > 8 ? `<p class="sub">و${r.length - 8} طلاب آخرون في قسم الطلاب.</p>` : ''}</div>` : `<div class="empty">${S.students.length ? 'لا توجد حالات تستدعي التدخل.' : 'أضف الطلاب من قسم «الطلاب» ليعمل الإنذار المبكر.'}</div>`; })()}</section>
     <section class="panel"><h3>مهام اليوم</h3>
       ${(() => { const t = S.tasks.filter(x => !x.done).sort((a,b) => String(a.due||'').localeCompare(String(b.due||''))).slice(0,6); return t.length ? `<div class="list">${t.map(x => `<div class="row"><div><div class="t">${esc(x.title)}</div><div class="m">${x.due ? esc(hij(x.due)) : ''}</div></div><span class="chip ${x.pri === 'عاجل' ? 'bad' : x.pri === 'متوسط' ? 'warn' : 'mute'}">${esc(x.pri || '')}</span></div>`).join('')}</div>` : '<div class="empty">لا مهام مفتوحة.</div>'; })()}
       <div><button class="btn sm" data-act="tab" data-id="tasks">كل المهام</button></div></section>
@@ -728,11 +734,11 @@ function vTeachers(){
       : `<div class="empty">لا يوجد معلمون بعد. ${isAdmin() ? 'اضغط «إضافة مجموعة» والصق الأسماء والأرقام دفعة واحدة.' : ''}</div>`);
 }
 
-const nList = () => sortBy(S.notices, 'createdAt', -1).filter(n => UI.nFilter === 'all' || n.status === UI.nFilter);
+const nList = () => sortBy(S.notices, 'createdAt', -1).filter(n => UI.nFilter === 'all' || (UI.nFilter === 'overdue' ? nOverdue(n) : n.status === UI.nFilter));
 function vNotices(){
   const f = UI.nFilter;
   const list = nList();
-  const seg = [['all','الكل'],['issued','بانتظار المعلم'],['replied','بانتظار القرار'],['closed','مغلقة']].map(([k,l]) => `<button data-act="nFilter" data-id="${k}" aria-pressed="${f===k}">${l}</button>`).join('');
+  const seg = [['all','الكل'],['issued','بانتظار المعلم'],['overdue','انتهت المهلة'],['replied','بانتظار القرار'],['closed','مغلقة']].map(([k,l]) => `<button data-act="nFilter" data-id="${k}" aria-pressed="${f===k}">${l}</button>`).join('');
   return head('المساءلات', 'تصدر المساءلة، فيكتب المعلم إفادته ويوقّع، ثم يصدر قرار المدير بتوقيعه.', (isAdmin() ? `<button class="btn pri" data-act="issue">إصدار مساءلة</button><button class="btn" data-act="issueMany">إصدار لعدة معلمين</button>${S.notices.some(n => n.status === 'issued') ? '<button class="btn" data-act="sendNotices">إرسال المعلقة للجميع</button>' : ''}<button class="btn" data-act="dlNotices">تنزيل الكل</button>` : '')) + loadingNote() +
     `<div class="seg" role="group" aria-label="تصفية">${seg}</div>` +
     (list.length ? `<div class="cards">${list.map(n => { const [c,l] = nStatus(n); const t = teacher(n.teacherId);
@@ -741,6 +747,7 @@ function vNotices(){
         <div class="m">${esc(dayName(n.date))} ${esc(hij(n.date))}${(n.attachments||[]).length ? ' · ' + n.attachments.length + ' مرفق' : ''}</div>
         <div class="acts"><button class="btn sm pri" data-act="viewNotice" data-id="${n.id}">عرض النموذج</button>
           ${n.status === 'issued' ? `<button class="btn sm" data-act="reply" data-id="${n.id}">إفادة المعلم وتوقيعه</button>` : ''}
+          ${nOverdue(n) && isAdmin() ? `<button class="btn sm danger" data-act="escalate" data-id="${n.id}">الإجراء التالي</button>` : ''}
           ${n.status === 'replied' && isAdmin() ? `<button class="btn sm" data-act="decide" data-id="${n.id}">قرار المدير</button>` : ''}
           ${wa ? `<a class="btn sm wa" href="${esc(wa)}" target="_blank" rel="noopener">إرسال واتساب</a>` : ''}</div></article>`; }).join('')}</div>`
       : `<div class="empty">${S.notices.length ? 'لا توجد مساءلات في هذا التصنيف.' : 'لم تصدر أي مساءلة بعد. تُصدر المساءلة من زر «إصدار مساءلة» أو عند تسجيل غياب معلم.'}</div>`);
@@ -907,7 +914,7 @@ function viewNotice(id, fallback){
   const n = S.notices.find(x => x.id === id) || (fallback ? {...fallback, id} : null); if (!n) return;
   const t = teacher(n.teacherId); const wa = t && waLink(t.phone, noticeMsg(n));
   modal('مساءلة رقم ' + n.no, noticeDoc(n),
-    `${n.status === 'issued' ? `<button class="btn pri" data-act="reply" data-id="${id}">إفادة المعلم وتوقيعه</button>` : ''}
+    `${nOverdue(n) && isAdmin() ? `<button class="btn pri" data-act="escalate" data-id="${id}">الإجراء التالي: انتهت المهلة</button>` : ''}${n.status === 'issued' ? `<button class="btn ${nOverdue(n) && isAdmin() ? '' : 'pri'}" data-act="reply" data-id="${id}">إفادة المعلم وتوقيعه</button>` : ''}
      ${n.status === 'replied' && isAdmin() ? `<button class="btn pri" data-act="decide" data-id="${id}">قرار المدير وتوقيعه</button>` : ''}
      ${!isAdmin() ? '' : wa ? `<a class="btn wa" href="${esc(wa)}" target="_blank" rel="noopener">إرسال للمعلم واتساب</a>` : (t && !t.phone ? '<span class="chip mute">أضف جوال المعلم لإرسال واتساب</span>' : '')}
      ${isAdmin() ? `<button class="btn" data-act="attachN" data-id="${id}">إرفاق مستند</button>` : ''}
@@ -1280,7 +1287,7 @@ function studentFile(id){
     <div class="kpis"><div class="kpi"><span class="v">${st.rate === null ? '—' : st.rate + '٪'}</span><span class="l">نسبة الحضور</span></div><div class="kpi ${st.abs ? 'warn' : ''}"><span class="v">${st.abs}</span><span class="l">غياب بلا عذر</span></div><div class="kpi"><span class="v">${st.late}</span><span class="l">تأخر</span></div><div class="kpi ${st.inc.length ? 'bad' : ''}"><span class="v">${st.inc.length}</span><span class="l">مخالفات</span></div></div>
     <h3 style="font-size:15px">سجل السلوك</h3>
     ${st.inc.length ? `<div class="list">${sortBy(st.inc, 'date', -1).map(i => `<div class="row"><div><div class="t">${esc(DEGREES[i.deg]?.t || '')}</div><div class="m">${esc(hij(i.date))} — ${esc(i.desc || '')}</div></div><span class="chip ${i.status === 'closed' ? 'ok' : 'warn'}">${i.status === 'closed' ? 'عولجت' : 'مفتوحة'}</span></div>`).join('')}</div>` : '<div class="empty">لا توجد مخالفات مسجلة.</div>'}`,
-    isAdmin() ? `<button class="btn pri" data-act="stuParent" data-id="${id}">إشعار لولي الأمر</button><button class="btn" data-act="recPick" data-id="${id}">إصدار محضر</button><button class="btn" data-act="stuLetter" data-id="${id}">إصدار خطاب</button><button class="btn" data-act="addIncident" data-id="${id}">تسجيل مخالفة</button>` : '', true);
+    isAdmin() ? `<button class="btn pri" data-act="stuParent" data-id="${id}">إشعار لولي الأمر</button>${stuStat(id).abs ? `<button class="btn" data-act="stuAbsAsk" data-id="${id}">مساءلة غياب لولي الأمر</button>` : ''}<button class="btn" data-act="recPick" data-id="${id}">إصدار محضر</button><button class="btn" data-act="stuLetter" data-id="${id}">إصدار خطاب</button><button class="btn" data-act="addIncident" data-id="${id}">تسجيل مخالفة</button>` : '', true);
 }
 // ينشئ نموذجًا يوقّعه ولي الأمر من رابطه
 async function parentNotice(sid, kind, body, extra){
@@ -3997,7 +4004,7 @@ const lateOn = d => { const D = S.attendance.find(x => x.id === d) || {}; return
 function noticeForm(sid, pre){
   if (!S.students.length) return toast('أضف الطلاب أولًا', 'bad');
   const first = sid && student(sid); const q = {cls:first ? clsOf(first) : classList()[0], sel:new Set(first ? [sid] : []), type:'absDay', d:{date:today(), time:'', subject:SUBJECTS[0], reason:CALL_WHY[0]}, text:null};
-  if (pre) { q.type = pre.type; q.d.date = pre.date || today(); lateOn(q.d.date).forEach(i => q.sel.add(i)); const f0 = student([...q.sel][0]); if (f0) q.cls = clsOf(f0); }
+  if (pre && pre.type && NOTICES.some(n => n.id === pre.type)) { q.type = pre.type; q.d.date = pre.date || today(); if (pre.type === 'lineLate') lateOn(q.d.date).forEach(i => q.sel.add(i)); const f0 = student([...q.sel][0]); if (f0) q.cls = clsOf(f0); }
   const tp = () => NOTICES.find(n => n.id === q.type);
   const md = () => q.mode || (tp().noSign ? 'text' : 'sign');
   const ok_ = s => !tp().need || tp().need(stuStat(s.id));
@@ -4015,7 +4022,7 @@ function noticeForm(sid, pre){
       <div class="pick" style="margin:8px 0 12px">${list.map(s => `<label class="check"><input type="checkbox" data-nf="${s.id}" ${q.sel.has(s.id) ? 'checked' : ''} ${ok_(s) ? '' : 'disabled'}> ${esc(s.name)}</label>`).join('')}</div>
       <div class="tools"><span class="lb">طريقة الإرسال</span><div class="seg" role="group" aria-label="طريقة الإرسال">${[['text','نص رسالة فقط'],['sign','للتوقيع الإلكتروني'],['pdf','ملف PDF للتوقيع']].map(([k, l]) => `<button type="button" data-nfm="${k}" aria-pressed="${md() === k}">${l}</button>`).join('')}</div></div>
       <p class="sub" style="margin:4px 0 8px">${{text:'تصل الرسالة نصًا في واتساب دون رابط ولا توقيع.', sign:'تصل الرسالة مع رابط يفتح الإشعار، فيوقّع ولي الأمر عليه إلكترونيًا.', pdf:'ارفع ملف PDF أسفل النافذة، فيفتحه ولي الأمر من الرابط ويوقّع أسفله.'}[md()]}</p>
-      ${ch.length ? `<span class="lb">نص الإشعار${one ? '' : ' (يتكيف مع كل طالب)'}</span>${one ? `<textarea id="nf_text" style="min-height:90px">${esc(q.text ?? body(ch[0]))}</textarea>` : `<div class="notice-bar info">${esc(body(ch[0]) || 'أكمل الحقول أعلاه')}</div>`}` : '<div class="empty">حدد طالبًا واحدًا على الأقل.</div>'}`;
+      ${ch.length ? `<div class="f full"><span class="lb">نص الإشعار${one ? '' : ' (يتكيف مع كل طالب)'}</span>${one ? `<textarea id="nf_text" style="min-height:110px;width:100%">${esc(q.text ?? body(ch[0]))}</textarea>` : `<div class="notice-bar info">${esc(body(ch[0]) || 'أكمل الحقول أعلاه')}</div>`}</div>` : '<div class="empty">حدد طالبًا واحدًا على الأقل.</div>'}`;
     const ok = $('#ok'); ok.disabled = !ch.length || missing(); ok.textContent = ch.length ? `إنشاء وإرسال (${ch.length})` : 'إنشاء وإرسال';
     $('#nf_type').onchange = e => { q.type = e.target.value; q.text = null; if (q.type === 'lineLate' && !q.sel.size) lateOn(q.d.date).forEach(i => q.sel.add(i)); draw(); }; $('#nf_cls').onchange = e => { q.cls = e.target.value; draw(); };
     ['date','time','subject','reason'].forEach(k => { const el = document.getElementById('nf_' + k); if (el) el.onchange = () => { q.d[k] = el.value; q.text = null; draw(); }; });
@@ -4050,7 +4057,7 @@ async function showKey(){ try { const r = await api('/licence'); const wa = waLi
     const c = $('#kc'); if (c) c.onclick = () => copyText(r.key); } catch(e){ toast(errMsg(e), 'bad'); } }
 async function devicesForm(){ try { const r = await api('/devices');
     modal(`الأجهزة (${r.devices.length} من ${r.max})`, r.devices.length ? `<div class="list">${r.devices.map(d => `<div class="row"><div><div class="t">${esc(d.name || 'جهاز')}</div><div class="m">${d.id === r.current ? 'هذا الجهاز · ' : ''}آخر دخول: ${esc(stamp(d.at))}</div></div>${d.id === r.current ? '' : `<button class="btn sm danger" data-act="devDel" data-id="${esc(d.id)}">إخراج</button>`}</div>`).join('')}</div>` : '<div class="empty">لا توجد أجهزة مسجلة بعد. تُسجَّل عند تسجيل الدخول.</div>'); } catch(e){ toast(errMsg(e), 'bad'); } }
-Object.assign(ACT, {parAct:parActForm, sendLetter:sendLetterForm, devices:devicesForm, devDel:async id => { try { await api('/devices/' + id, {method:'DELETE'}); toast('خرج الجهاز'); devicesForm(); } catch(e){ toast(errMsg(e), 'bad'); } }, showKey, addParent:() => noticeForm(), stuParent:noticeForm, exportStudents:exportStudentsForm, parentContacts:parentContactsForm});
+Object.assign(ACT, {parAct:parActForm, sendLetter:sendLetterForm, devices:devicesForm, devDel:async id => { try { await api('/devices/' + id, {method:'DELETE'}); toast('خرج الجهاز'); devicesForm(); } catch(e){ toast(errMsg(e), 'bad'); } }, showKey, addParent:() => noticeForm(), stuParent:id => noticeForm(id), stuAbsAsk:id => { if (!stuStat(id).abs) return toast('لا يوجد غياب بدون عذر مسجّل لهذا الطالب', 'bad'); noticeForm(id, {type:'absAsk'}); }, exportStudents:exportStudentsForm, parentContacts:parentContactsForm});
 
 /* ===================== إصدار المراقبة ونسخة المعلم الموقعة ===================== */
 const issue = () => S.ctrlissue.find(x => x.id === 'current');
@@ -4238,6 +4245,32 @@ function watchUpdates(ver){
   check(); setInterval(check, 6e5); document.addEventListener('visibilitychange', function(){ if (document.visibilityState === 'visible') check(); });
 }
 if (MODE === 'admin') watchUpdates(APP_VER);
+/* ===================== انتهاء مهلة المساءلة: الإجراء التالي ===================== */
+function escalateForm(id){
+  const n = S.notices.find(x => x.id === id); if (!n) return; const t = teacher(n.teacherId) || {name:n.teacherName || ''};
+  if (n.status !== 'issued') return viewNotice(id);
+  const wd = workDays(n.issued || n.date, today());
+  modal('الإجراء التالي — مساءلة ' + n.no, `<div class="notice-bar warn">صدرت المساءلة للمعلم <b>${esc(t.name)}</b> يوم ${esc(dayName(n.issued || n.date))} ${esc(hij(n.issued || n.date))}، ومضى عليها <b class="num">${wd}</b> يوم عمل دون إفادة (المهلة ${ACC_DAYS} أيام عمل).</div>
+    <div class="f full"><span class="lb">القرار</span>${optBox(true, NOREPLY)}</div>
+    <label class="check"><input type="checkbox" id="e_warn" checked> إصدار لفت نظر خطي يُودع في ملف المعلم (يظهر في نموذج المساءلة)</label>
+    <label class="check"><input type="checkbox" id="e_wa" checked> إشعار المعلم بالقرار عبر واتساب</label>
+    <div class="f full"><label for="e_note">ملاحظة</label><input id="e_note" placeholder="اختياري"></div>
+    ${byField('e_by', 'صاحب القرار')}${sigField('sig_e', 'التوقيع', '')}`,
+    `<button class="btn pri" id="ok">اعتماد الإجراء</button><button class="btn" data-act="close">إلغاء</button>`);
+  requestAnimationFrame(() => mountSig('sig_e'));
+  $('#ok').onclick = async () => {
+    const who = byPick('e_by'); if (!who) return; const sig = pads.sig_e?.data(); if (!sig) return toast('وقّع في المربع', 'bad');
+    const warn = $('#e_warn').checked, wa = $('#e_wa').checked; $('#ok').disabled = true;
+    const upd = {decision:'noreply', warn, escalatedAt:Date.now(), decisionNote:fval('e_note'), status:'closed', decRole:who.role, decName:who.name, decisionSig:{img:sig, name:who.name, at:Date.now(), by:me.id}};
+    if (!await put('notices/' + id, upd, true)) { $('#ok').disabled = false; return; }
+    toast('اعتُمد الإجراء وأُغلقت المساءلة');
+    const msg = `المكرم الأستاذ/ ${t.name}\nالسلام عليكم ورحمة الله وبركاته\nانتهت المهلة النظامية للرد على المساءلة رقم ${n.no} عن ${n.kind} يوم ${dayName(n.date)} ${hij(n.date)} دون تقديم إفادة، فاعتُمد القرار: ${NOREPLY}${warn ? '\nوصدر لفت نظر خطي يُودع في ملفكم.' : ''}\nللاطلاع على النموذج:\n${tLink(t, 'n-' + id)}\n${who.role}: ${who.name}`;
+    const link = wa && t.phone && waLink(t.phone, msg);
+    viewNotice(id, {...n, ...upd});
+    if (link) { const f = $('#modalRoot .dlg-f'); if (f) f.insertAdjacentHTML('afterbegin', `<a class="btn wa pri" href="${esc(link)}" target="_blank" rel="noopener">إشعار المعلم بالقرار واتساب</a>`); }
+  };
+}
+Object.assign(ACT, {escalate:escalateForm});
 boot();
 })();
 </script>
