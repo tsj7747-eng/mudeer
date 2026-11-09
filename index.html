@@ -234,6 +234,9 @@ table.tbl{border-collapse:collapse;width:100%;min-width:640px;font-size:14px}
 .paper .sigs{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:16px;margin-top:22px;font-size:13px;text-align:center}
 .paper .sigs .s{display:flex;flex-direction:column;gap:4px}
 .paper .sigs .s div{border-bottom:1px dotted #777;height:40px}
+.paper .sigs .s div.pslot{height:auto;min-height:40px;display:flex;justify-content:center;align-items:flex-end}.paper .sigs .s .psig{max-height:58px;max-width:100%}
+.paper .psigl{display:flex;justify-content:flex-end;margin-top:-6px}.paper .psigl .psig{max-height:64px;max-width:200px}
+.psig-prev{background:#fff;border:1px dashed var(--line,#ccc);border-radius:10px;padding:12px;display:flex;justify-content:center;margin-bottom:10px}.psig-prev img{max-height:90px;max-width:100%}
 .paper .ltext{white-space:pre-wrap;line-height:2.1;font-size:15px}
 .paper .lg{text-align:center;font-size:12px;margin:4px 0 8px}
 .paper.land{max-width:1100px}
@@ -344,7 +347,7 @@ const MODE = T_ARG ? 'teacher' : hashArg('p') ? 'parent' : 'admin';
 document.documentElement.classList.toggle('portal', MODE !== 'admin');
 const KEY = T_ARG || hashArg('p');
 let token = store.get('mdr.token');
-const APP_VER = '4.8'; // ارفعه مع site/version.json في كل نشر
+const APP_VER = '4.9'; // ارفعه مع site/version.json في كل نشر
 const DEV = store.get('mdr.dev') || [...crypto.getRandomValues(new Uint8Array(16))].map(b => b.toString(16).padStart(2, '0')).join(''); store.set('mdr.dev', DEV);
 const devInfo = () => { const u = navigator.userAgent; return {device:DEV, deviceName:`${/iPhone|iPad/.test(u) ? 'آيفون' : /Android/.test(u) ? 'أندرويد' : 'كمبيوتر'} · ${/Edg/.test(u) ? 'Edge' : /Chrome/.test(u) ? 'Chrome' : /Safari/.test(u) ? 'Safari' : /Firefox/.test(u) ? 'Firefox' : 'متصفح'}`}; };
 const ERR = {
@@ -408,6 +411,7 @@ const newId = () => Date.now().toString(36) + rnd(5);
 
 /* ---------- modal ---------- */
 function modal(title, body, foot, wide){
+  body = pStamp(body);
   $('#modalRoot').innerHTML = `<div class="ov" data-ov><div class="dlg ${wide?'wide':''}" role="dialog" aria-modal="true" aria-label="${esc(title)}">
     <div class="dlg-h"><h3>${esc(title)}</h3><button class="x" data-act="close" aria-label="إغلاق">×</button></div>
     <div class="dlg-b">${body}</div>${foot ? `<div class="dlg-f">${foot}</div>` : ''}</div></div>`;
@@ -425,7 +429,7 @@ const fval = id => { const el = document.getElementById(id); return el ? el.valu
 function sigField(id, label, name){
   return `<div class="f full"><span class="lb">${esc(label)}</span>
     <div class="sigbox"><canvas id="${id}" aria-label="لوحة التوقيع"></canvas><div class="line"></div><span class="ph">وقّع هنا بالإصبع أو الفأرة</span></div>
-    <div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><span class="hint">${name ? 'الموقِّع: ' + esc(name) : ''}</span><button type="button" class="btn sm" data-sigclear="${id}">مسح التوقيع</button></div></div>`;
+    <div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><span class="hint">${name ? 'الموقِّع: ' + esc(name) : ''}</span><span style="display:flex;gap:6px">${PSIG_BY[id] && MODE === 'admin' && pSig() ? `<button type="button" class="btn sm" data-psig="${id}">توقيع المدير المحفوظ</button>` : ''}<button type="button" class="btn sm" data-sigclear="${id}">مسح التوقيع</button></span></div></div>`;
 }
 const pads = {};
 function mountSig(id){
@@ -440,9 +444,49 @@ function mountSig(id){
   const up = () => { down = false; }; c.addEventListener('pointerup', up); c.addEventListener('pointercancel', up);
   pad.clear = () => { ctx.save(); ctx.setTransform(1,0,0,1,0,0); ctx.clearRect(0,0,c.width,c.height); ctx.restore(); pad.dirty = false; };
   pad.data = () => { if (!pad.dirty) return null; const o = document.createElement('canvas'); o.width = 480; o.height = Math.round(480 * c.height / c.width); o.getContext('2d').drawImage(c, 0, 0, o.width, o.height); return o.toDataURL('image/png'); };
+  pad.useImg = src => { const im = new Image(); im.onload = () => { pad.clear(); const w = c.clientWidth, h = c.clientHeight, r = Math.min(w / im.width, h / im.height) * .92; ctx.drawImage(im, (w - im.width * r) / 2, (h - im.height * r) / 2, im.width * r, im.height * r); pad.dirty = true; c.parentElement.classList.add('signed'); }; im.src = src; };
   pads[id] = pad;
+  const by = PSIG_BY[id] && document.getElementById(PSIG_BY[id]);
+  if (by && MODE === 'admin' && pSig()) { const sync = () => by.value === 'مدير المدرسة' ? pad.useImg(pSig()) : pad.clear(); by.addEventListener('change', sync); sync(); }
 }
-document.addEventListener('click', e => { const b = e.target.closest('[data-sigclear]'); if (b) pads[b.dataset.sigclear]?.clear(); });
+document.addEventListener('click', e => { const b = e.target.closest('[data-sigclear]'); if (b) pads[b.dataset.sigclear]?.clear(); const u = e.target.closest('[data-psig]'); if (u && pSig()) pads[u.dataset.psig]?.useImg(pSig()); });
+const PSIG_BY = {sig_p:'n_by', sig_d:'d_by', sig_e:'e_by', sig_a:'a_by'};
+const pSig = () => (set().pSig || '');
+// يضع توقيع المدير المحفوظ في خانات «مدير المدرسة» الفارغة في المستندات وفي ذيل الخطابات
+function pStamp(html){
+  const src = pSig(); if (!src || typeof html !== 'string' || !html.includes('paper')) return html;
+  if (html.includes('data-nosig')) return html; // النماذج الفارغة للتعبئة اليدوية لا تُختم
+  const t = document.createElement('template'); t.innerHTML = html; let hit = false;
+  const img = () => `<img class="psig" src="${src}" alt="توقيع مدير المدرسة">`;
+  t.content.querySelectorAll('.paper .sigs .s').forEach(s => { const b = s.querySelector('b'); if (!b || b.textContent.trim() !== 'مدير المدرسة' || s.querySelector('img')) return;
+    const d = [...s.children].filter(x => x.tagName === 'DIV').pop(); if (d) { d.innerHTML = img(); d.className = 'pslot'; hit = true; } });
+  t.content.querySelectorAll('.paper .ltext').forEach(l => { if (!/مدير المدرسة/.test(l.textContent) || l.parentElement.querySelector('.psigl')) return;
+    if (/_{4,}/.test(l.textContent.split('\n').filter(x => !/توقيع|التوقيع/.test(x)).join('\n'))) return; /* خطاب فيه خانات لم تُعبّأ */ l.insertAdjacentHTML('afterend', `<div class="psigl">${img()}</div>`); hit = true; });
+  return hit ? t.innerHTML : html;
+}
+async function pSigUpload(file){
+  if (!file || !/^image\/|pdf$/.test(file.type || '') ) return toast('اختر صورة التوقيع (JPG أو PNG) أو ملف PDF', 'bad');
+  toast('جارٍ تجهيز التوقيع…');
+  let srcUrl;
+  if (/pdf$/.test(file.type)) { try { const lib = await loadPdf(); const pdf = await lib.getDocument({data:await file.arrayBuffer()}).promise; const pg = await pdf.getPage(1); const vp = pg.getViewport({scale:1.6}); const cv = document.createElement('canvas'); cv.width = vp.width; cv.height = vp.height; await pg.render({canvasContext:cv.getContext('2d'), viewport:vp}).promise; srcUrl = cv.toDataURL('image/png'); } catch(e){ return toast('تعذّرت قراءة ملف PDF، أرسل التوقيع صورة', 'bad'); } }
+  else srcUrl = URL.createObjectURL(file);
+  const im = new Image(); im.onload = async () => {
+    const sc = Math.min(1, 1600 / Math.max(im.width, im.height)), W = Math.round(im.width * sc), H = Math.round(im.height * sc);
+    const cv = document.createElement('canvas'); cv.width = W; cv.height = H; const x = cv.getContext('2d'); x.drawImage(im, 0, 0, W, H);
+    const d = x.getImageData(0, 0, W, H), a = d.data; let x0 = W, y0 = H, x1 = -1, y1 = -1;
+    for (let i = 0; i < a.length; i += 4) { const r = a[i], g = a[i+1], b = a[i+2], lum = .3*r + .59*g + .11*b, ink = Math.max(r, g, b) - Math.min(r, g, b) > 40 || lum < 150;
+      if (!ink) { a[i+3] = 0; continue; } const k = i / 4, px = k % W, py = (k - px) / W; if (px < x0) x0 = px; if (px > x1) x1 = px; if (py < y0) y0 = py; if (py > y1) y1 = py; }
+    if (x1 < 0) return toast('لم يُعثر على توقيع واضح في الصورة', 'bad');
+    x.putImageData(d, 0, 0); const pad = 12, cw = x1 - x0 + 1 + pad * 2, ch = y1 - y0 + 1 + pad * 2, k = Math.min(1, 520 / cw);
+    const o = document.createElement('canvas'); o.width = Math.round(cw * k); o.height = Math.round(ch * k); o.getContext('2d').drawImage(cv, x0 - pad, y0 - pad, cw, ch, 0, 0, o.width, o.height);
+    if (await put('settings/school', {pSig:o.toDataURL('image/png')}, true)) toast('حُفظ توقيع المدير، وسيظهر في المستندات');
+  };
+  im.onerror = () => toast('تعذّرت قراءة الصورة', 'bad'); im.src = srcUrl;
+}
+const pSigPanel = () => !isAdmin() ? '' : `<section class="panel"><h3>توقيع مدير المدرسة</h3><p class="sub">ارفع صورة التوقيع على ورقة بيضاء (أو ملف PDF)، فتُزال الخلفية تلقائيًا، ويظهر التوقيع في خانة «مدير المدرسة» في المحاضر والخطابات والنماذج، ويُعبّأ تلقائيًا عند الإصدار باسم مدير المدرسة.</p>
+  ${pSig() ? `<div class="psig-prev"><img src="${pSig()}" alt="توقيع مدير المدرسة"></div>` : '<div class="empty">لم يُرفع توقيع بعد.</div>'}
+  <div class="tools"><label class="btn pri" for="psig_f">${pSig() ? 'تغيير التوقيع' : 'رفع التوقيع'}</label><input id="psig_f" type="file" accept="image/*,application/pdf,.pdf" hidden>${pSig() ? '<button type="button" class="btn danger" data-act="pSigDel">إزالة التوقيع</button>' : ''}</div></section>`;
+document.addEventListener('change', e => { if (e.target.id === 'psig_f') pSigUpload(e.target.files[0]); });
 const sigImg = (s, h) => s && s.img ? `<img src="${esc(s.img)}" alt="توقيع ${esc(s.name||'')}" style="height:${h||54}px">` : '';
 
 /* ---------- uploads ---------- */
@@ -465,6 +509,7 @@ function saveBlob(filename, data, type){
   setTimeout(() => URL.revokeObjectURL(url), 4000); toast('تم تنزيل الملف');
 }
 function saveHtml(name, inner){
+  inner = pStamp(inner);
   if (inner.includes('<div class="pdfv" data-pdf=')) { toast('جارٍ تجهيز المستند…'); return pdfInline(inner).then(h => saveHtml(name, h)); }
   const html = `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(name)}</title><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;600;700&family=Readex+Pro:wght@600;700&display=swap"><style>body{margin:24px;background:#fff}${$('#docCss').textContent}@media print{body{margin:0}.paper{border:0}}</style></head><body>${inner}</body></html>`;
   saveBlob(name + '.html', html, 'text/html;charset=utf-8');
@@ -476,6 +521,7 @@ function saveCsv(name, rows){
 // على الجوال يطلق المتصفح afterprint قبل أن يرسم الصفحة، فلو مُسحت الورقة عندها تخرج الطباعة فارغة؛
 // لذلك تبقى الورقة في #printArea حتى الطباعة التالية، ولا تظهر على الشاشة أصلًا.
 function printDoc(inner){
+  inner = pStamp(inner);
   if (inner.includes('<div class="pdfv" data-pdf=')) { toast('جارٍ تجهيز المستند…'); return pdfInline(inner).then(printDoc); }
   const pa = $('#printArea'); pa.innerHTML = inner; document.body.classList.add('printing');
   if (navigator.standalone) { // تطبيق الشاشة الرئيسية في iPhone لا يدعم window.print
@@ -794,7 +840,7 @@ function vSettings(){
   const s = set(), ro = isAdmin() ? '' : 'disabled';
   const f = (id, label, val, type, hint) => `<div class="f"><label for="s_${id}">${label}</label><input id="s_${id}" ${type ? `type="${type}"` : ''} value="${esc(val||'')}" ${ro}${type==='tel'?' dir="ltr" inputmode="tel" placeholder="05xxxxxxxx"':''}>${hint ? `<span class="hint">${hint}</span>` : ''}</div>`;
   return head('الإعدادات', 'بيانات المدرسة وأرقام التواصل التي تظهر في النماذج ورسائل الواتساب.') +
-    `<form id="setForm" class="panel"><div class="fg">
+    `${pSigPanel()}<form id="setForm" class="panel"><div class="fg">
       ${f('school','اسم المدرسة', s.school)}
       ${f('region','الإدارة التعليمية', s.region, '', 'مثل: الإدارة العامة للتعليم بمنطقة الرياض')}
       ${f('year','العام الدراسي', s.year || '١٤٤٨هـ')}
@@ -1128,6 +1174,7 @@ function dlEnv(){
 
 /* ---------- actions ---------- */
 const ACT = {
+  pSigDel: () => confirmBox('إزالة التوقيع', 'لن يظهر توقيع المدير في المستندات بعد الآن.', 'إزالة', () => put('settings/school', {pSig:''}, true)),
   close: closeModal, tab: go,
   copy: (id, b) => copyText(b.dataset.v),
   nFilter: id => { UI.nFilter = id; render(true); }, pFilter: id => { UI.pFilter = id; render(true); }, cTab: id => { UI.cTab = id; render(true); },
@@ -1165,7 +1212,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('#modalR
 document.addEventListener('submit', async e => {
   if (e.target.id !== 'setForm') return; e.preventDefault();
   const keys = ['school','region','year','principal','phone','deputy','deputyPhone','schoolWa','controlHead','controlPhone','counselor','health','safety','periods','sem1Start','sem2Start','missLimit','absLimit','incLimit','emLimit','yearDays','parentsGroup','behD1','behD2','behD3','behD4','behD5','attAbs','attLate'];
-  const data = {}; keys.forEach(k => data[k] = fval('s_' + k));
+  const data = {}; keys.forEach(k => data[k] = fval('s_' + k)); if (set().pSig) data.pSig = set().pSig;
   if (await put('settings/school', data)) { UI.setDirty = false; toast('حُفظت الإعدادات'); }
 });
 document.addEventListener('input', e => { if (e.target.closest('#setForm')) UI.setDirty = true; });
@@ -1537,7 +1584,7 @@ function visitDoc(v){
     ${v.ver === 2 ? `<p class="lg">${V_REF}</p>` : ''}
     <div class="sigs"><div class="s">المعلم: ${esc(t.name || '')}<div></div></div><div class="s">${esc(v.byRole || 'مدير المدرسة')}: ${esc(v.byName || principal())}<div></div></div></div></div>`;
 }
-function visitBlank(){ return `<div class="paper">${docHead('نموذج زيارة صفية', '', '', dots(12))}
+function visitBlank(){ return `<div data-nosig class="paper">${docHead('نموذج زيارة صفية', '', '', dots(12))}
     <table><tr><th>المعلم</th><td></td><th>المادة</th><td></td></tr><tr><th>الصف / الفصل</th><td></td><th>الدرس</th><td></td></tr></table>
     <h4>بنود الزيارة</h4><table><tr><th style="width:auto">البند</th>${[4,3,2,1].map(n => `<th style="width:11%">${LEVEL[n]}</th>`).join('')}</tr>${VCRIT.map(c => `<tr><td>${c.t}</td><td></td><td></td><td></td><td></td></tr>`).join('')}</table>
     <h4>التوصيات</h4><p>${dots(160)}</p><p class="lg">${V_REF}</p>
@@ -2186,7 +2233,7 @@ Object.assign(ACT, {
   grPrint: () => printDoc(grDoc()), sigPrint: () => printDoc(sigDoc()),
   ctrlUnsign: id => confirmBox('إلغاء توقيع', `سيُلغى توقيع «${tName(id)}» ليعيد اعتماد مهامه.`, 'إلغاء التوقيع', () => del('ctrlsigns/' + id)),
   ctrlSign: ctrlSignForm,
-  fillRec: id => recForm(id), editRec: id => recForm(null, id), blankRec: id => printDoc(recDoc(recTpl(id), {})), viewRec,
+  fillRec: id => recForm(id), editRec: id => recForm(null, id), blankRec: id => printDoc(recDoc(recTpl(id), {}).replace('<div class="paper', '<div data-nosig class="paper')), viewRec,
   printRec: id => { const r = S.records.find(x => x.id === id); if (r) printDoc(recPaper(r)); },
   dlRec: id => { const r = S.records.find(x => x.id === id); if (r) saveHtml(r.title, recPaper(r)); },
   delRec: id => confirmBox('حذف من السجل', 'سيُحذف المحضر المحفوظ نهائيًا.', 'حذف', async () => { const sg = recSigsOf(id).map(x => x.id); await del('records/' + id); if (sg.length) await bulkPut('recsigns', [], sg).catch(() => {}); }),
