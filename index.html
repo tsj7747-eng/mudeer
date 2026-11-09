@@ -347,7 +347,7 @@ const MODE = T_ARG ? 'teacher' : hashArg('p') ? 'parent' : 'admin';
 document.documentElement.classList.toggle('portal', MODE !== 'admin');
 const KEY = T_ARG || hashArg('p');
 let token = store.get('mdr.token');
-const APP_VER = '4.9'; // ارفعه مع site/version.json في كل نشر
+const APP_VER = '4.9.1'; // ارفعه مع site/version.json في كل نشر
 const DEV = store.get('mdr.dev') || [...crypto.getRandomValues(new Uint8Array(16))].map(b => b.toString(16).padStart(2, '0')).join(''); store.set('mdr.dev', DEV);
 const devInfo = () => { const u = navigator.userAgent; return {device:DEV, deviceName:`${/iPhone|iPad/.test(u) ? 'آيفون' : /Android/.test(u) ? 'أندرويد' : 'كمبيوتر'} · ${/Edg/.test(u) ? 'Edge' : /Chrome/.test(u) ? 'Chrome' : /Safari/.test(u) ? 'Safari' : /Firefox/.test(u) ? 'Firefox' : 'متصفح'}`}; };
 const ERR = {
@@ -465,28 +465,32 @@ function pStamp(html){
   return hit ? t.innerHTML : html;
 }
 async function pSigUpload(file){
-  if (!file || !/^image\/|pdf$/.test(file.type || '') ) return toast('اختر صورة التوقيع (JPG أو PNG) أو ملف PDF', 'bad');
+  if (!file) return; const ext = (file.name.split('.').pop() || '').toLowerCase(), isPdf = /pdf$/.test(file.type || '') || ext === 'pdf';
+  if (!isPdf && !/^image\//.test(file.type || '') && !/^(jpe?g|png|webp|heic|heif|gif)$/.test(ext)) return toast('اختر صورة التوقيع (JPG أو PNG) أو ملف PDF', 'bad');
   toast('جارٍ تجهيز التوقيع…');
   let srcUrl;
-  if (/pdf$/.test(file.type)) { try { const lib = await loadPdf(); const pdf = await lib.getDocument({data:await file.arrayBuffer()}).promise; const pg = await pdf.getPage(1); const vp = pg.getViewport({scale:1.6}); const cv = document.createElement('canvas'); cv.width = vp.width; cv.height = vp.height; await pg.render({canvasContext:cv.getContext('2d'), viewport:vp}).promise; srcUrl = cv.toDataURL('image/png'); } catch(e){ return toast('تعذّرت قراءة ملف PDF، أرسل التوقيع صورة', 'bad'); } }
+  if (isPdf) { try { const lib = await loadPdf(); const pdf = await lib.getDocument({data:await file.arrayBuffer()}).promise; const pg = await pdf.getPage(1); const v1 = pg.getViewport({scale:1}), vp = pg.getViewport({scale:Math.min(2, 1800 / Math.max(v1.width, v1.height))}); const cv = document.createElement('canvas'); cv.width = vp.width; cv.height = vp.height; await pg.render({canvasContext:cv.getContext('2d'), viewport:vp}).promise; srcUrl = cv.toDataURL('image/png'); } catch(e){ return toast('تعذّرت قراءة ملف PDF، أرسل التوقيع صورة', 'bad'); } }
   else srcUrl = URL.createObjectURL(file);
   const im = new Image(); im.onload = async () => {
     const sc = Math.min(1, 1600 / Math.max(im.width, im.height)), W = Math.round(im.width * sc), H = Math.round(im.height * sc);
     const cv = document.createElement('canvas'); cv.width = W; cv.height = H; const x = cv.getContext('2d'); x.drawImage(im, 0, 0, W, H);
-    const d = x.getImageData(0, 0, W, H), a = d.data; let x0 = W, y0 = H, x1 = -1, y1 = -1;
-    for (let i = 0; i < a.length; i += 4) { const r = a[i], g = a[i+1], b = a[i+2], lum = .3*r + .59*g + .11*b, ink = Math.max(r, g, b) - Math.min(r, g, b) > 40 || lum < 150;
+    const d = x.getImageData(0, 0, W, H), a = d.data; let x0 = W, y0 = H, x1 = -1, y1 = -1, sat = 0;
+    for (let i = 0; i < a.length; i += 4) if (Math.max(a[i], a[i+1], a[i+2]) - Math.min(a[i], a[i+1], a[i+2]) > 50) sat++;
+    const colored = sat > 300; // حبر ملوّن (أزرق مثلًا): نأخذ اللون فقط ونتجاهل نقاط الورق الرمادية
+    for (let i = 0; i < a.length; i += 4) { const r = a[i], g = a[i+1], b = a[i+2], lum = .3*r + .59*g + .11*b, ch = Math.max(r, g, b) - Math.min(r, g, b), ink = colored ? ch > 50 : lum < 140;
       if (!ink) { a[i+3] = 0; continue; } const k = i / 4, px = k % W, py = (k - px) / W; if (px < x0) x0 = px; if (px > x1) x1 = px; if (py < y0) y0 = py; if (py > y1) y1 = py; }
     if (x1 < 0) return toast('لم يُعثر على توقيع واضح في الصورة', 'bad');
     x.putImageData(d, 0, 0); const pad = 12, cw = x1 - x0 + 1 + pad * 2, ch = y1 - y0 + 1 + pad * 2, k = Math.min(1, 520 / cw);
     const o = document.createElement('canvas'); o.width = Math.round(cw * k); o.height = Math.round(ch * k); o.getContext('2d').drawImage(cv, x0 - pad, y0 - pad, cw, ch, 0, 0, o.width, o.height);
-    if (await put('settings/school', {pSig:o.toDataURL('image/png')}, true)) toast('حُفظ توقيع المدير، وسيظهر في المستندات');
+    if (await put('settings/school', {pSig:o.toDataURL('image/png')}, true)) { render(true); toast('حُفظ توقيع المدير، وسيظهر في المستندات'); }
   };
-  im.onerror = () => toast('تعذّرت قراءة الصورة', 'bad'); im.src = srcUrl;
+  im.onerror = () => toast('تعذّرت قراءة الصورة. إن كانت بصيغة HEIC التقطها لقطة شاشة أو أرسلها PDF', 'bad'); im.src = srcUrl;
 }
 const pSigPanel = () => !isAdmin() ? '' : `<section class="panel"><h3>توقيع مدير المدرسة</h3><p class="sub">ارفع صورة التوقيع على ورقة بيضاء (أو ملف PDF)، فتُزال الخلفية تلقائيًا، ويظهر التوقيع في خانة «مدير المدرسة» في المحاضر والخطابات والنماذج، ويُعبّأ تلقائيًا عند الإصدار باسم مدير المدرسة.</p>
   ${pSig() ? `<div class="psig-prev"><img src="${pSig()}" alt="توقيع مدير المدرسة"></div>` : '<div class="empty">لم يُرفع توقيع بعد.</div>'}
-  <div class="tools"><label class="btn pri" for="psig_f">${pSig() ? 'تغيير التوقيع' : 'رفع التوقيع'}</label><input id="psig_f" type="file" accept="image/*,application/pdf,.pdf" hidden>${pSig() ? '<button type="button" class="btn danger" data-act="pSigDel">إزالة التوقيع</button>' : ''}</div></section>`;
-document.addEventListener('change', e => { if (e.target.id === 'psig_f') pSigUpload(e.target.files[0]); });
+  <div class="tools"><button type="button" class="btn pri" id="psig_btn">${pSig() ? 'تغيير التوقيع' : 'رفع التوقيع'}</button><input id="psig_f" type="file" accept="image/*,application/pdf,.pdf" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none">${pSig() ? '<button type="button" class="btn danger" data-act="pSigDel">إزالة التوقيع</button>' : ''}</div></section>`;
+document.addEventListener('change', e => { if (e.target.id === 'psig_f') { const f = e.target.files[0]; pSigUpload(f).catch(() => toast('تعذّر رفع التوقيع، حاول مرة أخرى', 'bad')); } });
+document.addEventListener('click', e => { if (e.target.closest('#psig_btn')) { const i = $('#psig_f'); if (i) { i.value = ''; i.click(); } } });
 const sigImg = (s, h) => s && s.img ? `<img src="${esc(s.img)}" alt="توقيع ${esc(s.name||'')}" style="height:${h||54}px">` : '';
 
 /* ---------- uploads ---------- */
@@ -1174,7 +1178,7 @@ function dlEnv(){
 
 /* ---------- actions ---------- */
 const ACT = {
-  pSigDel: () => confirmBox('إزالة التوقيع', 'لن يظهر توقيع المدير في المستندات بعد الآن.', 'إزالة', () => put('settings/school', {pSig:''}, true)),
+  pSigDel: () => confirmBox('إزالة التوقيع', 'لن يظهر توقيع المدير في المستندات بعد الآن.', 'إزالة', async () => { if (await put('settings/school', {pSig:''}, true)) render(true); }),
   close: closeModal, tab: go,
   copy: (id, b) => copyText(b.dataset.v),
   nFilter: id => { UI.nFilter = id; render(true); }, pFilter: id => { UI.pFilter = id; render(true); }, cTab: id => { UI.cTab = id; render(true); },
